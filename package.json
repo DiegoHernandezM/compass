@@ -23,7 +23,14 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.0",
+        "@fontsource/roboto": "^5.2.5",
         "@inertiajs/inertia": "^0.11.1",
-        "@inertiajs/inertia-react": "^0.8.1"
+        "@inertiajs/inertia-react": "^0.8.1",
+        "@mui/icons-material": "^7.1.0",
+        "@mui/material": "^7.1.0",
+        "@mui/styled-engine-sc": "^7.1.0",
+        "styled-components": "^6.1.18"
     }
 }
