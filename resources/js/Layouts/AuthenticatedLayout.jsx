@@ -104,6 +104,7 @@ export default function AuthenticatedLayout({ children }) {
                     onClose={handleDrawerToggle}
                     ModalProps={{ keepMounted: true }}
                     sx={{
+                        zIndex: (theme) => theme.zIndex.drawer + 1,
                         display: { xs: 'block', md: 'none' },
                         [`& .MuiDrawer-paper`]: {
                             width: drawerWidth,
