@@ -8,6 +8,9 @@ import { useState } from 'react';
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
 
+    const usera = usePage().props.auth.user;
+    console.log('User from Inertia:', usera);
+
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
