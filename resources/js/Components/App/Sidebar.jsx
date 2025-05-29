@@ -14,25 +14,40 @@ const Sidebar = () => {
 
   return (
     <Drawer
-      variant="permanent"
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
-      }}
-    >
-      <Toolbar>
-        <Typography variant="h6">ATP UNIVERSITY</Typography>
-      </Toolbar>
-      <List>
-        {menuItems.map((item) => (
-          <ListItem button key={item.label} component={Link} href={route(item.route)} method={item.method}>
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItem>
-        ))}
-      </List>
+        variant="permanent"
+        sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            [`& .MuiDrawer-paper`]: {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            margin: '16px 0 16px 16px', // margen izquierdo y vertical
+            borderRadius: '16px',       // esquinas redondeadas
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)', // sombra suave
+            backgroundColor: '#fff',    // fondo blanco
+            },
+        }}
+        >
+        <Toolbar>
+            <Typography variant="h6" noWrap>ATP COMPASS</Typography>
+        </Toolbar>
+        <List>
+            {menuItems.map((item) => (
+            <ListItem
+                button
+                key={item.label}
+                component={Link}
+                href={route(item.route)}
+                method={item.method}
+                sx={{ borderRadius: '8px', mx: 1, my: 0.5 }} // opcional: bordes redondeados por item
+            >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.label} />
+            </ListItem>
+            ))}
+        </List>
     </Drawer>
+
   );
 };
 
