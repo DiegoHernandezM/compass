@@ -70,17 +70,17 @@ export default function StudentLayout({ children }) {
               href="/student/progress"
             />
             <BottomNavigationAction
-              label="Salir"
-              value="logout"
-              icon={<LogoutIcon />}
-              onClick={handleLogout}
-            />
-            <BottomNavigationAction
               label="Perfil"
               value="/profile"
               icon={<PersonIcon />}
               component={Link}
               href="/profile"
+            />
+            <BottomNavigationAction
+              label="Salir"
+              value="logout"
+              icon={<LogoutIcon />}
+              onClick={handleLogout}
             />
           </BottomNavigation>
         </Box>
