@@ -15,9 +15,13 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
+});
+
+Route::middleware(['auth', 'role:student'])->group(function () {
+    Route::get('/student-dashboard', fn () => Inertia::render('StudentDashboard'))->name('student.dashboard');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -30,5 +34,14 @@ Route::get('/admin', [UserController::class, 'getAdmins'])->name('admin.index');
 Route::get('/student', [UserController::class, 'getStudents'])->name('students.index');
 
 //End Administrator Routes
+
+//Student Routes
+Route::middleware(['auth', 'role:student'])->group(function () {
+    Route::get('/student/subjects', fn () => dd('ok'));
+    Route::get('/student/mock-test', fn () => dd('ok'));
+    Route::get('/student/progress', fn () => dd('ok'));
+});
+
+//End Student Routes
 
 require __DIR__.'/auth.php';
