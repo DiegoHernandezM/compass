@@ -31,6 +31,7 @@
         "@mui/icons-material": "^7.1.0",
         "@mui/material": "^7.1.1",
         "@mui/styled-engine-sc": "^7.1.0",
+        "@mui/x-data-grid": "^8.5.0",
         "styled-components": "^6.1.18"
     }
 }

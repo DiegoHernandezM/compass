@@ -18,9 +18,9 @@ class UserController extends Controller
     public function getAdmins() 
     {
         try {
-            $users = $this->service->getAdmins();
+            $administrators = $this->service->getAdmins();
             return Inertia::render('Admin/Administrators/Index', [
-                'users' => $users
+                'administrators' => $administrators
             ]);
         } catch(\Exception $e) {
             return $e->getMessage();
