@@ -109,10 +109,9 @@ export default function Prev({ content }) {
                 controls
                 style={{ borderRadius: '12px' }}
               >
-                <source src={`/storage/${content.video_path}`} type="video/mp4" />
+                <source src={`/storage/${content?.video_path}`} type="video/mp4" />
                 Tu navegador no soporta video.
               </video>
-
             </ContainerFrame>
           </Grid>
 

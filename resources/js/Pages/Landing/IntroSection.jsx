@@ -71,7 +71,7 @@ export default function IntroSection() {
         sx={{ position: 'relative', zIndex: 2 }}
       >
         {/* Video */}
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} md={6}>
           <ContainerFrame>
             <video
               width="100%"
@@ -79,17 +79,15 @@ export default function IntroSection() {
               controls
               style={{ borderRadius: '12px' }}
             >
-              <source src={`/storage/${content.video_path}`} type="video/mp4" />
+              <source src={`/storage/${content?.video_path}`} type="video/mp4" />
               Tu navegador no soporta video.
             </video>
-
           </ContainerFrame>
         </Grid>
 
         {/* Texto */}
-        <Grid item xs={12} sm={6}>
-          <Box textAlign="center">
-
+        <Grid item xs={12} md={6}>
+          <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
             <img
               src="/assets/logos/ais-normal.png"
               alt="Aviation In Sight Logo"
@@ -121,14 +119,13 @@ export default function IntroSection() {
             </Typography>
 
             <Box
-              className={`animate__animated ${triggerAnimation ? 'animate__fadeIn' : ''
-                }`}
+              className={`animate__animated ${triggerAnimation ? 'animate__fadeIn' : ''}`}
               sx={{
                 opacity: triggerAnimation ? 1 : 0,
                 mt: 2,
               }}
             >
-              <Box display="flex" justifyContent="center" gap={2}>
+              <Box display="flex" justifyContent={{ xs: 'center', md: 'start' }} gap={2}>
                 <Tooltip title="Chrome">
                   <BrandIcon
                     alt="Chrome"
@@ -140,7 +137,7 @@ export default function IntroSection() {
                   <BrandIcon
                     alt="Android"
                     src="/assets/logos/android.png"
-                    style={{ width: '70px' }}
+                    style={{ width: '70px', background: '#fff' }}
                   />
                 </Tooltip>
                 <Tooltip title="Apple">
