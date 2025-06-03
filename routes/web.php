@@ -1,8 +1,6 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\LandingContentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,14 +14,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/landing', [LandingContentController::class, 'edit'])->name('landing.edit');
-    Route::post('/admin/landing', [LandingContentController::class, 'update'])->name('landing.update');
-});
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
-});
 
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/student-dashboard', fn () => Inertia::render('StudentDashboard'))->name('student.dashboard');
@@ -35,17 +26,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-//Administrator Routes
-Route::get('/admin', [UserController::class, 'getAdmins'])->name('admin.index');
-Route::get('/student', [UserController::class, 'getStudents'])->name('students.index');
-
-//End Administrator Routes
-
+//Admin Routes
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    require base_path('routes/admin/admin.php');
+});
 //Student Routes
 Route::middleware(['auth', 'role:student'])->group(function () {
-    Route::get('/student/subjects', fn () => dd('ok'));
-    Route::get('/student/mock-test', fn () => dd('ok'));
-    Route::get('/student/progress', fn () => dd('ok'));
+    require base_path('routes/student/student.php');
 });
 
 //End Student Routes

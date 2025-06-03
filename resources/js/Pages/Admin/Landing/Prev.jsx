@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, Button, Avatar, useTheme, Tooltip, Grid } from '@mui/material';
+import { Box, Typography, Button, Avatar, useTheme, Tooltip, Grid, Container } from '@mui/material';
 import { Link, usePage } from '@inertiajs/react';
 import { styled } from '@mui/material/styles';
 import { ArrowForward } from '@mui/icons-material';
