@@ -36,7 +36,7 @@ export default function AuthenticatedLayout({ children }) {
           top: 24,
           left: isMobile ? 16 : drawerWidth + 24,
           right: 24,
-          width: isMobile ? `calc(100% - 32px)` : `calc(100% - ${drawerWidth + 48}px)`,
+          width: isMobile ? `calc(100% - 32px)` : `calc(100% - ${drawerWidth + 28}px)`,
           borderRadius: '12px',
           backgroundColor: '#ffffff',
           color: '#333',
@@ -52,7 +52,6 @@ export default function AuthenticatedLayout({ children }) {
               </IconButton>
             )}
             <Typography variant="h6" noWrap>
-              Dashboard
             </Typography>
           </Box>
           <div>

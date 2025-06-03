@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, TextField, Button, Typography, Card, CardContent } from '@mui/material';
+import { Box, AppBar, TextField, Button, Typography, Card, CardContent, Dialog, Toolbar, IconButton, Slide, List, ListItemButton, ListItemText, Divider } from '@mui/material';
 import { Inertia } from '@inertiajs/inertia';
 import { Head } from '@inertiajs/react';
+import CloseIcon from '@mui/icons-material/Close';
 
 import { usePage } from '@inertiajs/react';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Prev from './Prev';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 export default function Edit({ landingContent }) {
   const successMessage = usePage().props?.flash?.success ?? null;
   const [open, setOpen] = useState(!!successMessage);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const [form, setForm] = useState({
     main_title: landingContent.main_title || '',
@@ -51,6 +58,14 @@ export default function Edit({ landingContent }) {
     });
   };
 
+  const handleClickOpen = () => {
+    setOpenDialog(true);
+  };
+
+  const handleClose = () => {
+    setOpenDialog(false);
+  };
+
   return (
     <AuthenticatedLayout
       header={
@@ -76,7 +91,7 @@ export default function Edit({ landingContent }) {
             Administración de Landing
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button type="button" variant="contained">
+            <Button type="button" variant="contained" onClick={handleClickOpen}>
               Previsualización
             </Button>
           </Box>
@@ -110,6 +125,34 @@ export default function Edit({ landingContent }) {
           </form>
         </CardContent>
       </Card>
+      <Dialog
+        fullScreen
+        open={openDialog}
+        onClose={handleClose}
+        slots={{
+          transition: Transition,
+        }}
+      >
+        <AppBar sx={{ position: 'relative' }}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={handleClose}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              Previsualización
+            </Typography>
+            <Button autoFocus color="inherit" onClick={handleClose}>
+              CERRAR
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <Prev content={form} />
+      </Dialog>
     </AuthenticatedLayout>
   );
 }
