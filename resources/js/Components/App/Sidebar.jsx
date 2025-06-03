@@ -7,6 +7,7 @@ const drawerWidth = 240;
 const Sidebar = ({ onClickItem }) => {
   const menuItems = [
     { label: 'Dashboard', icon: <Dashboard />, route: 'dashboard' },
+    { label: 'Landing', icon: <Settings />, route: 'landing.edit' },
     { label: 'Administradores', icon: <Group />, route: 'admin.index' },
     { label: 'Estudiantes', icon: <School />, route: 'students.index' },
     { label: 'Salir', icon: <Logout />, route: 'logout', method: 'post' },

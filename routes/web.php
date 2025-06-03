@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\LandingContentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -13,6 +14,11 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/landing', [LandingContentController::class, 'edit'])->name('landing.edit');
+    Route::post('/admin/landing', [LandingContentController::class, 'update'])->name('landing.update');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

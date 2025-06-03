@@ -73,23 +73,28 @@ export default function IntroSection() {
         {/* Video */}
         <Grid item xs={12} sm={6}>
           <ContainerFrame>
-            <VideoFrame>
-              <iframe
-                width="100%"
-                height="100%"
-                src={content?.link_video || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </VideoFrame>
+            <video
+              width="100%"
+              height="auto"
+              controls
+              style={{ borderRadius: '12px' }}
+            >
+              <source src={`/storage/${content.video_path}`} type="video/mp4" />
+              Tu navegador no soporta video.
+            </video>
+
           </ContainerFrame>
         </Grid>
 
         {/* Texto */}
         <Grid item xs={12} sm={6}>
           <Box textAlign="center">
+
+            <img
+              src="/assets/logos/ais-normal.png"
+              alt="Aviation In Sight Logo"
+              style={{ width: '180px', marginBottom: '16px' }}
+            />
 
             <Typography variant="h4" fontWeight="bold" gutterBottom>
               {content?.subtitle}
@@ -127,22 +132,22 @@ export default function IntroSection() {
                 <Tooltip title="Chrome">
                   <BrandIcon
                     alt="Chrome"
-                    src="/static/img/brands/chrome.png"
-                    style={{ width: '40px' }}
+                    src="/assets/logos/chrome.png"
+                    style={{ width: '70px' }}
                   />
                 </Tooltip>
                 <Tooltip title="Android">
                   <BrandIcon
                     alt="Android"
-                    src="/static/img/brands/android.png"
-                    style={{ width: '40px', background: '#FFF' }}
+                    src="/assets/logos/android.png"
+                    style={{ width: '70px' }}
                   />
                 </Tooltip>
                 <Tooltip title="Apple">
                   <BrandIcon
                     alt="Apple"
-                    src="/static/img/brands/appleinc.png"
-                    style={{ width: '22px' }}
+                    src="/assets/logos/apple.png"
+                    style={{ width: '70px' }}
                   />
                 </Tooltip>
               </Box>
