@@ -1,0 +1,1 @@
+import{J as m,I as a}from"./Box-Djc5ibp0.js";import{g as p}from"./isMuiElement-BTr_-IJH.js";const i=m();function n({props:t,name:r,defaultTheme:o,themeId:s}){let e=a(o);return s&&(e=e[s]||e),p({theme:e,name:r,props:t})}export{i as s,n as u};
