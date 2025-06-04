@@ -25,8 +25,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Vite
-/public/build/
-/resources/js/**/*.map
+
 
 # VScode / IDEs
 .vscode/
