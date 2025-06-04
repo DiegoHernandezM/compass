@@ -38,18 +38,19 @@ export default function AdminForm({ open, onClose, admin = null }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const payload = {
       ...form,
       role: 'admin',
     };
-
     if (admin) {
-      Inertia.put(route('admins.update', admin.id), payload);
+      const id = admin.id;
+      Inertia.post(route('admins.update', id), {
+        ...payload,
+        _method: 'PUT',
+      });
     } else {
       Inertia.post(route('admins.store'), payload);
     }
-
     onClose();
   };
 

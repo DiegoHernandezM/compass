@@ -1,17 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Box, Button, Stack } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
+import { Inertia } from '@inertiajs/inertia';
 import AdminForm from '../../../Components/Forms/AdminForm';
+
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 export default function Administrators() {
   const { administrators } = usePage().props;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const successMessage = usePage().props?.flash?.success ?? null;
+  const [open, setOpen] = useState(!!successMessage);
+
+  useEffect(() => {
+    if (successMessage) {
+      setOpen(true);
+    }
+  }, [successMessage]);
 
   const handleEdit = (admin) => {
     setSelectedAdmin(admin);
@@ -51,6 +63,7 @@ export default function Administrators() {
 
   const handleDelete = (id) => {
     if (confirm('¿Estás seguro de eliminar este administrador?')) {
+      console.log('Eliminar administrador con ID:', id);
       Inertia.delete(route('admins.destroy', id));
     }
   };
@@ -64,7 +77,16 @@ export default function Administrators() {
       }
     >
       <Head title="Administradores" />
-
+      <Snackbar
+        open={open}
+        autoHideDuration={4000}
+        onClose={() => setOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={() => setOpen(false)} severity="success" sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
       <Box p={4}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
           <Button

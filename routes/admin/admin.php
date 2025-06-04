@@ -11,8 +11,8 @@ Route::get('/admin/landing', [LandingContentController::class, 'edit'])->name('l
 Route::post('/admin/landing', [LandingContentController::class, 'update'])->name('landing.update');
 
 Route::get('/admin', [UserController::class, 'getAdmins'])->name('admin.index');
-Route::get('admins/create', [AdminController::class, 'create'])->name('admins.create');
-Route::get('admins/{admin}/edit', [AdminController::class, 'edit'])->name('admins.edit');
-Route::delete('admins/{admin}', [AdminController::class, 'destroy'])->name('admins.destroy');
+Route::post('admins/store', [UserController::class, 'store'])->name('admins.store');
+Route::put('admins/update/{id}', [UserController::class, 'update'])->name('admins.update');
+Route::delete('admins/{admin}', [UserController::class, 'destroy'])->name('admins.destroy');
 
 Route::get('/student', [UserController::class, 'getStudents'])->name('students.index');
