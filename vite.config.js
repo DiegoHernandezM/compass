@@ -20,4 +20,12 @@ export default defineConfig({
             },
         },
     },
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'resources/js'),  // Define el alias '@'
+        },
+    },
+    optimizeDeps: {
+        include: ['@pqina/flip'],
+    },
 });
