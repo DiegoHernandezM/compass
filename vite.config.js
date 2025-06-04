@@ -10,4 +10,11 @@ export default defineConfig({
         }),
         react(),
     ],
+    build: {
+        outDir: 'public/build',
+        manifest: true,
+        rollupOptions: {
+            input: 'resources/js/app.jsx',
+        },
+    },
 });
