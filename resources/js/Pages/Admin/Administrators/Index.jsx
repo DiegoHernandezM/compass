@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Box, Button, Stack } from '@mui/material';
@@ -5,10 +6,22 @@ import { DataGrid } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
-
+import AdminForm from '../../../Components/Forms/AdminForm';
 
 export default function Administrators() {
   const { administrators } = usePage().props;
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
+
+  const handleEdit = (admin) => {
+    setSelectedAdmin(admin);
+    setDrawerOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedAdmin(null);
+    setDrawerOpen(true);
+  };
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 90 },
@@ -21,12 +34,7 @@ export default function Administrators() {
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <IconButton
-            component={Link}
-            href={route('admins.edit', params.row.id)}
-            color="primary"
-            size="small"
-          >
+          <IconButton onClick={() => handleEdit(params.row)} color="primary">
             <EditIcon />
           </IconButton>
           <IconButton
@@ -62,8 +70,7 @@ export default function Administrators() {
           <Button
             variant="contained"
             color="primary"
-            component={Link}
-            href={route('admins.create')}
+            onClick={handleCreate}
           >
             Crear nuevo administrador
           </Button>
@@ -80,6 +87,7 @@ export default function Administrators() {
           />
         </Box>
       </Box>
+      <AdminForm open={drawerOpen} onClose={() => setDrawerOpen(false)} admin={selectedAdmin} />
     </AuthenticatedLayout>
   );
 }
