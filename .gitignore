@@ -21,3 +21,4 @@ yarn-error.log
 /.idea
 /.vscode
 **/.DS_Store
+vite.config.js
