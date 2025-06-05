@@ -21,4 +21,16 @@ export default defineConfig({
         },
     },
     base: '/build/',
+    server: {
+         host: 'localhost',
+         port: 5173,
+         origin: 'http://localhost:5173',
+         proxy: {
+              '/': {
+                  target: 'http://compass.test', // o tu dominio local del backend
+                  changeOrigin: true,
+                  secure: false,
+               },
+         },
+      },
 });
