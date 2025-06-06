@@ -1,13 +1,13 @@
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material';
-import { Dashboard, Group, Person, Settings, School, Logout } from '@mui/icons-material';
+import { Dashboard, Group, Person, Settings, School, Logout, AutoStories } from '@mui/icons-material';
 import { Link } from '@inertiajs/react';
-
 const drawerWidth = 240;
 
 const Sidebar = ({ onClickItem }) => {
   const menuItems = [
     { label: 'Dashboard', icon: <Dashboard />, route: 'dashboard' },
     { label: 'Landing', icon: <Settings />, route: 'landing.edit' },
+    { label: 'Materias', icon: <AutoStories />, route: 'subject.index' },
     { label: 'Administradores', icon: <Group />, route: 'admin.index' },
     { label: 'Estudiantes', icon: <School />, route: 'students.index' },
     { label: 'Salir', icon: <Logout />, route: 'logout', method: 'post' },

@@ -21,7 +21,7 @@ class SubjectController extends Controller
     public function index()
     {
         $subjects = $this->service->getAll();
-        return Inertia::render('Subjects/Index', [
+        return Inertia::render('Admin/Subject/Index', [
             'subjects' => $subjects,
         ]);
     }
@@ -33,6 +33,7 @@ class SubjectController extends Controller
     {
         try {
             $data = $request->validated();
+            dd($data);
             $this->service->createSubject($data);
             return redirect()->back()->with('success', 'Materia creada con éxito.');
         } catch (\Exception $e) {

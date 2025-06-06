@@ -27,7 +27,7 @@ Route::middleware('auth')->group(function () {
 });
 
 //Admin Routes
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['web','auth', 'role:admin'])->group(function () {
     require base_path('routes/admin/admin.php');
 });
 //Student Routes

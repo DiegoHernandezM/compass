@@ -21,16 +21,16 @@ class SubjectRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = [
+
+        $subjectId = $this->route('id');
+        return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048', // max 2MB
+            'image' => [
+                $this->isMethod('post') ? 'required' : 'nullable',
+                'image',
+                'max:2048',
+            ],
         ];
-
-        if ($this->isMethod('put') || $this->isMethod('patch')) {
-            $rules['image'] = 'nullable|image|max:2048';
-        }
-
-        return $rules;
     }
 }

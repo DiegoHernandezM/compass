@@ -22,3 +22,4 @@ yarn-error.log
 /.vscode
 **/.DS_Store
 vite.config.js
+/resources/views/app.blade.php
