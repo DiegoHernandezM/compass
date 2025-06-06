@@ -37,4 +37,6 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 
 //End Student Routes
 
+require base_path('routes/paypal/paypal.php');
+
 require __DIR__.'/auth.php';
