@@ -1,0 +1,1 @@
+import{J as m,I as a}from"./Box-BeGD1Dop.js";import{g as p}from"./isMuiElement-CCkF4BF0.js";const i=m();function n({props:t,name:r,defaultTheme:o,themeId:s}){let e=a(o);return s&&(e=e[s]||e),p({theme:e,name:r,props:t})}export{i as s,n as u};

@@ -1,50 +1,24 @@
-# Laravel
-/vendor/
-.env
-.env.*.php
-.phpunit.result.cache
-/storage/*.key
-/storage/app/public
-/storage/debugbar
-/storage/framework/cache
-/storage/framework/sessions
-/storage/framework/views
-/storage/logs
-
-# Laravel 12 config cache
-/bootstrap/cache/*.php
-/public/storage
+/.phpunit.cache
+/node_modules
 /public/hot
-/public/mix-manifest.json
-
-# Node
-/node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Vite
-/public/build/
-/resources/js/**/*.map
-
-# VScode / IDEs
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# MacOS / Windows / Linux system files
-.DS_Store
-Thumbs.db
-
-# Optional: Ignorar archivos de testing temporales
-tests/Browser/screenshots/
-tests/Browser/console/
-
-# Optional: Ignore composer.lock or package-lock.json if you prefer fresh installs
-# composer.lock
-# package-lock.json
-
-# Optional: Ignorar íconos de PWA
-/public/icons/
+/public/storage
+/storage/*.key
+/storage/.DS_Store
+/resources/js/.DS_Store
+/resources/.DS_Store
+/vendor
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+**/.DS_Store
+vite.config.js
