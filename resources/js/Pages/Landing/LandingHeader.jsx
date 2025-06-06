@@ -27,6 +27,15 @@ export default function LandingHeader() {
       >
         Iniciar sesión
       </Button>
+
+      <Button
+        component={Link}
+        href={route('register')}
+        color="inherit"
+        sx={{ textTransform: 'none' }}
+      >
+        Registrar
+      </Button>
     </Box>
   );
 }
