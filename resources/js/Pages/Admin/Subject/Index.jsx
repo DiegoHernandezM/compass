@@ -34,6 +34,7 @@ export default function Subject() {
     setSelectedSubject(null);
     setDrawerOpen(true);
   };
+  
 
   const columns = [
     { field: 'name', headerName: 'Nombre', flex: 1 },
