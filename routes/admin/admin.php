@@ -2,7 +2,7 @@
 use Inertia\Inertia;
 use App\Http\Controllers\LandingContentController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\StudentController;
+use App\Http\Controllers\SubjectController;
 
 // Dashboard Routes for Admin
 Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
@@ -16,8 +16,10 @@ Route::post('admins/store', [UserController::class, 'store'])->name('admins.stor
 Route::put('admins/update/{id}', [UserController::class, 'update'])->name('admins.update');
 Route::delete('admins/{admin}', [UserController::class, 'destroy'])->name('admins.destroy');
 
-Route::get('/student', [StudentController::class, 'index'])->name('students.index');
-Route::post('/student/store', [StudentController::class, 'store'])->name('students.store');
-Route::put('/student/update/{id}', [StudentController::class, 'update'])->name('students.update');
-Route::delete('/student/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
-Route::put('/student/{student}', [StudentController::class, 'restore'])->name('students.restore');
+Route::get('/student', [UserController::class, 'getStudents'])->name('students.index');
+
+// Subject Routes
+Route::get('/admin/subject', [SubjectController::class, 'index'])->name('subject.index');
+Route::post('/admin/subject/store', [SubjectController::class, 'store'])->name('subject.store');
+Route::post('/admin/subject/update/{id}', [SubjectController::class, 'update'])->name('subject.update');
+Route::delete('/admin/subject/destroy/{id}', [SubjectController::class, 'destroy'])->name('subject.destroy');
