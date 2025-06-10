@@ -21,17 +21,21 @@ export default function SubjectForm({ open, onClose, subject = null }) {
     if (subject) {
       setForm({
         name: subject.name || '',
-        desciption: subject.desciption || '',
+        description: subject.description || '',
         image: null,
       });
     } else {
-      setForm({ name: '', desciption: '', image: null });
+      setForm({ name: '', description: '', image: null });
     }
   }, [subject]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, type, files, value } = e.target;
+    if (type === 'file') {
+      setForm((prev) => ({ ...prev, [name]: files[0] }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -72,8 +76,8 @@ export default function SubjectForm({ open, onClose, subject = null }) {
           <TextField
             fullWidth
             label="Descripción"
-            name="desciption"
-            value={form.desciption}
+            name="description"
+            value={form.description}
             onChange={handleChange}
             margin="normal"
           />

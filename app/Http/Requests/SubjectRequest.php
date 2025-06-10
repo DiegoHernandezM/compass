@@ -21,7 +21,6 @@ class SubjectRequest extends FormRequest
      */
     public function rules(): array
     {
-
         $subjectId = $this->route('id');
         return [
             'name' => 'required|string|max:255',
@@ -29,6 +28,7 @@ class SubjectRequest extends FormRequest
             'image' => [
                 $this->isMethod('post') ? 'required' : 'nullable',
                 'image',
+                'mimes:jpg,jpeg,png,gif',
                 'max:2048',
             ],
         ];

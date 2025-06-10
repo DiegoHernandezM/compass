@@ -33,7 +33,6 @@ class SubjectController extends Controller
     {
         try {
             $data = $request->validated();
-            dd($data);
             $this->service->createSubject($data);
             return redirect()->back()->with('success', 'Materia creada con éxito.');
         } catch (\Exception $e) {

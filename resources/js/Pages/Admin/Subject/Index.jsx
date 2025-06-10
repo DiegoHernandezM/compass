@@ -36,10 +36,23 @@ export default function Subject() {
   };
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 90 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'description', headerName: 'Descripcion', flex: 1 },
-    { field: 'image', headerName: 'Imagen', flex: 1 },
+    {
+      field: 'image',
+      headerName: 'Imagen',
+      flex: 1,
+      renderCell: (params) => {
+        const imageUrl = `/storage/${params.row.image}`;
+        return (
+          <img
+            src={imageUrl}
+            alt="Imagen de materia"
+            style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 8 }}
+          />
+        );
+      }
+    },
     {
       field: 'actions',
       headerName: 'Acciones',
@@ -64,7 +77,6 @@ export default function Subject() {
 
   const handleDelete = (id) => {
     if (confirm('¿Estás seguro de eliminar esta materia?')) {
-      console.log('Eliminar materia con ID:', id);
       Inertia.delete(route('subjet.destroy', id));
     }
   };
