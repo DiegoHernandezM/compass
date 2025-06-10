@@ -67,4 +67,12 @@ class SubjectController extends Controller
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    public function getSubjects()
+    {
+        $subjects = $this->service->getAll();
+        return Inertia::render('Student/Subject/Index', [
+            'subjects' => $subjects,
+        ]);
+    }
 }
