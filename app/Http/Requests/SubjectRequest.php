@@ -25,6 +25,7 @@ class SubjectRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'color' => 'nullable|string',
             'image' => [
                 $this->isMethod('post') ? 'required' : 'nullable',
                 'image',

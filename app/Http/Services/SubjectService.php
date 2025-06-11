@@ -36,6 +36,8 @@ class SubjectService
                 Storage::disk('public')->delete($subject->image);
             }
             $data['image'] = $data['image']->store('subjects', 'public');
+        } else {
+            unset($data['image']);
         }
         $subject->update($data);
     }
