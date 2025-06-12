@@ -40,7 +40,8 @@ class StudentRequest extends FormRequest
             'country' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:20'],
             'school' => ['nullable', 'string', 'max:100'],
-            'role' => ['required', Rule::in(['admin', 'student'])]
+            'role' => ['required', Rule::in(['admin', 'student'])],
+            'expires_at' => ['nullable', 'date'],
         ];
     }
 

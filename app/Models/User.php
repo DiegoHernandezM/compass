@@ -53,4 +53,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(PayPalUser::class)->orderBy('id', 'desc');
     }
+
+    public function paypal_user()
+    {
+        return $this->hasOne(PaypalUser::class);
+    }
 }

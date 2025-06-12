@@ -15,6 +15,7 @@ import { Inertia } from '@inertiajs/inertia';
 import { useTheme } from '@mui/material/styles';
 
 export default function StudentForm({ open, onClose, student = null }) {
+  const today = new Date().toISOString().split("T")[0];
   const theme = useTheme();
   const [form, setForm] = useState({
     name: '',
@@ -28,6 +29,7 @@ export default function StudentForm({ open, onClose, student = null }) {
     city: '',
     country: '',
     school: '',
+    expires_at: ''
   });
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export default function StudentForm({ open, onClose, student = null }) {
         city: student.city || '',
         country: student.country || '',
         school: student.school || '',
+        expires_at: student.user?.paypal_user?.expires_at.substring(0, 10) || '',
       });
     } else {
       setForm({
@@ -57,6 +60,7 @@ export default function StudentForm({ open, onClose, student = null }) {
         city: '',
         country: '',
         school: '',
+        expires_at: ''
       });
     }
   }, [student]);
@@ -133,6 +137,7 @@ export default function StudentForm({ open, onClose, student = null }) {
             onChange={handleChange}
             margin="normal"
             InputLabelProps={{ shrink: true }}
+            inputProps={{ max: today }}
           />
           <InputLabel id="gender-label">Género</InputLabel>
           <Select
@@ -193,6 +198,17 @@ export default function StudentForm({ open, onClose, student = null }) {
             value={form.school}
             onChange={handleChange}
             margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Fecha de expiración"
+            name="expires_at"
+            type="date"
+            value={form.expires_at}
+            onChange={handleChange}
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ min: today }}
           />
           <Button
             type="submit"
