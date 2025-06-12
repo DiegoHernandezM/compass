@@ -26,7 +26,7 @@ export default function Subjects() {
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance < 0.5; // true si es oscuro
+    return luminance < 0.5;
   };
 
   return (
@@ -43,7 +43,7 @@ export default function Subjects() {
               <Grid
                 item
                 key={subject.id}
-                xs={6} // 6 columnas de 12 → 2 por fila
+                xs={6}
                 sm={4}
                 md={3}
                 lg={3}

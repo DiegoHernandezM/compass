@@ -38,7 +38,7 @@ export default function AuthenticatedLayout({ children }) {
           right: 24,
           width: isMobile ? `calc(100% - 32px)` : `calc(100% - ${drawerWidth + 28}px)`,
           borderRadius: '12px',
-          backgroundColor: '#ffffff',
+          backgroundColor: '#203764',
           color: '#333',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
           px: 2,
@@ -55,7 +55,7 @@ export default function AuthenticatedLayout({ children }) {
             </Typography>
           </Box>
           <div>
-            <IconButton onClick={handleMenu} color="inherit">
+            <IconButton onClick={handleMenu} color="inherit" style={{ color: 'white' }}>
               <MenuIcon />
             </IconButton>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
@@ -86,6 +86,8 @@ export default function AuthenticatedLayout({ children }) {
                 margin: '16px 0 16px 16px',
                 borderRadius: '16px',
                 boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
+                backgroundColor: '#203764',
+                color: 'white',
               },
             }}
             open
@@ -108,6 +110,7 @@ export default function AuthenticatedLayout({ children }) {
             [`& .MuiDrawer-paper`]: {
               width: drawerWidth,
               borderRadius: '0 16px 16px 0',
+              color: 'white'
             },
           }}
         >

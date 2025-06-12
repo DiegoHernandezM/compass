@@ -5,12 +5,12 @@ const drawerWidth = 240;
 
 const Sidebar = ({ onClickItem }) => {
   const menuItems = [
-    { label: 'Dashboard', icon: <Dashboard />, route: 'dashboard' },
-    { label: 'Landing', icon: <Settings />, route: 'landing.edit' },
-    { label: 'Materias', icon: <AutoStories />, route: 'subject.index' },
-    { label: 'Administradores', icon: <Group />, route: 'admin.index' },
-    { label: 'Estudiantes', icon: <School />, route: 'students.index' },
-    { label: 'Salir', icon: <Logout />, route: 'logout', method: 'post' },
+    { label: 'Dashboard', icon: <Dashboard sx={{color: 'white'}} />, route: 'dashboard' },
+    { label: 'Landing', icon: <Settings sx={{color: 'white'}} />, route: 'landing.edit' },
+    { label: 'Materias', icon: <AutoStories sx={{color: 'white'}} />, route: 'subject.index' },
+    { label: 'Administradores', icon: <Group sx={{color: 'white'}} />, route: 'admin.index' },
+    { label: 'Estudiantes', icon: <School sx={{color: 'white'}} />, route: 'students.index' },
+    { label: 'Salir', icon: <Logout sx={{color: 'white'}} />, route: 'logout', method: 'post' },
   ];
 
   return (
