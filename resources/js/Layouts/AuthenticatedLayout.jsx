@@ -47,7 +47,7 @@ export default function AuthenticatedLayout({ children }) {
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {isMobile && (
-              <IconButton edge="start" color="inherit" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
+              <IconButton edge="start" color="inherit" onClick={handleDrawerToggle} sx={{ mr: 2, color:'white' }}>
                 <MenuIcon />
               </IconButton>
             )}
@@ -87,7 +87,6 @@ export default function AuthenticatedLayout({ children }) {
                 borderRadius: '16px',
                 boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
                 backgroundColor: '#203764',
-                color: 'white',
               },
             }}
             open
@@ -110,8 +109,9 @@ export default function AuthenticatedLayout({ children }) {
             [`& .MuiDrawer-paper`]: {
               width: drawerWidth,
               borderRadius: '0 16px 16px 0',
-              color: 'white'
-            },
+              color: 'white',
+              backgroundColor: '#203764'
+            }
           }}
         >
           {drawer}
