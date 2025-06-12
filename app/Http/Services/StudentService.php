@@ -2,6 +2,7 @@
 
 namespace App\Http\Services;
 
+use App\Models\PayPalUser;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -11,24 +12,28 @@ use Exception;
 
 class StudentService
 {
-    protected $model;
+    protected $mStudent;
+    protected $mUser;
+    protected $mPaypal;
 
     public function __construct()
     {
-        $this->model = new Student();
+        $this->mStudent = new Student();
+        $this->mUser = new User();
+        $this->mPaypal = new PayPalUser();
     }
 
     public function getStudents()
     {
-        return $this->model
-            ->with(['user' => fn ($query) => $query->withTrashed()])
+        return $this->mStudent
+            ->with(['user' => fn ($query) => $query->withTrashed()->with('paypal_user')])
             ->withTrashed()
             ->get();
     }
 
     public function getStudentById($id)
     {
-        return $this->model
+        return $this->mStudent
             ->with(['user' => fn ($query) => $query->withTrashed()])
             ->withTrashed()
             ->findOrFail($id);
@@ -37,14 +42,15 @@ class StudentService
     public function createStudent(array $data)
     {
         // Crear el usuario
-        $user = User::create([
+        $user = $this->mUser->create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
         $user->assignRole($data['role']);
+
         // Crear el estudiante
-        $student = $this->model->create([
+        $student = $this->mStudent->create([
             'user_id' => $user->id,
             'name' => $data['name'],
             'birthdate' => $data['birthdate'] ?? null,
@@ -56,12 +62,40 @@ class StudentService
             'school' => $data['school'] ?? null,
             'phone' => $data['phone'] ?? null,
         ]);
+
+        if (array_key_exists('expires_at', $data) && $student->user_id) {
+            $expiresDate = $data['expires_at'];
+            if (strlen($expiresDate) === 10) {
+                $expiresDate .= ' ' . now()->format('H:i:s');
+            }
+            $addressArray = [
+                'address_line_1' => $data['address'] ?? null,
+                'address_line_2' => null,
+                'admin_area_2' => $data['city'] ?? null,
+                'postal_code' => $data['zip_code'] ?? null,
+                'country_code' => 'MX',
+            ];
+
+            $this->mPaypal->updateOrCreate(
+                ['user_id' => $student->user_id],
+                [
+                    'address' => json_encode($addressArray),
+                    'expires_at' => $expiresDate,
+                    'create_time' => now(),
+                    'updated_at' => now(),
+                    'status' => $data['status'] ?? 'COMPLETED',
+                ]
+            );
+        }
+
         return $student->load('user');
     }
 
     public function updateStudent($id, array $data)
     {
         $student = $this->getStudentById($id);
+
+        // Actualiza los campos del estudiante
         $student->update([
             'name' => $data['name'] ?? $student->name,
             'birthdate' => $data['birthdate'] ?? $student->birth_date,
@@ -73,6 +107,8 @@ class StudentService
             'phone' => $data['phone'] ?? $student->phone,
             'school' => $data['school'] ?? $student->school,
         ]);
+
+        // Si el usuario existe, actualiza sus datos
         if ($student->user) {
             $student->user->name = $data['name'] ?? $student->user->name;
             $student->user->email = $data['email'] ?? $student->user->email;
@@ -81,8 +117,25 @@ class StudentService
             }
             $student->user->save();
         }
+
+        if (array_key_exists('expires_at', $data) && $student->user_id) {
+            $expiresDate = $data['expires_at'];
+            if (strlen($expiresDate) === 10) {
+                $expiresDate .= ' ' . now()->format('H:i:s');
+            }
+
+            $this->mPaypal->updateOrCreate(
+                ['user_id' => $student->user_id],
+                [
+                    'expires_at' => $expiresDate,
+                    'updated_at' => now()
+                ]
+            );
+        }
+
         return $student->load('user');
     }
+
 
     public function deleteStudent($id)
     {
@@ -97,7 +150,7 @@ class StudentService
 
     public function restoreStudent($id)
     {
-        $student = $this->model->withTrashed()->findOrFail($id);
+        $student = $this->mStudent->withTrashed()->findOrFail($id);
         $user = $student->user()->withTrashed()->first();
         $student->restore();
         if ($user) {

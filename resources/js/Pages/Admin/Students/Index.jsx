@@ -62,10 +62,10 @@ export default function Students() {
       flex: 1,
     },
     {
-      field: 'user',
+      field: 'user_email',
       headerName: 'Correo',
       flex: 1.5,
-      valueGetter: (params) => params?.email,
+      renderCell: (params) => (params?.row?.user?.email || ''),
     },
     { field: 'birthdate', headerName: 'Fecha Nacimiento', flex: 1 },
     { field: 'gender', headerName: 'Género', flex: 1 },
@@ -75,6 +75,15 @@ export default function Students() {
     { field: 'city', headerName: 'Ciudad', flex: 1 },
     { field: 'country', headerName: 'País', flex: 1 },
     { field: 'school', headerName: 'Escuela', flex: 1 },
+    {
+      field: 'user_expires_at',
+      headerName: 'Fecha Expiración',
+      flex: 1,
+      renderCell: (params) => {
+        const expiresAt = params?.row?.user?.paypal_user?.expires_at;
+        return expiresAt ? expiresAt.substring(0, 10) : '';
+      }
+    },
     {
       field: 'actions',
       headerName: 'Acciones',
