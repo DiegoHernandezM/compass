@@ -67,7 +67,13 @@ export default function Subjects() {
                       <Typography gutterBottom variant="h5" component="div">
                         {subject.name}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: 'text.secondary',
+                          mt: 2,
+                          color: isDarkColor(subject.color) ? '#fff' : '#000'
+                        }}>
                         {subject.description}
                       </Typography>
                     </CardContent>

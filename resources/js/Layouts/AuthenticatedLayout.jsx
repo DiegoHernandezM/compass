@@ -86,6 +86,7 @@ export default function AuthenticatedLayout({ children }) {
                 margin: '16px 0 16px 16px',
                 borderRadius: '16px',
                 boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
+                color: 'white',
                 backgroundColor: '#203764',
               },
             }}
