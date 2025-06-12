@@ -39,4 +39,25 @@ class UserRequest extends FormRequest
             'role' => ['required', Rule::in(['admin', 'student'])]
         ];
     }
+
+    public function messages()
+    {
+        return [
+            'name.required' => 'El nombre es obligatorio.',
+            'name.string' => 'El nombre debe ser una cadena de texto.',
+            'name.max' => 'El nombre no debe exceder los 255 caracteres.',
+
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe tener un formato válido.',
+            'email.max' => 'El correo electrónico no debe exceder los 255 caracteres.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.string' => 'La contraseña debe ser una cadena de texto.',
+            'password.min' => 'La contraseña debe tener al menos 4 caracteres.',
+
+            'role.required' => 'El rol es obligatorio.',
+            'role.in' => 'El rol seleccionado no es válido. Debe ser "admin" o "student".',
+        ];
+    }
 }

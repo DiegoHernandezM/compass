@@ -38,7 +38,7 @@ export default function AuthenticatedLayout({ children }) {
           right: 24,
           width: isMobile ? `calc(100% - 32px)` : `calc(100% - ${drawerWidth + 28}px)`,
           borderRadius: '12px',
-          backgroundColor: '#ffffff',
+          backgroundColor: '#203764',
           color: '#333',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
           px: 2,
@@ -47,7 +47,7 @@ export default function AuthenticatedLayout({ children }) {
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {isMobile && (
-              <IconButton edge="start" color="inherit" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
+              <IconButton edge="start" color="inherit" onClick={handleDrawerToggle} sx={{ mr: 2, color:'white' }}>
                 <MenuIcon />
               </IconButton>
             )}
@@ -55,7 +55,7 @@ export default function AuthenticatedLayout({ children }) {
             </Typography>
           </Box>
           <div>
-            <IconButton onClick={handleMenu} color="inherit">
+            <IconButton onClick={handleMenu} color="inherit" style={{ color: 'white' }}>
               <MenuIcon />
             </IconButton>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
@@ -86,6 +86,8 @@ export default function AuthenticatedLayout({ children }) {
                 margin: '16px 0 16px 16px',
                 borderRadius: '16px',
                 boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
+                color: 'white',
+                backgroundColor: '#203764',
               },
             }}
             open
@@ -108,7 +110,9 @@ export default function AuthenticatedLayout({ children }) {
             [`& .MuiDrawer-paper`]: {
               width: drawerWidth,
               borderRadius: '0 16px 16px 0',
-            },
+              color: 'white',
+              backgroundColor: '#203764'
+            }
           }}
         >
           {drawer}

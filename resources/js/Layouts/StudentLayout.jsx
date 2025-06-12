@@ -39,6 +39,7 @@ export default function StudentLayout({ children }) {
               width: 'max-content',
               minWidth: '100%',
               display: 'flex',
+              backgroundColor: '#203764',
             }}
           >
             <BottomNavigationAction
@@ -47,6 +48,12 @@ export default function StudentLayout({ children }) {
               icon={<HomeIcon />}
               component={Link}
               href="/student-dashboard"
+              sx={{
+                color: 'white',
+                '&.Mui-selected': {
+                  color: 'white',
+                },
+              }}
             />
             <BottomNavigationAction
               label="Materias"
@@ -54,6 +61,12 @@ export default function StudentLayout({ children }) {
               icon={<MenuBookIcon />}
               component={Link}
               href="/student/subjects"
+              sx={{
+                color: 'white',
+                '&.Mui-selected': {
+                  color: 'white',
+                },
+              }}
             />
             <BottomNavigationAction
               label="Simulacro"
@@ -61,6 +74,12 @@ export default function StudentLayout({ children }) {
               icon={<QuizIcon />}
               component={Link}
               href="/student/mock-test"
+              sx={{
+                color: 'white',
+                '&.Mui-selected': {
+                  color: 'white',
+                },
+              }}
             />
             <BottomNavigationAction
               label="Resultados"
@@ -68,6 +87,12 @@ export default function StudentLayout({ children }) {
               icon={<InsightsIcon />}
               component={Link}
               href="/student/progress"
+              sx={{
+                color: 'white',
+                '&.Mui-selected': {
+                  color: 'white',
+                },
+              }}
             />
             <BottomNavigationAction
               label="Perfil"
@@ -75,12 +100,24 @@ export default function StudentLayout({ children }) {
               icon={<PersonIcon />}
               component={Link}
               href="/profile"
+              sx={{
+                color: 'white',
+                '&.Mui-selected': {
+                  color: 'white',
+                },
+              }}
             />
             <BottomNavigationAction
               label="Salir"
               value="logout"
               icon={<LogoutIcon />}
               onClick={handleLogout}
+              sx={{
+                color: 'white',
+                '&.Mui-selected': {
+                  color: 'white',
+                },
+              }}
             />
           </BottomNavigation>
         </Box>

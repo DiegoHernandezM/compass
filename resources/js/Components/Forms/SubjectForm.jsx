@@ -14,6 +14,7 @@ export default function SubjectForm({ open, onClose, subject = null }) {
   const [form, setForm] = useState({
     name: '',
     desciption: '',
+    color: '#ff0000',
     image: null,
   });
 
@@ -22,6 +23,7 @@ export default function SubjectForm({ open, onClose, subject = null }) {
       setForm({
         name: subject.name || '',
         description: subject.description || '',
+        color: subject.color || '',
         image: null,
       });
     } else {
@@ -80,6 +82,14 @@ export default function SubjectForm({ open, onClose, subject = null }) {
             value={form.description}
             onChange={handleChange}
             margin="normal"
+          />
+          <Typography variant="subtitle2" gutterBottom>Color</Typography>
+          <input
+            type="color"
+            name="color"
+            value={form.color}
+            onChange={handleChange}
+            style={{ width: '100%', height: 40, border: 'none' }}
           />
           <input
             type="file"

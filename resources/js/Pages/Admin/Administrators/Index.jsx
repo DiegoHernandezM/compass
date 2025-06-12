@@ -8,22 +8,29 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import { Inertia } from '@inertiajs/inertia';
 import AdminForm from '../../../Components/Forms/AdminForm';
-
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import SuccessAlert from '../../../Components/SuccessAlert';
+import ValidationErrorAlert from '@/Components/ValidationErrorAlert';
 
 export default function Administrators() {
+  const { errors, flash } = usePage().props;
   const { administrators } = usePage().props;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const successMessage = usePage().props?.flash?.success ?? null;
-  const [open, setOpen] = useState(!!successMessage);
+  const [openSuccess, setOpenSuccess] = useState(!!successMessage);
+  const [openError, setOpenError] = useState(false);
 
   useEffect(() => {
     if (successMessage) {
-      setOpen(true);
+      setOpenSuccess(true);
     }
   }, [successMessage]);
+
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      setOpenError(true);
+    }
+  }, [errors]);
 
   const handleEdit = (admin) => {
     setSelectedAdmin(admin);
@@ -77,16 +84,17 @@ export default function Administrators() {
       }
     >
       <Head title="Administradores" />
-      <Snackbar
-        open={open}
-        autoHideDuration={4000}
-        onClose={() => setOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert onClose={() => setOpen(false)} severity="success" sx={{ width: '100%' }}>
-          {successMessage}
-        </Alert>
-      </Snackbar>
+      <SuccessAlert
+        open={openSuccess}
+        onClose={() => setOpenSuccess(false)}
+        message={successMessage}
+      />
+
+      <ValidationErrorAlert
+        open={openError}
+        onClose={() => setOpenError(false)}
+        errors={errors}
+      />
       <Box p={4}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
           <Button
