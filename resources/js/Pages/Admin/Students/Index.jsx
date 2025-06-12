@@ -8,19 +8,29 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import { Inertia } from '@inertiajs/inertia';
 import StudentForm from '@/Components/Forms/StudentForm';
+import SuccessAlert from '../../../Components/SuccessAlert';
+import ValidationErrorAlert from '@/Components/ValidationErrorAlert';
 
 export default function Students() {
+  const { errors, flash } = usePage().props;
   const { students } = usePage().props;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const successMessage = usePage().props?.flash?.success ?? null;
-  const [open, setOpen] = useState(!!successMessage);
+  const [openSuccess, setOpenSuccess] = useState(!!successMessage);
+  const [openError, setOpenError] = useState(false);
 
   useEffect(() => {
     if (successMessage) {
-      setOpen(true);
+      setOpenSuccess(true);
     }
   }, [successMessage]);
+
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      setOpenError(true);
+    }
+  }, [errors]);
 
   const handleEdit = (student) => {
     setSelectedStudent(student);
@@ -106,16 +116,17 @@ export default function Students() {
     >
       <Head title="Estudiantes" />
 
-      <Snackbar
-        open={open}
-        autoHideDuration={4000}
-        onClose={() => setOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert onClose={() => setOpen(false)} severity="success" sx={{ width: '100%' }}>
-          {successMessage}
-        </Alert>
-      </Snackbar>
+      <SuccessAlert
+        open={openSuccess}
+        onClose={() => setOpenSuccess(false)}
+        message={successMessage}
+      />
+
+      <ValidationErrorAlert
+        open={openError}
+        onClose={() => setOpenError(false)}
+        errors={errors}
+      />
 
       <Box p={4}>
         <Box display="flex" justifyContent="flex-end" mb={2}>
