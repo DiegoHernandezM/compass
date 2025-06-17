@@ -3,7 +3,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\LandingContentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubjectController;
-use App\Http\Controllers\StudentController;
+use App\Http\Controllers\QuestionController;
 
 // Dashboard Routes for Admin
 Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
@@ -29,3 +29,10 @@ Route::get('/admin/subject', [SubjectController::class, 'index'])->name('subject
 Route::post('/admin/subject/store', [SubjectController::class, 'store'])->name('subject.store');
 Route::put('/admin/subject/update/{id}', [SubjectController::class, 'update'])->name('subject.update');
 Route::delete('/admin/subject/destroy/{id}', [SubjectController::class, 'destroy'])->name('subject.destroy');
+
+// Question Routes
+Route::get('/admin/question', [QuestionController::class, 'index'])->name('question.index');
+Route::get('/admin/question/subject/{id}', [QuestionController::class, 'getQuestions'])->name('question.subject');
+Route::post('/admin/question/store', [QuestionController::class,'store'])->name('question.store');
+Route::put('/admin/question/update/{id}', [QuestionController::class, 'update'])->name('question.update');
+Route::delete('/admin/question/destroy/{id}', [QuestionController::class, 'destroy'])->name('question.destroy');

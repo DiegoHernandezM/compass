@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Subject extends Model
 {
@@ -21,5 +22,17 @@ class Subject extends Model
     public function setDescriptionAttribute($value)
     {
         $this->attributes['description'] = strtoupper($value);
+    }
+
+    public function questions()
+    {
+        return $this->hasMany(Question::class);
+    }
+
+    protected function questionsCount()
+    {
+        return Attribute::get(function () {
+            return $this->questions()->count();
+        });
     }
 }
