@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Services\QuestionService;
 use App\Http\Services\SubjectService;
+use App\Http\Requests\QuestionRequest;
 use Inertia\Inertia;
 
 class QuestionController extends Controller
@@ -69,7 +70,7 @@ class QuestionController extends Controller
     public function destroy($id)
     {
         try {
-            $this->service->delete($question);
+            $this->service->delete($id);
             return redirect()->back()->with('success', 'Pregunta eliminada.');    
         } catch(\Exception $e) {
             return redirect()->back()->with('error', 'Error al eliminar la pregunta.');

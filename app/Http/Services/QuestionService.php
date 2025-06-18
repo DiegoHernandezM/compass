@@ -31,7 +31,8 @@ class QuestionService
     public function create(array $data)
     {
         if (isset($data['feedback_image'])) {
-            $data['feedback_image'] = $data['feedback_image']->store('feedback', 's3');
+            // $data['feedback_image'] = $data['feedback_image']->store('feedback', 's3');
+            $data['feedback_image'] = 'se/guarda/en/s3';
         }
 
         return $this->model->create($data);
@@ -52,7 +53,7 @@ class QuestionService
     {
         $question = $this->model->find($id);
         if ($question->feedback_image) {
-            Storage::disk('s3')->delete($question->feedback_image);
+            // Storage::disk('s3')->delete($question->feedback_image);
         }
         $question->delete();
     }

@@ -16,8 +16,7 @@ import Stack from '@mui/material/Stack';
 import { Inertia } from '@inertiajs/inertia';
 import axios from 'axios';
 
-export default function QuestionsDialog({ open, onClose, subject }) {
-  console.log(subject);
+export default function QuestionsDialog({ open, onClose, subject, handleEditQuestion, handleDelete }) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +55,7 @@ export default function QuestionsDialog({ open, onClose, subject }) {
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <IconButton onClick={() => handleEdit(params.row)} color="primary">
+          <IconButton onClick={() => handleEditQuestion(params.row)} color="primary">
             <EditIcon />
           </IconButton>
           <IconButton

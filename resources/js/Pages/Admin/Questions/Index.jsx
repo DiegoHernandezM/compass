@@ -3,12 +3,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
 import { Box, Button, Stack } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
 import { Inertia } from '@inertiajs/inertia';
-import QuestionForm from '../../../Components/Forms/SubjectForm';
+import QuestionForm from '../../../Components/Forms/QuestionForm';
 import QuestionDialog from '../../../Components/Dialog/QuestionsDialog';
 import SuccessAlert from '../../../Components/SuccessAlert';
 import ValidationErrorAlert from '@/Components/ValidationErrorAlert';
@@ -39,10 +38,15 @@ export default function Questions() {
     }
   }, [errors]);
 
-  const handleEdit = (question) => {
-    setSelectedQuestion(question);
+  const handleEdit = (subject) => {
+    setSelectedSubject(subject);
     setDrawerOpen(true);
   };
+
+  const handleEditQuestion = (question) => {
+    setSelectedQuestion(question);
+    setDrawerOpen(true);
+  }
 
   const handleSowQuestions = (subject) => {
     setSelectedSubject(subject);
@@ -52,6 +56,18 @@ export default function Questions() {
   const handleCreate = () => {
     setSelectedQuestion(null);
     setDrawerOpen(true);
+  };
+
+  const handleClose = () => {
+    setDrawerOpen(false);
+    setSelectedQuestion(null);
+    setSelectedSubject(null);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setSelectedQuestion(null);
+    setSelectedSubject(null);
   };
 
 
@@ -78,7 +94,7 @@ export default function Questions() {
 
   const handleDelete = (id) => {
     if (confirm('¿Estás seguro de eliminar esta pregunta?')) {
-      Inertia.delete(route('subject.destroy', id));
+      Inertia.delete(route('question.destroy', id));
     }
   };
 
@@ -126,8 +142,8 @@ export default function Questions() {
           />
         </Box>
       </Box>
-      <QuestionForm open={drawerOpen} onClose={() => setDrawerOpen(false)} subjects={subjects} />
-      <QuestionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} subject={selectedSubject} />
+      <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
+      <QuestionDialog open={dialogOpen} onClose={handleCloseDialog} subject={selectedSubject} handleEditQuestion={handleEditQuestion} handleDelete={handleDelete} />
       
     </AuthenticatedLayout>
   );
