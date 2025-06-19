@@ -16,7 +16,7 @@ import Stack from '@mui/material/Stack';
 import { Inertia } from '@inertiajs/inertia';
 import axios from 'axios';
 
-export default function QuestionsDialog({ open, onClose, subject, handleEditQuestion, handleDelete }) {
+export default function QuestionsDialog({ open, onClose, subject, handleEditQuestion, handleDelete, handleExport }) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
 

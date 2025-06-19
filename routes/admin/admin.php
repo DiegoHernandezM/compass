@@ -4,6 +4,7 @@ use App\Http\Controllers\LandingContentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\StudentController;
 
 // Dashboard Routes for Admin
 Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
@@ -36,3 +37,5 @@ Route::get('/admin/question/subject/{id}', [QuestionController::class, 'getQuest
 Route::post('/admin/question/store', [QuestionController::class,'store'])->name('question.store');
 Route::put('/admin/question/update/{id}', [QuestionController::class, 'update'])->name('question.update');
 Route::delete('/admin/question/destroy/{id}', [QuestionController::class, 'destroy'])->name('question.destroy');
+Route::post('/admin/question/import', [QuestionController::class,'import'])->name('question.import');
+Route::get('/admin/question/export/{subjectId}',[QuestionController::class,'exportExcel'])->name('question.export');

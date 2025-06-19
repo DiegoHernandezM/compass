@@ -9,6 +9,7 @@ import IconButton from '@mui/material/IconButton';
 import { Inertia } from '@inertiajs/inertia';
 import QuestionForm from '../../../Components/Forms/QuestionForm';
 import QuestionDialog from '../../../Components/Dialog/QuestionsDialog';
+import ImportQuestionDialog from '../../../Components/Dialog/ImportQuestionDialog';
 import SuccessAlert from '../../../Components/SuccessAlert';
 import ValidationErrorAlert from '@/Components/ValidationErrorAlert';
 
@@ -17,9 +18,10 @@ export default function Questions() {
   const { questions, subjects } = usePage().props;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
-  
+
   const successMessage = usePage().props?.flash?.success ?? null;
 
   const [openSuccess, setOpenSuccess] = useState(!!successMessage);
@@ -70,6 +72,13 @@ export default function Questions() {
     setSelectedSubject(null);
   };
 
+  const handleOpenImport = () => {
+    setImportOpen(true);
+  };
+
+  const handleExport = (subjectId) => {
+    Inertia.get(route('question.export', subjectId));
+  };
 
   const columns = [
     { field: 'name', headerName: 'Materia', flex: 0.5 },
@@ -125,7 +134,7 @@ export default function Questions() {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleCreate}
+            onClick={handleOpenImport}
           >
             Importar Cuestionario
           </Button>
@@ -143,8 +152,24 @@ export default function Questions() {
         </Box>
       </Box>
       <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
-      <QuestionDialog open={dialogOpen} onClose={handleCloseDialog} subject={selectedSubject} handleEditQuestion={handleEditQuestion} handleDelete={handleDelete} />
-      
+      <QuestionDialog 
+        open={dialogOpen} 
+        onClose={handleCloseDialog} 
+        subject={selectedSubject} 
+        handleEditQuestion={handleEditQuestion} 
+        handleDelete={handleDelete}
+      />
+      <ImportQuestionDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        subjects={subjects}
+        onImport={(formData) => {
+          Inertia.post(route('question.import'), formData, {
+            forceFormData: true,
+          });
+        }}
+        handleExport={handleExport}
+      />
     </AuthenticatedLayout>
   );
 }

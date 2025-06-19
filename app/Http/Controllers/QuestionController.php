@@ -7,6 +7,8 @@ use App\Http\Services\QuestionService;
 use App\Http\Services\SubjectService;
 use App\Http\Requests\QuestionRequest;
 use Inertia\Inertia;
+use App\Exports\QuestionsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class QuestionController extends Controller
 {
@@ -74,6 +76,25 @@ class QuestionController extends Controller
             return redirect()->back()->with('success', 'Pregunta eliminada.');    
         } catch(\Exception $e) {
             return redirect()->back()->with('error', 'Error al eliminar la pregunta.');
+        }
+    }
+
+    public function import(Request $request)
+    {
+        try {
+            $this->service->import($request->file('file'), $request->subject_id);
+            return redirect()->back()->with('success', 'Preguntas importadas con éxito.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al importar las preguntas.');
+        }
+    }
+
+    public function exportExcel($subjectId)
+    {
+        try {
+            return Excel::download(new QuestionsExport($subjectId), 'preguntas_materia_imagenes.xlsx');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error al exportar las preguntas.');
         }
     }
 }
