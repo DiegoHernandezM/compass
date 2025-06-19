@@ -75,8 +75,15 @@ export default function ImportQuestionsDialog({ open, onClose, subjects, onImpor
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => handleExport(subjectId)}>Exportar Concentrado</Button>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button onClick={() => {
+          handleExport(subjectId);
+          setSubjectId(null);
+          }}
+          >Exportar Concentrado</Button>
+        <Button onClick={() => {
+          onClose
+          setSubjectId(null)
+        }}>Cancelar</Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
