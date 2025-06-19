@@ -16,7 +16,7 @@ class SubjectService
 
     public function getAll()
     {
-        return $this->model->all();
+        return $this->model->withCount('questions')->get();
     }
 
     public function createSubject($data)
