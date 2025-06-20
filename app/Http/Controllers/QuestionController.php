@@ -8,6 +8,7 @@ use App\Http\Services\SubjectService;
 use App\Http\Requests\QuestionRequest;
 use Inertia\Inertia;
 use App\Exports\QuestionsExport;
+use App\Imports\QuestionsImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class QuestionController extends Controller
@@ -82,9 +83,10 @@ class QuestionController extends Controller
     public function import(Request $request)
     {
         try {
-            $this->service->import($request->file('file'), $request->subject_id);
+            Excel::import(new QuestionsImport($request->subject_id), $request->hasFile('file') ? $request->file('file') : $request->file);
             return redirect()->back()->with('success', 'Preguntas importadas con éxito.');
         } catch (\Exception $e) {
+            dd($e->getMessage());
             return redirect()->back()->with('error', 'Error al importar las preguntas.');
         }
     }

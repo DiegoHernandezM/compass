@@ -81,8 +81,8 @@ export default function ImportQuestionsDialog({ open, onClose, subjects, onImpor
           }}
           >Exportar Concentrado</Button>
         <Button onClick={() => {
-          onClose
-          setSubjectId(null)
+          onClose();
+          setSubjectId(null);
         }}>Cancelar</Button>
         <Button
           variant="contained"
