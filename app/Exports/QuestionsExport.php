@@ -15,15 +15,13 @@ class QuestionsExport implements FromCollection, WithHeadings, WithMapping, With
     protected $subjectId;
     protected $rowIndex = 2;
     protected $drawings = [];
+    protected $tmpFiles = [];
 
     public function __construct($subjectId)
     {
         $this->subjectId = $subjectId;
     }
 
-    /**
-    * @return \Illuminate\Support\Collection
-    */
     public function collection()
     {
         return Question::where('subject_id', $this->subjectId)->get();
@@ -46,50 +44,49 @@ class QuestionsExport implements FromCollection, WithHeadings, WithMapping, With
 
     public function map($question): array
     {
-        try {
-            if ($question->feedback_image && Storage::disk('s3')->exists($question->feedback_image)) {
-                $tmpDir = storage_path('app/tmp');
-                
-                if (!is_dir($tmpDir)) {
-                    mkdir($tmpDir, 0755, true);
-                }
-    
-                $tmpPath = $tmpDir . '/' . basename($question->feedback_image);
-                file_put_contents($tmpPath, Storage::disk('s3')->get($question->feedback_image));
-    
-                $drawing = new Drawing();
-                $drawing->setName('Feedback Image');
-                $drawing->setDescription('Feedback Image');
-                $drawing->setPath($tmpPath);
-                $drawing->setHeight(60);
-                $drawing->setCoordinates('H' . $this->rowIndex);
-                $this->drawings[] = $drawing;
-            }
-    
-            $this->rowIndex++;
-    
-            return [
-                $question->question,
-                $question->answer_a,
-                $question->answer_b,
-                $question->answer_c,
-                $question->answer_d,
-                $question->correct_answer,
-                $question->feedback_text,
-                '', // aquí va la celda de imagen
-                $question->has_dynamic ? 'TRUE' : 'FALSE',
-            ];
-        } catch (\Exception $e) {
-            dd($e->getMessage());
-            return [
-                'Error al obtener la imagen: ' . $e->getMessage(),
-            ];
+        if ($question->feedback_image && Storage::disk('s3')->exists($question->feedback_image)) {
+            $tmpPath = storage_path('app/tmp/' . basename($question->feedback_image));
+            file_put_contents($tmpPath, Storage::disk('s3')->get($question->feedback_image));
+            
+            // Guarda para eliminar luego
+            $this->tmpFiles[] = $tmpPath;
+
+            $drawing = new Drawing();
+            $drawing->setName('Feedback Image');
+            $drawing->setDescription('Feedback Image');
+            $drawing->setPath($tmpPath);
+            $drawing->setHeight(60);
+            $drawing->setCoordinates('H' . $this->rowIndex);
+            $this->drawings[] = $drawing;
         }
-        
+
+        $this->rowIndex++;
+
+        return [
+            $question->question,
+            $question->answer_a,
+            $question->answer_b,
+            $question->answer_c,
+            $question->answer_d,
+            $question->correct_answer,
+            $question->feedback_text,
+            '',
+            $question->has_dynamic ? 'TRUE' : 'FALSE',
+        ];
     }
 
     public function drawings()
     {
         return $this->drawings;
+    }
+
+    public function __destruct()
+    {
+        // Limpia todos los archivos temporales al final
+        foreach ($this->tmpFiles as $file) {
+            if (file_exists($file)) {
+                @unlink($file);
+            }
+        }
     }
 }
