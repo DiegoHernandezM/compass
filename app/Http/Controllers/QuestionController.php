@@ -93,7 +93,6 @@ class QuestionController extends Controller
             $spreadsheet = IOFactory::load($file);
             $sheet = $spreadsheet->getActiveSheet();
             $drawings = $sheet->getDrawingCollection();
-
             // Subir imágenes y asociarlas con la fila
             $imagesByRow = [];
 
