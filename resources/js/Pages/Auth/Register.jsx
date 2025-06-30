@@ -30,6 +30,7 @@ export default function Register() {
   const [clientId, setClientId] = useState(null);
   const [user, setUser] = useState([]);
   const [userPassword, setUserPassword] = useState('');
+  const isRenovation = false;
 
   useEffect(() => {
     fetch('/paypal-client-id')
@@ -245,7 +246,7 @@ export default function Register() {
           <div className="w-full py-8 px-2 relative">
             <div className="w-full py-8 px-2 relative" style={{ maxWidth: "750px", minHeight: "200px" }}>
               <br />
-              <PayPalComponent user={user} clientId={clientId} password={userPassword} />
+              <PayPalComponent user={user} clientId={clientId} password={userPassword} isRenovation={isRenovation} />
             </div>
           </div>
         )}

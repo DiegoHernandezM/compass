@@ -2,7 +2,7 @@ import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@pa
 import { Alert, CircularProgress } from "@mui/material";
 import { useState } from 'react';
 
-export default function PayPalComponent({ user, clientId, password }) {
+export default function PayPalComponent({ user, clientId, password = "", isRenovation }) {
   const [successMessage, setSuccessMessage] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const style = { "layout": "vertical" };
@@ -54,7 +54,7 @@ export default function PayPalComponent({ user, clientId, password }) {
 
               const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-              fetch('/paypal/paypal-payment', {
+              fetch(isRenovation ? '/paypal/paypal-payment-renovation' : '/paypal/paypal-payment', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

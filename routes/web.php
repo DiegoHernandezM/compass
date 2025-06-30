@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Middleware\CheckSubscription;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -16,8 +19,14 @@ Route::get('/', function () {
 
 
 
-Route::middleware(['auth', 'role:student'])->group(function () {
-    Route::get('/student-dashboard', fn () => Inertia::render('StudentDashboard'))->name('student.dashboard');
+Route::middleware(['auth', 'role:student', CheckSubscription::class,])->group(function () {
+    Route::get('/student-dashboard', function () {
+        return Inertia::render('StudentDashboard', [
+            'subscriptionExpired' => session('subscription_expired', false),
+            'user' => Auth::user(),
+            'clientId' => config('services.paypal.client_id')
+        ]);
+    })->name('student.dashboard');
 });
 
 Route::middleware('auth')->group(function () {
