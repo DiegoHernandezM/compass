@@ -12,12 +12,29 @@ import { Inertia } from '@inertiajs/inertia';
 export default function StudentLayout({ children }) {
   const { url } = usePage();
   const [value, setValue] = useState(url);
-
+  const { props } = usePage();
+  const subscriptionExpired = props.subscriptionExpired ?? false;
   const handleLogout = () => {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
       Inertia.post(route('logout'));
     }
   };
+
+  const navActionStyle = (disabled) => ({
+    color: disabled ? '#b0b0b0' : 'white',
+    pointerEvents: disabled ? 'none' : 'auto',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    '&.Mui-selected': {
+      color: disabled ? '#b0b0b0' : 'white',
+    },
+    '& .MuiSvgIcon-root': {
+      color: disabled ? '#9e9e9e' : 'white',
+      opacity: disabled ? 0.6 : 1,
+    },
+    opacity: disabled ? 0.5 : 1,
+    transition: 'none',
+  });
+
 
   return (
     <Box sx={{ pb: 7 }}>
@@ -30,6 +47,7 @@ export default function StudentLayout({ children }) {
       >
         <Box sx={{ overflowX: 'auto' }}>
           <BottomNavigation
+            disabled={subscriptionExpired}
             showLabels
             value={value}
             onChange={(event, newValue) => {
@@ -43,69 +61,49 @@ export default function StudentLayout({ children }) {
             }}
           >
             <BottomNavigationAction
+              disabled={subscriptionExpired}
               label="Inicio"
               value="/student-dashboard"
               icon={<HomeIcon />}
               component={Link}
               href="/student-dashboard"
-              sx={{
-                color: 'white',
-                '&.Mui-selected': {
-                  color: 'white',
-                },
-              }}
+              sx={navActionStyle(subscriptionExpired)}
             />
             <BottomNavigationAction
+              disabled={subscriptionExpired}
               label="Materias"
               value="/student/subjects"
               icon={<MenuBookIcon />}
               component={Link}
               href="/student/subjects"
-              sx={{
-                color: 'white',
-                '&.Mui-selected': {
-                  color: 'white',
-                },
-              }}
+              sx={navActionStyle(subscriptionExpired)}
             />
             <BottomNavigationAction
+              disabled={subscriptionExpired}
               label="Simulacro"
               value="/student/mock-test"
               icon={<QuizIcon />}
               component={Link}
               href="/student/mock-test"
-              sx={{
-                color: 'white',
-                '&.Mui-selected': {
-                  color: 'white',
-                },
-              }}
+              sx={navActionStyle(subscriptionExpired)}
             />
             <BottomNavigationAction
+              disabled={subscriptionExpired}
               label="Resultados"
               value="/student/progress"
               icon={<InsightsIcon />}
               component={Link}
               href="/student/progress"
-              sx={{
-                color: 'white',
-                '&.Mui-selected': {
-                  color: 'white',
-                },
-              }}
+              sx={navActionStyle(subscriptionExpired)}
             />
             <BottomNavigationAction
+              disabled={subscriptionExpired}
               label="Perfil"
               value="/profile"
               icon={<PersonIcon />}
               component={Link}
               href="/profile"
-              sx={{
-                color: 'white',
-                '&.Mui-selected': {
-                  color: 'white',
-                },
-              }}
+              sx={navActionStyle(subscriptionExpired)}
             />
             <BottomNavigationAction
               label="Salir"

@@ -31,6 +31,24 @@ class PayPalUserController
         }
     }
 
+    public function renovation(Request $request, PayPalService $service)
+    {
+        try {
+            $service->paymentRenovation($request);
+            $userId = $request->order['reference_id'] ?? null;
+            if ($userId) {
+                $user = User::find($userId);
+                if ($user) {
+                    Auth::login($user);
+                    $request->session()->regenerate();
+                }
+            }
+            return response()->json(['success' => true, 'message' => 'Pago procesado exitosamente']);
+        } catch(\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function getClientId()
     {
         return response()->json([

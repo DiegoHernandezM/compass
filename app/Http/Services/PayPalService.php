@@ -65,4 +65,24 @@ class PayPalService
         }
         return "Estudiante registrado";
     }
+
+    public function paymentRenovation($request)
+    {
+        $referenceId = $request->order['reference_id'] ?? null;
+        $createTime = $request->order['payments']['captures'][0]['create_time'] ?? null;
+
+        if ($referenceId && $createTime) {
+            $payment = $this->mPayPal->where('user_id', $referenceId)->first();
+
+            if ($payment) {
+                $carbonDate = Carbon::parse($createTime);
+                $payment->expires_at = $carbonDate->addYear()->format('Y-m-d H:i:s');
+                $payment->save();
+
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
