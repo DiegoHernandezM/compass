@@ -15,15 +15,13 @@ class QuestionsExport implements FromCollection, WithHeadings, WithMapping, With
     protected $subjectId;
     protected $rowIndex = 2;
     protected $drawings = [];
+    protected $tmpFiles = [];
 
     public function __construct($subjectId)
     {
         $this->subjectId = $subjectId;
     }
 
-    /**
-    * @return \Illuminate\Support\Collection
-    */
     public function collection()
     {
         return Question::where('subject_id', $this->subjectId)->get();
@@ -47,8 +45,11 @@ class QuestionsExport implements FromCollection, WithHeadings, WithMapping, With
     public function map($question): array
     {
         if ($question->feedback_image && Storage::disk('s3')->exists($question->feedback_image)) {
-            $tmpPath = storage_path('app/tmp/'.basename($question->feedback_image));
+            $tmpPath = storage_path('app/tmp/' . basename($question->feedback_image));
             file_put_contents($tmpPath, Storage::disk('s3')->get($question->feedback_image));
+            
+            // Guarda para eliminar luego
+            $this->tmpFiles[] = $tmpPath;
 
             $drawing = new Drawing();
             $drawing->setName('Feedback Image');
@@ -70,12 +71,22 @@ class QuestionsExport implements FromCollection, WithHeadings, WithMapping, With
             $question->correct_answer,
             $question->feedback_text,
             '',
-            $question->has_dynamic ? 'Sí' : 'No',
+            $question->has_dynamic ? 'TRUE' : 'FALSE',
         ];
     }
 
     public function drawings()
     {
         return $this->drawings;
+    }
+
+    public function __destruct()
+    {
+        // Limpia todos los archivos temporales al final
+        foreach ($this->tmpFiles as $file) {
+            if (file_exists($file)) {
+                @unlink($file);
+            }
+        }
     }
 }

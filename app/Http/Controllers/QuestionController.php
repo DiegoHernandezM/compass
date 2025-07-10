@@ -8,8 +8,11 @@ use App\Http\Services\SubjectService;
 use App\Http\Requests\QuestionRequest;
 use Inertia\Inertia;
 use App\Exports\QuestionsExport;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Imports\QuestionsImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class QuestionController extends Controller
 {
@@ -83,7 +86,33 @@ class QuestionController extends Controller
     public function import(Request $request)
     {
         try {
-            Excel::import(new QuestionsImport($request->subject_id), $request->hasFile('file') ? $request->file('file') : $request->file);
+            $subjectId = $request->subject_id;
+            $file = $request->file('file');
+
+            // Carga con PhpSpreadsheet para acceder a imágenes
+            $spreadsheet = IOFactory::load($file);
+            $sheet = $spreadsheet->getActiveSheet();
+            $drawings = $sheet->getDrawingCollection();
+            // Subir imágenes y asociarlas con la fila
+            $imagesByRow = [];
+
+            foreach ($drawings as $drawing) {
+                $coordinates = $drawing->getCoordinates();
+                $row = preg_replace('/[^0-9]/', '', $coordinates);
+
+                $tmpPath = tempnam(sys_get_temp_dir(), 'img_');
+                file_put_contents($tmpPath, file_get_contents($drawing->getPath()));
+
+                $s3Path = Storage::disk('s3')->putFile('feedback', $tmpPath);
+                $imagesByRow[(int)$row] = $s3Path;
+
+                @unlink($tmpPath);
+            }
+
+            // Pasa las imágenes al importador
+            $importer = new QuestionsImport($subjectId, $imagesByRow);
+            Excel::import($importer, $file);
+
             return redirect()->back()->with('success', 'Preguntas importadas con éxito.');
         } catch (\Exception $e) {
             dd($e->getMessage());
