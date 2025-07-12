@@ -38,7 +38,7 @@ export default function ImportQuestionsDialog({ open, onClose, subjects, onImpor
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Importar Preguntas por Excel</DialogTitle>
+      <DialogTitle>Importar ó crear preguntas</DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
           <FormControl fullWidth margin="normal">
@@ -78,8 +78,8 @@ export default function ImportQuestionsDialog({ open, onClose, subjects, onImpor
         <Button onClick={() => {
           handleExport(subjectId);
           setSubjectId(null);
-          }}
-          >Exportar Concentrado</Button>
+        }}
+        >Exportar Concentrado</Button>
         <Button onClick={() => {
           onClose();
           setSubjectId(null);
