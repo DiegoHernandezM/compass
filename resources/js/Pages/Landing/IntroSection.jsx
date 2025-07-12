@@ -6,7 +6,7 @@ const IntroSection = (props) => {
       <div className="hero-text">
         <h2>{props.content.subtitle}</h2>
         <p dangerouslySetInnerHTML={{ __html: props.content.principal_text }} />
-        <a href="#" className="cta-button" style={{ background: "#203764" }}>{props.content.subscribe_button}</a>
+        <a href="/register" className="cta-button" style={{ background: "#203764" }}>{props.content.subscribe_button}</a>
 
         <div className="compatibility">
           <span>{props.content.compatible_text}</span>

@@ -1,1 +1,0 @@
-import{a1 as a,a0 as m}from"./Typography-BcdJuq5C.js";import{g as p}from"./isMuiElement-BN6hkxZ0.js";const i=a();function n({props:t,name:r,defaultTheme:o,themeId:s}){let e=m(o);return s&&(e=e[s]||e),p({theme:e,name:r,props:t})}export{i as s,n as u};
