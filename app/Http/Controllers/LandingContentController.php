@@ -12,9 +12,15 @@ use App\Http\Requests\LandingContentRequest;
 class LandingContentController extends Controller
 {
     protected $service;
-    
+
     public function __construct() {
         $this->service = new LandingContentService();
+    }
+
+    public function getContent()
+    {
+        $content = $this->service->getLandingContent();
+        return response()->json($content);
     }
 
     public function edit()
@@ -30,6 +36,7 @@ class LandingContentController extends Controller
             $content = $this->service->updateLandingContent($data);
             return redirect()->back()->with('success', 'Landing actualizada correctamente.');
         } catch (\Throwable $th) {
+            dd($th->getMessage());
             return back()->with('error', 'Error al actualizar el contenido');
         }
     }

@@ -4,6 +4,8 @@ namespace App\Http\Services;
 
 use App\Models\LandingContent;
 
+use Illuminate\Support\Facades\Storage;
+
 class LandingContentService
 {
     protected $model;
@@ -15,19 +17,20 @@ class LandingContentService
 
     public function getLandingContent()
     {
-        return $this->model->first(); 
+        return $this->model->first();
     }
 
     public function updateLandingContent($data)
     {
         $content = LandingContent::first();
-        if ($data['video'] != null) {
+
+        if (!empty($data['video'])) {
             if ($content->video_path) {
                 Storage::disk('public')->delete($content->video_path);
             }
-            $data['video_path'] = $request->file('video')->store('videos', 'public');
+            $data['video_path'] = $data['video']->store('videos', 'public');
         }
+        unset($data['video']);
         $content->update($data);
     }
-
 }

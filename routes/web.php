@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CheckSubscription;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\LandingContentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -35,8 +36,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+//Public Routes
+Route::get('/landing-content', [LandingContentController::class, 'getContent'])->name('landing.content');
+
 //Admin Routes
-Route::middleware(['web','auth', 'role:admin'])->group(function () {
+Route::middleware(['web', 'auth', 'role:admin'])->group(function () {
     require base_path('routes/admin/admin.php');
 });
 //Student Routes
@@ -48,4 +52,4 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 
 require base_path('routes/paypal/paypal.php');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
