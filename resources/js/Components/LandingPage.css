@@ -119,9 +119,23 @@ body, html {
     margin: 0 auto;
   }
 
+  .feature-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
   .feature-item .icon {
-    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 0.5rem;
+  }
+
+  .feature-item img {
+    display: block;
+    margin: 0 auto;
   }
 
   .mockup-video {
