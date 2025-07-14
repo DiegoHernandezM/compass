@@ -47,6 +47,17 @@ body, html {
     background-attachment: fixed;
     background-color: rgba(255, 255, 255, 0.9); /* leve capa blanca encima */
     background-blend-mode: lighten; /* o 'overlay', 'soft-light', prueba qué te gusta más */
+    height: 900px;
+  }
+
+  .auth-section {
+    background-image: url('/assets/background.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: rgba(255, 255, 255, 0.9); /* leve capa blanca encima */
+    background-blend-mode: lighten;
   }
 
   .hero-text {
