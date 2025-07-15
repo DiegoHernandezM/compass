@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
-import { Box, Button, Stack, Snackbar, Alert, Tooltip } from '@mui/material';
+import { Box, Button, Stack, TextField, Tooltip } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -19,6 +19,7 @@ export default function Students() {
   const successMessage = usePage().props?.flash?.success ?? null;
   const [openSuccess, setOpenSuccess] = useState(!!successMessage);
   const [openError, setOpenError] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     if (successMessage) {
@@ -54,8 +55,12 @@ export default function Students() {
     }
   };
 
+  const filteredStudents = students.filter((student) =>
+    student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.user?.email?.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   const columns = [
-    { field: 'id', headerName: 'ID', width: 40 },
     {
       field: 'name',
       headerName: 'Nombre',
@@ -67,13 +72,9 @@ export default function Students() {
       flex: 1.5,
       renderCell: (params) => (params?.row?.user?.email || ''),
     },
-    { field: 'birthdate', headerName: 'Fecha Nacimiento', flex: 1 },
     { field: 'gender', headerName: 'Género', flex: 1 },
     { field: 'phone', headerName: 'Teléfono', flex: 1 },
-    { field: 'address', headerName: 'Direccion', flex: 1 },
-    { field: 'zip_code', headerName: 'CP', flex: 1 },
     { field: 'city', headerName: 'Ciudad', flex: 1 },
-    { field: 'country', headerName: 'País', flex: 1 },
     { field: 'school', headerName: 'Escuela', flex: 1 },
     {
       field: 'user_expires_at',
@@ -138,19 +139,28 @@ export default function Students() {
       />
 
       <Box p={4}>
-        <Box display="flex" justifyContent="flex-end" mb={2}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCreate}
-          >
-            Crear nuevo estudiante
-          </Button>
-        </Box>
 
         <Box sx={{ height: 600, width: '100%' }}>
+          <Box display="flex" justifyContent="space-between" mb={2}>
+            <TextField
+              label="Buscar por nombre o correo"
+              variant="outlined"
+              size="small"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              sx={{ width: 300 }}
+            />
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCreate}
+            >
+              Crear nuevo estudiante
+            </Button>
+          </Box>
           <DataGrid
-            rows={students}
+            rows={filteredStudents}
             columns={columns}
             pageSize={10}
             rowsPerPageOptions={[5, 10, 20]}

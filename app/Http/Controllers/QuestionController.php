@@ -30,9 +30,11 @@ class QuestionController extends Controller
         try {
             $questions = $this->service->getAll();
             $subjects = $this->subjectService->getAll();
+            $types = $this->service->getTypes();
             return Inertia::render('Admin/Questions/Index', [
                 'questions' => $questions,
                 'subjects' => $subjects,
+                'types' => $types
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al obtener las preguntas.');

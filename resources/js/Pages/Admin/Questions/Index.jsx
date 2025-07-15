@@ -16,7 +16,7 @@ import ValidationErrorAlert from '@/Components/ValidationErrorAlert';
 
 export default function Questions() {
   const { errors, flash } = usePage().props;
-  const { questions, subjects } = usePage().props;
+  const { questions, subjects, types } = usePage().props;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newsQuestions, setNewsQuestions] = useState(false);
@@ -64,6 +64,12 @@ export default function Questions() {
 
   const handleClose = () => {
     setDrawerOpen(false);
+    setSelectedQuestion(null);
+    setSelectedSubject(null);
+  };
+
+  const handleCloseNewDialog = () => {
+    setNewsQuestions(false);
     setSelectedQuestion(null);
     setSelectedSubject(null);
   };
@@ -156,9 +162,9 @@ export default function Questions() {
       <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
       <QuestionNewDialog
         open={newsQuestions}
-        onClose={handleCloseDialog}
-        subjects={subjects}
+        onClose={handleCloseNewDialog}
         subject={selectedSubject}
+        types={types}
         handleEditQuestion={handleEditQuestion}
         handleDelete={handleDelete}
         questions={questions}

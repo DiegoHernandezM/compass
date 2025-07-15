@@ -11,7 +11,6 @@ class Question extends Model
     use HasFactory;
 
     protected $fillable = [
-        'subject_id',
         'question',
         'answer_a',
         'answer_b',
@@ -25,10 +24,10 @@ class Question extends Model
         'question_level_id'
     ];
 
-    public function subject()
-    {
-        return $this->belongsTo(Subject::class);
-    }
+    public function subjects()
+{
+    return $this->belongsToMany(Subject::class, 'question_subject');
+}
 
     public function type()
     {

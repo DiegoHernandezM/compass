@@ -11,28 +11,27 @@ import {
   InputLabel,
   Select,
   Box,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
+  Typography
 } from '@mui/material';
 
-export default function QuestionsNewDialog({ open, onClose, subjects, subject, onImport, handleExport }) {
-  console.log(subject);
-  const [subjectId, setSubjectId] = useState('');
-  const [file, setFile] = useState(null);
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
+export default function QuestionsNewDialog({ open, onClose, types, subject, onImport, handleExport }) {
+  console.log(types);
+  const [typeId, setTypeId] = useState('');
+  const [levelId, setLevelId] = useState('');
+  const selectedType = types.find((type) => type.id === Number(typeId));
+  const levels = selectedType?.levels || [];
+  const selectedLevel = levels.find((level) => level.id === Number(levelId));
+  const [hasTimeLimit, setHasTimeLimit] = useState(false);
 
   const handleSubmit = () => {
-    if (file && subjectId) {
+    if (subject?.id) {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('subject_id', subjectId);
-
+      formData.append('subject_id', subject?.Id);
       onImport(formData);
-
-      // Limpiar y cerrar
-      setFile(null);
-      setSubjectId('');
+      setTypeId('');
       onClose();
     }
   };
@@ -43,54 +42,102 @@ export default function QuestionsNewDialog({ open, onClose, subjects, subject, o
       <DialogContent>
         <Box sx={{ mt: 2 }}>
           <FormControl fullWidth margin="normal">
-            <InputLabel id="subject-select-label">Tipo de cuestionario</InputLabel>
+            <InputLabel id="type-select-label">Tipo de cuestionario</InputLabel>
             <Select
-              labelId="subject-select-label"
-              value={subjectId}
+              labelId="type-select-label"
+              value={typeId}
               label="Tipo de cuestionario"
-              onChange={(e) => setSubjectId(e.target.value)}
+              onChange={(e) => {
+                setTypeId(e.target.value);
+                setLevelId(''); // Reiniciar nivel cuando cambia el tipo
+              }}
               required
             >
-              {subjects.map((subject) => (
-                <MenuItem key={subject.id} value={subject.id}>
-                  {subject.name}
+              {types.map((type) => (
+                <MenuItem key={type.id} value={type.id}>
+                  {type.name}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
-          <Button variant="outlined" component="label" fullWidth sx={{ mt: 2 }}>
-            Seleccionar archivo Excel
-            <input type="file" hidden accept=".xlsx, .xls" onChange={handleFileChange} />
-          </Button>
+          <FormControl fullWidth margin="normal" disabled={!levels.length}>
+            <InputLabel id="level-select-label">Nivel de complejidad</InputLabel>
+            <Select
+              labelId="level-select-label"
+              value={levelId}
+              label="Nivel de complejidad"
+              onChange={(e) => setLevelId(e.target.value)}
+              required
+            >
+              {levels.map((level) => (
+                <MenuItem key={level.id} value={level.id}>
+                  {level.name} - {level.description}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-          {file && (
-            <TextField
-              label="Archivo seleccionado"
-              value={file.name}
-              fullWidth
-              disabled
-              margin="normal"
-            />
+          {selectedLevel && (
+            <FormControl fullWidth margin="normal">
+              <Typography variant="subtitle1" component="p">
+                Preguntas disponibles sobre examen ({selectedLevel.questions_count || 0})
+              </Typography>
+              <TextField
+                id="count-question-required"
+                label="Número de preguntas para examen"
+                type="number"
+                inputProps={{ min: 1, max: selectedLevel.questions_count }}
+                required
+              />
+            </FormControl>
+          )}
+
+          {typeId && (
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={hasTimeLimit}
+                    onChange={(e) => setHasTimeLimit(e.target.checked)}
+                  />
+                }
+                label="Tiempo límite"
+              />
+            </FormGroup>
+          )}
+
+          {hasTimeLimit && (
+            <>
+              {console.log(typeId)}
+              <FormControl fullWidth margin="normal">
+                <TextField
+                  id="limit-time-required"
+                  label="Tiempo límite (segundos por pregunta)"
+                  type="number"
+                  inputProps={{ min: 1 }}
+                  required
+                />
+              </FormControl>
+            </>
+
           )}
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={() => {
-          handleExport(subjectId);
-          setSubjectId(null);
-        }}
-        >Exportar Concentrado</Button>
-        <Button onClick={() => {
           onClose();
-          setSubjectId(null);
-        }}>Cancelar</Button>
+          setTypeId('');
+          levelId('');
+        }}>
+          Cancelar
+        </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!file || !subjectId}
+          disabled={!typeId || !levelId}
         >
-          Importar
+          Crear
         </Button>
       </DialogActions>
     </Dialog>

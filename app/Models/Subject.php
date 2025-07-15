@@ -26,7 +26,7 @@ class Subject extends Model
 
     public function questions()
     {
-        return $this->hasMany(Question::class);
+        return $this->belongsToMany(Question::class, 'question_subject');
     }
 
     protected function questionsCount()
