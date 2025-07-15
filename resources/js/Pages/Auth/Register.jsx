@@ -11,6 +11,7 @@ import { Alert, Stepper, Step, Button, Dialog, DialogTitle, DialogContent, Dialo
 import PersonIcon from '@mui/icons-material/Person';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import PayPalComponent from "@/Components/PayPal/PayPalComponent.jsx";
+import '../../Components/LandingPage.css';
 
 export default function Register() {
 

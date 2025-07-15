@@ -9,9 +9,18 @@ const drawerWidth = 240;
 
 export default function AuthenticatedLayout({ children }) {
   const { user } = usePage().props.auth;
+  const { url } = usePage();
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
+  const pageTitles = {
+    'dashboard': 'Dashboard',
+    '/admin/question': 'Cuestionarios',
+    '/admin/landing': 'Landing Page',
+    '/admin/subject': 'Materias',
+    '/admin': 'Administradores',
+    '/student': 'Estudiantes',
+  };
 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -47,11 +56,12 @@ export default function AuthenticatedLayout({ children }) {
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {isMobile && (
-              <IconButton edge="start" color="inherit" onClick={handleDrawerToggle} sx={{ mr: 2, color:'white' }}>
+              <IconButton edge="start" color="inherit" onClick={handleDrawerToggle} sx={{ mr: 2, color: 'white' }}>
                 <MenuIcon />
               </IconButton>
             )}
-            <Typography variant="h6" noWrap>
+            <Typography variant="h6" noWrap color='white'>
+              {pageTitles[url] || 'ATP COMPASS'}
             </Typography>
           </Box>
           <div>

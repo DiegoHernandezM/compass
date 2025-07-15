@@ -8,16 +8,18 @@ import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
 import { Inertia } from '@inertiajs/inertia';
 import QuestionForm from '../../../Components/Forms/QuestionForm';
-import QuestionDialog from '../../../Components/Dialog/QuestionsDialog';
+import QuestionNewDialog from '../../../Components/Dialog/QuestionsNewDialog';
 import ImportQuestionDialog from '../../../Components/Dialog/ImportQuestionDialog';
+import QuestionDialog from '../../../Components/Dialog/QuestionsDialog';
 import SuccessAlert from '../../../Components/SuccessAlert';
 import ValidationErrorAlert from '@/Components/ValidationErrorAlert';
 
 export default function Questions() {
   const { errors, flash } = usePage().props;
-  const { questions, subjects } = usePage().props;
+  const { questions, subjects, types } = usePage().props;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [newsQuestions, setNewsQuestions] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
@@ -42,7 +44,7 @@ export default function Questions() {
 
   const handleEdit = (subject) => {
     setSelectedSubject(subject);
-    setDrawerOpen(true);
+    setNewsQuestions(true);
   };
 
   const handleEditQuestion = (question) => {
@@ -62,6 +64,12 @@ export default function Questions() {
 
   const handleClose = () => {
     setDrawerOpen(false);
+    setSelectedQuestion(null);
+    setSelectedSubject(null);
+  };
+
+  const handleCloseNewDialog = () => {
+    setNewsQuestions(false);
     setSelectedQuestion(null);
     setSelectedSubject(null);
   };
@@ -152,11 +160,21 @@ export default function Questions() {
         </Box>
       </Box>
       <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
-      <QuestionDialog 
-        open={dialogOpen} 
-        onClose={handleCloseDialog} 
-        subject={selectedSubject} 
-        handleEditQuestion={handleEditQuestion} 
+      <QuestionNewDialog
+        open={newsQuestions}
+        onClose={handleCloseNewDialog}
+        subject={selectedSubject}
+        types={types}
+        handleEditQuestion={handleEditQuestion}
+        handleDelete={handleDelete}
+        questions={questions}
+        newsQuestions={newsQuestions}
+      />
+      <QuestionDialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        subject={selectedSubject}
+        handleEditQuestion={handleEditQuestion}
         handleDelete={handleDelete}
       />
       <ImportQuestionDialog

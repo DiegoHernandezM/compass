@@ -30,14 +30,16 @@ class QuestionController extends Controller
         try {
             $questions = $this->service->getAll();
             $subjects = $this->subjectService->getAll();
+            $types = $this->service->getTypes();
             return Inertia::render('Admin/Questions/Index', [
                 'questions' => $questions,
                 'subjects' => $subjects,
+                'types' => $types
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al obtener las preguntas.');
         }
-        
+
     }
 
     public function getQuestions($subjectId)
@@ -55,29 +57,29 @@ class QuestionController extends Controller
     {
         try {
             $this->service->create($request->validated());
-            return redirect()->back()->with('success', 'Pregunta creada con éxito.');    
+            return redirect()->back()->with('success', 'Pregunta creada con éxito.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al crear la pregunta.');
         }
-        
+
     }
 
     public function update(QuestionRequest $request, $id)
     {
         try {
             $this->service->update($id, $request->validated());
-            return redirect()->back()->with('success', 'Pregunta actualizada.');    
+            return redirect()->back()->with('success', 'Pregunta actualizada.');
         } catch(\Exception $e) {
             return redirect()->back()->with('error', 'Error al actualizar la pregunta.');
         }
-        
+
     }
 
     public function destroy($id)
     {
         try {
             $this->service->delete($id);
-            return redirect()->back()->with('success', 'Pregunta eliminada.');    
+            return redirect()->back()->with('success', 'Pregunta eliminada.');
         } catch(\Exception $e) {
             return redirect()->back()->with('error', 'Error al eliminar la pregunta.');
         }
