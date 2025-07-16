@@ -17,24 +17,40 @@ import {
   Typography
 } from '@mui/material';
 
-export default function QuestionsNewDialog({ open, onClose, types, subject, onImport, handleExport }) {
-  console.log(types);
+export default function QuestionsNewDialog({ open, onClose, types, subject, onSave }) {
   const [typeId, setTypeId] = useState('');
   const [levelId, setLevelId] = useState('');
   const selectedType = types.find((type) => type.id === Number(typeId));
   const levels = selectedType?.levels || [];
   const selectedLevel = levels.find((level) => level.id === Number(levelId));
   const [hasTimeLimit, setHasTimeLimit] = useState(false);
+  const [questionCount, setQuestionCount] = useState('');
+  const [limitTime, setLimitTime] = useState('');
+
 
   const handleSubmit = () => {
-    if (subject?.id) {
+    if (subject?.id && typeId && levelId) {
       const formData = new FormData();
-      formData.append('subject_id', subject?.Id);
-      onImport(formData);
+      formData.append('subject_id', subject.id);
+      formData.append('question_type_id', typeId);
+      formData.append('question_level_id', levelId);
+      formData.append('question_count', questionCount);
+      formData.append('has_time_limit', hasTimeLimit ? '1' : '0');
+      if (hasTimeLimit) {
+        formData.append('time_limit', limitTime);
+      }
+      console.log(formData);
+      onSave(formData);
+
+      // Reset
       setTypeId('');
+      setLevelId('');
+      setQuestionCount('');
+      setLimitTime('');
       onClose();
     }
   };
+
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xl">
@@ -88,6 +104,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onIm
                 label="Número de preguntas para examen"
                 type="number"
                 inputProps={{ min: 1, max: selectedLevel.questions_count }}
+                onChange={(e) => setQuestionCount(e.target.value)}
                 required
               />
             </FormControl>
@@ -115,8 +132,8 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onIm
                   id="limit-time-required"
                   label="Tiempo límite (segundos por pregunta)"
                   type="number"
+                  onChange={(e) => setLimitTime(e.target.value)}
                   inputProps={{ min: 1 }}
-                  required
                 />
               </FormControl>
             </>

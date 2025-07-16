@@ -8,6 +8,7 @@ use App\Models\Subject;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
 
 class QuestionService
 {
@@ -70,5 +71,37 @@ class QuestionService
             Storage::disk('s3')->delete($question->feedback_image);
         }
         $question->delete();
+    }
+
+    public function allSaveTest($request)
+    {
+        $data = $request->only([
+            'subject_id',
+            'question_type_id',
+            'question_level_id',
+            'question_count',
+            'has_time_limit',
+            'time_limit',
+        ]);
+        $questions = $this->model->where('question_type_id', $data['question_type_id'])
+            ->where('question_level_id', $data['question_level_id'])
+            ->inRandomOrder()
+            ->limit($data['question_count'])
+            ->get();
+        if ($questions->count() < $data['question_count']) {
+            return "No hay suficientes preguntas disponibles para este tipo y nivel.";
+        }
+
+        // Guarda en la tabla pivote question_subject
+        foreach ($questions as $question) {
+            DB::table('question_subject')->insert([
+                'question_id' => $question->id,
+                'subject_id' => $data['subject_id'],
+                'time_limit' => $data['has_time_limit'] ? $data['time_limit'] : null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        return $questions;
     }
 }

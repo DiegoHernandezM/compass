@@ -130,4 +130,15 @@ class QuestionController extends Controller
             return redirect()->back()->with('error', 'Error al exportar las preguntas.');
         }
     }
+
+    public function generateTest(Request $request)
+    {
+         try {
+            $test = $this->service->allSaveTest($request);
+            return redirect()->back()->with('success', 'Test crado con éxito.');
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+            return redirect()->back()->with('error', 'Error al exportar las preguntas.');
+        }
+    }
 }
