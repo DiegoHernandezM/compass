@@ -35,4 +35,9 @@ class Subject extends Model
             return $this->questions()->count();
         });
     }
+
+    public function tests()
+    {
+        return $this->hasMany(Test::class);
+    }
 }
