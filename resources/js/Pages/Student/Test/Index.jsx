@@ -52,9 +52,9 @@ export default function Test() {
 
       {/* Fondo opaco */}
       <Box sx={{ minHeight: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.05)', p: 2 }}>
-        
+
         {/* Card superior con título y progreso */}
-        <Card sx={{ mb: 4 }}>
+        <Card sx={{ mb: 4, borderRadius: 3 }}> {/* Card superior */}
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Resolviendo Test de Materia ID: {test.subject_id}
@@ -72,7 +72,7 @@ export default function Test() {
             justifyContent: 'center',
           }}
         >
-          <Paper elevation={3} sx={{ width: '100%', maxWidth: 700, p: 3 }}>
+          <Paper elevation={3} sx={{ width: '100%', maxWidth: 700, p: 3, borderRadius: 3 }}>
             <Typography variant="subtitle1" gutterBottom>
               Pregunta {currentIndex + 1} de {test.test_questions.length}
             </Typography>
