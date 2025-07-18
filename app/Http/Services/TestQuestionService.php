@@ -56,6 +56,8 @@ class TestQuestionService
                 'question_text' => $question->question,
                 'options' => json_encode($options),
                 'correct_answer' => $question->correct_answer,
+                'feedback_text' => $question->feedback_text,
+                'feedback_image' => $question->feedback_image,
                 'user_answer' => null
             ]);
         }

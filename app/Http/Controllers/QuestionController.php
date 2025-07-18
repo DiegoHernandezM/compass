@@ -109,7 +109,7 @@ class QuestionController extends Controller
 
     public function generateTest(Request $request)
     {
-         try {
+        try {
             $test = $this->service->allSaveTest($request);
             return redirect()->back()->with('success', 'Test creado con éxito.');
         } catch (\Exception $e) {

@@ -16,6 +16,8 @@ class TestQuestion extends Model
         'correct_answer',
         'user_answer',
         'is_correct',
+        'feedback_test',
+        'feedback_image',
     ];
 
     protected $casts = [

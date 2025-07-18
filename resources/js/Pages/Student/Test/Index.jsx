@@ -142,14 +142,16 @@ export default function Test() {
               value={answers[currentQuestion.id] || ''}
               onChange={handleAnswerChange}
             >
-              {Object.entries(JSON.parse(currentQuestion.options)).map(([key, value]) => (
-                <FormControlLabel
-                  key={key}
-                  value={key}
-                  control={<Radio />}
-                  label={`${key.toUpperCase()}: ${value}`}
-                />
-              ))}
+              {Object.entries(JSON.parse(currentQuestion.options))
+                .filter(([_, value]) => value) // Filtra opciones nulas o vacías
+                .map(([key, value]) => (
+                  <FormControlLabel
+                    key={key}
+                    value={key}
+                    control={<Radio />}
+                    label={`${key.toUpperCase()}: ${value}`}
+                  />
+                ))}
             </RadioGroup>
 
             <Stack direction="row" justifyContent="space-between" mt={3}>
