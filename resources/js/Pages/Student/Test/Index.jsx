@@ -16,6 +16,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
+import FeedbackDialog from '../../../Components/Test/FeedbackDialog';
+
 export default function Test() {
   const { test, subject } = usePage().props;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -24,6 +26,7 @@ export default function Test() {
   const [feedback, setFeedback] = useState(null); // null, 'correct', 'incorrect'
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [openFeedbackDialog, setOpenFeedbackDialog] = useState(false);
 
   const handleAnswerChange = (e) => {
     setAnswers({
@@ -42,6 +45,11 @@ export default function Test() {
       setCorrectAnswer(currentQuestion.correct_answer);
     }
 
+    if(!isCorrect  && (currentQuestion.feedback_text || currentQuestion.feedback_image)) {
+      console.log('entro para abrir dialog');
+      setOpenFeedbackDialog(true);
+    }
+    
     setShowFeedback(true);
     // Aquí puedes enviar la respuesta al backend si deseas
     setTimeout(() => {
@@ -211,6 +219,7 @@ export default function Test() {
           </Paper>
         </Box>
       </Box>
+      <FeedbackDialog open={openFeedbackDialog} close={() => setOpenFeedbackDialog(false)}/>
     </StudentLayout>
   );
 }
