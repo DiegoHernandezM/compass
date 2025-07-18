@@ -6,14 +6,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Services\TestQuestionService;
 use Inertia\Inertia;
+use App\Http\Services\SubjectService;
 
 class TestQuestionController extends Controller
 {
     protected $service;
+    protected $sSubject;
 
     public function __construct()
     {
         $this->service = new TestQuestionService();
+        $this->sSubject = new SubjectService();
     }
 
     public function createTest(Request $request)
@@ -32,11 +35,13 @@ class TestQuestionController extends Controller
         
     }
 
-    public function getTest($test)
+    public function getTest($test, $subjectId)
     {
         $test = $this->service->findTest($test);
+        $subject = $this->sSubject->findSubject($subjectId);
         return Inertia::render('Student/Test/Index', [
             'test' => $test->load('testQuestions'),
+            'subject' => $subject
         ]);
     }
 }

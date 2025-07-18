@@ -42,7 +42,7 @@ export default function Subjects() {
       if (test?.id) {
         console.log('entro');
         console.log(test.id);
-        router.get(`/student/test/${test.id}`);
+        router.get(`/student/test/${test.id}/${subject.id}`);
       }
     } catch (error) {
       console.error(error);

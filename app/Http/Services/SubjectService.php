@@ -71,4 +71,9 @@ class SubjectService
         });
     }
 
+    public function findSubject($id)
+    {
+        return $this->model->find($id);
+    }
+
 }

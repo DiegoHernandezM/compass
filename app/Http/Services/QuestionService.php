@@ -6,9 +6,12 @@ use App\Models\Question;
 use App\Models\QuestionType;
 use App\Models\Subject;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
+use App\Imports\QuestionsImport;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class QuestionService
 {
@@ -30,7 +33,9 @@ class QuestionService
     {
         return $this->mTypes->with(['levels' => function ($query) {
             $query->withCount('questions');
-        }])->get();
+        }])
+        ->withCount('questions')
+        ->get();
     }
 
     public function allBySubject($subjectId)
@@ -103,5 +108,62 @@ class QuestionService
             ]);
         }
         return $questions;
+    }
+
+    public function importTypeQuestions($typeId, $levelId, $file)
+    {
+        $type = $this->mTypes->find($typeId);
+        //Aqui va la distribucion para el tipo de examen
+        switch ($type->name) {
+            case 'ORIENTACION ESPACIAL':
+                # code...
+                break;
+            case 'RAZONAMIENTO LOGICO':
+                # code...
+                break;
+            case 'MEMORIA A CORTO PLAZO - MEMORAMA':
+                # code...
+                break;
+            case 'MEMORIA A CORTO PLAZO - PARAMETROS':
+                # code...
+                break;
+            case 'MULTITASKING':
+                # code...
+                break;
+            case 'ATPL':
+                return $this->importAtpl($type, $file);
+                break;
+            default:
+                # code...
+                break;
+        }
+
+    }
+
+    private function importAtpl($type, $file)
+    {
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+        $drawings = $sheet->getDrawingCollection();
+        // Subir imágenes y asociarlas con la fila
+        $imagesByRow = [];
+
+        foreach ($drawings as $drawing) {
+            $coordinates = $drawing->getCoordinates();
+            $row = preg_replace('/[^0-9]/', '', $coordinates);
+
+            $tmpPath = tempnam(sys_get_temp_dir(), 'img_');
+            file_put_contents($tmpPath, file_get_contents($drawing->getPath()));
+
+            $s3Path = Storage::disk('s3')->putFile('feedback', $tmpPath);
+            $imagesByRow[(int)$row] = $s3Path;
+
+            @unlink($tmpPath);
+        }
+
+        // Pasa las imágenes al importador
+        $importer = new QuestionsImport($type->id, $imagesByRow);
+        Excel::import($importer, $file);
+        return true;
     }
 }

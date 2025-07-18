@@ -27,9 +27,8 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
   const [questionCount, setQuestionCount] = useState('');
   const [limitTime, setLimitTime] = useState('');
 
-
   const handleSubmit = () => {
-    if (subject?.id && typeId && levelId) {
+    if (subject?.id && typeId) {
       const formData = new FormData();
       formData.append('subject_id', subject.id);
       formData.append('question_type_id', typeId);
@@ -39,9 +38,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
       if (hasTimeLimit) {
         formData.append('time_limit', limitTime);
       }
-      console.log(formData);
       onSave(formData);
-
       // Reset
       setTypeId('');
       setLevelId('');
@@ -84,7 +81,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
               value={levelId}
               label="Nivel de complejidad"
               onChange={(e) => setLevelId(e.target.value)}
-              required
+              required={levels.length > 0}
             >
               {levels.map((level) => (
                 <MenuItem key={level.id} value={level.id}>
@@ -94,16 +91,25 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
             </Select>
           </FormControl>
 
-          {selectedLevel && (
+          {(selectedLevel || selectedType) && (
             <FormControl fullWidth margin="normal">
               <Typography variant="subtitle1" component="p">
-                Preguntas disponibles sobre examen ({selectedLevel.questions_count || 0})
+                Preguntas disponibles sobre examen (
+                {selectedLevel
+                  ? selectedLevel.questions_count || 0
+                  : selectedType?.questions_count || 0}
+                )
               </Typography>
               <TextField
                 id="count-question-required"
                 label="Número de preguntas para examen"
                 type="number"
-                inputProps={{ min: 1, max: selectedLevel.questions_count }}
+                inputProps={{
+                  min: 1,
+                  max: selectedLevel
+                    ? selectedLevel.questions_count
+                    : selectedType?.questions_count || 1,
+                }}
                 onChange={(e) => setQuestionCount(e.target.value)}
                 required
               />
@@ -152,7 +158,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!typeId || !levelId}
+          disabled={!typeId}
         >
           Crear
         </Button>

@@ -183,7 +183,7 @@ export default function Questions() {
       <ImportQuestionDialog
         open={importOpen}
         onClose={() => setImportOpen(false)}
-        subjects={subjects}
+        types={types}
         onImport={(formData) => {
           Inertia.post(route('question.import'), formData, {
             forceFormData: true,

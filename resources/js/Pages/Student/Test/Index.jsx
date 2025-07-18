@@ -17,13 +17,13 @@ import {
 import { useState } from 'react';
 
 export default function Test() {
-  const { test } = usePage().props;
+  const { test, subject } = usePage().props;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const currentQuestion = test.test_questions[currentIndex];
   const [feedback, setFeedback] = useState(null); // null, 'correct', 'incorrect'
   const [correctAnswer, setCorrectAnswer] = useState(null);
-
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const handleAnswerChange = (e) => {
     setAnswers({
@@ -34,29 +34,33 @@ export default function Test() {
 
   const handleAnswer = (selectedOption) => {
     const currentQuestion = test.test_questions[currentIndex];
-    const isCorrect = selectedOption === currentQuestion.correct_answer;
+    const isCorrect = selectedOption.toUpperCase() === currentQuestion.correct_answer;
 
     setFeedback(isCorrect ? 'correct' : 'incorrect');
 
     if (!isCorrect) {
       setCorrectAnswer(currentQuestion.correct_answer);
     }
+
+    setShowFeedback(true);
     // Aquí puedes enviar la respuesta al backend si deseas
+    setTimeout(() => {
+      setShowFeedback(false);
+    }, 2500);
   };
 
   const handleNext = () => {
     const selectedOption = answers[currentQuestion.id];
     if (selectedOption) {
       handleAnswer(selectedOption);
-
-      // Mostrar el feedback durante 1.5 segundos antes de avanzar
       setTimeout(() => {
         if (currentIndex < test.test_questions.length - 1) {
           setCurrentIndex(currentIndex + 1);
           setFeedback(null);
           setCorrectAnswer(null);
         }
-      }, 2500);
+      }, 3000);
+      
     }
   };
 
@@ -81,10 +85,8 @@ export default function Test() {
     <StudentLayout>
       <Head title="Test - Estudiante" />
 
-      {/* Fondo opaco */}
       <Box sx={{ minHeight: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.05)', p: 2 }}>
 
-        {/* Card superior con título y progreso */}
         <Card
           sx={{
             mb: 4,
@@ -94,15 +96,20 @@ export default function Test() {
             border: '1px solid #e0e0e0',
           }}
         >
-          <CardContent>
+          <CardContent 
+            sx={{
+              backgroundColor: `${subject.color}80`, // 33 es transparencia (20%)
+              borderTopLeftRadius: '12px',
+              borderTopRightRadius: '12px',
+            }}
+          >
             <Typography variant="h6" gutterBottom>
-              Resolviendo Test de Materia ID: {test.subject_id}
+              Test de {subject.name}
             </Typography>
             <LinearProgress variant="determinate" value={progressPercent} />
           </CardContent>
         </Card>
 
-        {/* Contenedor centrado del test */}
         <Box
           sx={{
             height: 'calc(100vh - 220px)',
@@ -163,7 +170,18 @@ export default function Test() {
                 </Button>
               )}
             </Stack>
-            <Fade in={Boolean(feedback)}>
+            <Fade
+              in={showFeedback}
+              timeout={{ enter: 300, exit: 500 }}
+              onExited={() => {
+                setFeedback(null);
+                setCorrectAnswer(null);
+
+                if (currentIndex < test.test_questions.length - 1) {
+                  setCurrentIndex(currentIndex + 1);
+                }
+              }}
+            >
               <Box
                 sx={{
                   mt: 2,
@@ -176,6 +194,11 @@ export default function Test() {
                   gap: 2,
                 }}
               >
+                <img
+                  src={feedback === 'correct' ? '/assets/correct.gif' : '/assets/incorrect.gif'}
+                  alt="feedback gif"
+                  style={{ height: 70 }}
+                />
                 <Typography variant="h6">
                   {feedback === 'correct'
                     ? '¡Muy bien! Respuesta correcta.'
