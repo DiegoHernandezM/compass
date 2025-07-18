@@ -10,12 +10,12 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class QuestionsImport implements ToCollection, WithHeadingRow
 {
-    private int $subjectId;
+    private int $typeId;
     private array $imagesByRow;
 
-    public function __construct(int $subjectId, array $imagesByRow = [])
+    public function __construct(int $typeId, array $imagesByRow = [])
     {
-        $this->subjectId = $subjectId;
+        $this->typeId = $typeId;
         $this->imagesByRow = $imagesByRow;
     }
 
@@ -56,14 +56,13 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                     'answer_d' => $row['answer_d'],
                     'correct_answer' => strtoupper($row['correct_answer']),
                     'feedback_text' => $row['feedback_text'] ?? null,
-                    'has_dynamic' => filter_var($row['has_dynamic'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                    'subject_id' => $this->subjectId,
+                    'question_type_id' => $this->typeId,
                     // feedback_image ya se actualizó arriba si aplica
                 ]);
             } else {
                 // Crear nueva
                 Question::create([
-                    'subject_id' => $this->subjectId,
+                    'question_type_id' => $this->typeId,
                     'question' => $row['question'],
                     'answer_a' => $row['answer_a'],
                     'answer_b' => $row['answer_b'],
@@ -72,7 +71,6 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                     'correct_answer' => strtoupper($row['correct_answer']),
                     'feedback_text' => $row['feedback_text'] ?? null,
                     'feedback_image' => $newImagePath,
-                    'has_dynamic' => filter_var($row['has_dynamic'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 ]);
             }
         }

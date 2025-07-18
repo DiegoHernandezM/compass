@@ -6,8 +6,12 @@ use App\Models\Question;
 use App\Models\QuestionType;
 use App\Models\Subject;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
+use App\Imports\QuestionsImport;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class QuestionService
 {
@@ -29,7 +33,9 @@ class QuestionService
     {
         return $this->mTypes->with(['levels' => function ($query) {
             $query->withCount('questions');
-        }])->get();
+        }])
+        ->withCount('questions')
+        ->get();
     }
 
     public function allBySubject($subjectId)
@@ -70,5 +76,94 @@ class QuestionService
             Storage::disk('s3')->delete($question->feedback_image);
         }
         $question->delete();
+    }
+
+    public function allSaveTest($request)
+    {
+        $data = $request->only([
+            'subject_id',
+            'question_type_id',
+            'question_level_id',
+            'question_count',
+            'has_time_limit',
+            'time_limit',
+        ]);
+        $questions = $this->model->where('question_type_id', $data['question_type_id'])
+            ->where('question_level_id', $data['question_level_id'])
+            ->inRandomOrder()
+            ->limit($data['question_count'])
+            ->get();
+        if ($questions->count() < $data['question_count']) {
+            return "No hay suficientes preguntas disponibles para este tipo y nivel.";
+        }
+
+        // Guarda en la tabla pivote question_subject
+        foreach ($questions as $question) {
+            DB::table('question_subject')->insert([
+                'question_id' => $question->id,
+                'subject_id' => $data['subject_id'],
+                'time_limit' => $data['has_time_limit'] ? $data['time_limit'] : null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        return $questions;
+    }
+
+    public function importTypeQuestions($typeId, $levelId, $file)
+    {
+        $type = $this->mTypes->find($typeId);
+        //Aqui va la distribucion para el tipo de examen
+        switch ($type->name) {
+            case 'ORIENTACION ESPACIAL':
+                # code...
+                break;
+            case 'RAZONAMIENTO LOGICO':
+                # code...
+                break;
+            case 'MEMORIA A CORTO PLAZO - MEMORAMA':
+                # code...
+                break;
+            case 'MEMORIA A CORTO PLAZO - PARAMETROS':
+                # code...
+                break;
+            case 'MULTITASKING':
+                # code...
+                break;
+            case 'ATPL':
+                return $this->importAtpl($type, $file);
+                break;
+            default:
+                # code...
+                break;
+        }
+
+    }
+
+    private function importAtpl($type, $file)
+    {
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+        $drawings = $sheet->getDrawingCollection();
+        // Subir imágenes y asociarlas con la fila
+        $imagesByRow = [];
+
+        foreach ($drawings as $drawing) {
+            $coordinates = $drawing->getCoordinates();
+            $row = preg_replace('/[^0-9]/', '', $coordinates);
+
+            $tmpPath = tempnam(sys_get_temp_dir(), 'img_');
+            file_put_contents($tmpPath, file_get_contents($drawing->getPath()));
+
+            $s3Path = Storage::disk('s3')->putFile('feedback', $tmpPath);
+            $imagesByRow[(int)$row] = $s3Path;
+
+            @unlink($tmpPath);
+        }
+
+        // Pasa las imágenes al importador
+        $importer = new QuestionsImport($type->id, $imagesByRow);
+        Excel::import($importer, $file);
+        return true;
     }
 }

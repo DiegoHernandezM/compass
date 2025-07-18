@@ -19,7 +19,6 @@ class Question extends Model
         'correct_answer',
         'feedback_text',
         'feedback_image',
-        'has_dynamic',
         'question_type_id',
         'question_level_id'
     ];

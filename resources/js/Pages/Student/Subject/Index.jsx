@@ -11,6 +11,9 @@ import {
   CardActions,
   Button
 } from '@mui/material';
+import { Inertia } from '@inertiajs/inertia';
+import { router } from '@inertiajs/react';
+
 
 export default function Subjects() {
   const { props } = usePage();
@@ -27,6 +30,23 @@ export default function Subjects() {
     const b = parseInt(hex.substring(4, 6), 16);
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     return luminance < 0.5;
+  };
+
+
+  const handleStartTest = async (subject) => {
+    try {
+      const response = await axios.post(route('student.test.create'), {
+        subject_id: subject.id,
+      });
+      const test = response.data.test.test;
+      if (test?.id) {
+        console.log('entro');
+        console.log(test.id);
+        router.get(`/student/test/${test.id}/${subject.id}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -79,7 +99,9 @@ export default function Subjects() {
                     </CardContent>
                   </Box>
                   <CardActions sx={{ mt: 'auto' }}>
-                    <Button size="small">Iniciar Práctica</Button>
+                    <Button size="small" onClick={() => handleStartTest(subject)}>
+                      {subject.progress > 0 ? 'Continuar Práctica' : 'Iniciar Práctica'}
+                    </Button>
                   </CardActions>
                 </Card>
               </Grid>

@@ -51,4 +51,29 @@ class SubjectService
         $subject->delete();
     }
 
+    public function getForStudent($userId)
+    {
+        return $this->model->with(['tests' => function ($query) use ($userId) {
+            $query->where('user_id', $userId)
+                ->where('is_completed', false); // Solo tests activos
+        }])->get()->map(function ($subject) {
+            $test = $subject->tests->first(); // Solo uno activo por materia
+            return [
+                'id' => $subject->id,
+                'name' => $subject->name,
+                'description' => $subject->description,
+                'image' => $subject->image,
+                'color' => $subject->color,
+                'has_active_test' => !!$test,
+                'progress' => $test?->progress ?? 0,
+                'complete' => $test?->is_complete
+            ];
+        });
+    }
+
+    public function findSubject($id)
+    {
+        return $this->model->find($id);
+    }
+
 }

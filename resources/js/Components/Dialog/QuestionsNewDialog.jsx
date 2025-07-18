@@ -17,24 +17,37 @@ import {
   Typography
 } from '@mui/material';
 
-export default function QuestionsNewDialog({ open, onClose, types, subject, onImport, handleExport }) {
-  console.log(types);
+export default function QuestionsNewDialog({ open, onClose, types, subject, onSave }) {
   const [typeId, setTypeId] = useState('');
   const [levelId, setLevelId] = useState('');
   const selectedType = types.find((type) => type.id === Number(typeId));
   const levels = selectedType?.levels || [];
   const selectedLevel = levels.find((level) => level.id === Number(levelId));
   const [hasTimeLimit, setHasTimeLimit] = useState(false);
+  const [questionCount, setQuestionCount] = useState('');
+  const [limitTime, setLimitTime] = useState('');
 
   const handleSubmit = () => {
-    if (subject?.id) {
+    if (subject?.id && typeId) {
       const formData = new FormData();
-      formData.append('subject_id', subject?.Id);
-      onImport(formData);
+      formData.append('subject_id', subject.id);
+      formData.append('question_type_id', typeId);
+      formData.append('question_level_id', levelId);
+      formData.append('question_count', questionCount);
+      formData.append('has_time_limit', hasTimeLimit ? '1' : '0');
+      if (hasTimeLimit) {
+        formData.append('time_limit', limitTime);
+      }
+      onSave(formData);
+      // Reset
       setTypeId('');
+      setLevelId('');
+      setQuestionCount('');
+      setLimitTime('');
       onClose();
     }
   };
+
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xl">
@@ -68,7 +81,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onIm
               value={levelId}
               label="Nivel de complejidad"
               onChange={(e) => setLevelId(e.target.value)}
-              required
+              required={levels.length > 0}
             >
               {levels.map((level) => (
                 <MenuItem key={level.id} value={level.id}>
@@ -78,16 +91,26 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onIm
             </Select>
           </FormControl>
 
-          {selectedLevel && (
+          {(selectedLevel || selectedType) && (
             <FormControl fullWidth margin="normal">
               <Typography variant="subtitle1" component="p">
-                Preguntas disponibles sobre examen ({selectedLevel.questions_count || 0})
+                Preguntas disponibles sobre examen (
+                {selectedLevel
+                  ? selectedLevel.questions_count || 0
+                  : selectedType?.questions_count || 0}
+                )
               </Typography>
               <TextField
                 id="count-question-required"
                 label="Número de preguntas para examen"
                 type="number"
-                inputProps={{ min: 1, max: selectedLevel.questions_count }}
+                inputProps={{
+                  min: 1,
+                  max: selectedLevel
+                    ? selectedLevel.questions_count
+                    : selectedType?.questions_count || 1,
+                }}
+                onChange={(e) => setQuestionCount(e.target.value)}
                 required
               />
             </FormControl>
@@ -115,8 +138,8 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onIm
                   id="limit-time-required"
                   label="Tiempo límite (segundos por pregunta)"
                   type="number"
+                  onChange={(e) => setLimitTime(e.target.value)}
                   inputProps={{ min: 1 }}
-                  required
                 />
               </FormControl>
             </>
@@ -135,7 +158,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onIm
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!typeId || !levelId}
+          disabled={!typeId}
         >
           Crear
         </Button>

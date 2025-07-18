@@ -115,6 +115,12 @@ export default function Questions() {
     }
   };
 
+  const hancleSaveQuestionSubject = (formData) => {
+    Inertia.post(route('question.test'), formData, {
+      forceFormData: true,
+    });
+  };
+
   return (
     <AuthenticatedLayout
       header={
@@ -165,10 +171,7 @@ export default function Questions() {
         onClose={handleCloseNewDialog}
         subject={selectedSubject}
         types={types}
-        handleEditQuestion={handleEditQuestion}
-        handleDelete={handleDelete}
-        questions={questions}
-        newsQuestions={newsQuestions}
+        onSave={hancleSaveQuestionSubject}
       />
       <QuestionDialog
         open={dialogOpen}
@@ -180,7 +183,7 @@ export default function Questions() {
       <ImportQuestionDialog
         open={importOpen}
         onClose={() => setImportOpen(false)}
-        subjects={subjects}
+        types={types}
         onImport={(formData) => {
           Inertia.post(route('question.import'), formData, {
             forceFormData: true,

@@ -13,46 +13,72 @@ import {
   Box,
 } from '@mui/material';
 
-export default function ImportQuestionsDialog({ open, onClose, subjects, onImport, handleExport }) {
+export default function ImportQuestionsDialog({ open, onClose, types, onImport, handleExport }) {
   const [subjectId, setSubjectId] = useState('');
   const [file, setFile] = useState(null);
+  const [typeId, setTypeId] = useState('');
+  const [levelId, setLevelId] = useState('');
+  const selectedType = types.find((type) => type.id === Number(typeId));
+  const levels = selectedType?.levels || [];
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
   const handleSubmit = () => {
-    if (file && subjectId) {
+    if (file && typeId) {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('subject_id', subjectId);
+      formData.append('type_id', typeId);
+      formData.append('level_id', levelId);
 
       onImport(formData);
 
       // Limpiar y cerrar
       setFile(null);
-      setSubjectId('');
+      setTypetId('');
+      setLeveltId('');
       onClose();
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Importar ó crear preguntas</DialogTitle>
+      <DialogTitle>Importar a banco de preguntas</DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
           <FormControl fullWidth margin="normal">
-            <InputLabel id="subject-select-label">Materia</InputLabel>
+            <InputLabel id="type-select-label">Tipo de cuestionario</InputLabel>
             <Select
-              labelId="subject-select-label"
-              value={subjectId}
-              label="Materia"
-              onChange={(e) => setSubjectId(e.target.value)}
+              labelId="type-select-label"
+              value={typeId}
+              label="Tipo de cuestionario"
+              onChange={(e) => {
+                setTypeId(e.target.value);
+                setLevelId(''); // Reiniciar nivel cuando cambia el tipo
+              }}
               required
             >
-              {subjects.map((subject) => (
-                <MenuItem key={subject.id} value={subject.id}>
-                  {subject.name}
+              {types.map((type) => (
+                <MenuItem key={type.id} value={type.id}>
+                  {type.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth margin="normal" disabled={!levels.length}>
+            <InputLabel id="level-select-label">Nivel de complejidad</InputLabel>
+            <Select
+              labelId="level-select-label"
+              value={levelId}
+              label="Nivel de complejidad"
+              onChange={(e) => setLevelId(e.target.value)}
+              required
+            >
+              {levels.map((level) => (
+                <MenuItem key={level.id} value={level.id}>
+                  {level.name} - {level.description}
                 </MenuItem>
               ))}
             </Select>
@@ -82,12 +108,13 @@ export default function ImportQuestionsDialog({ open, onClose, subjects, onImpor
         >Exportar Concentrado</Button>
         <Button onClick={() => {
           onClose();
-          setSubjectId(null);
+          setTypeId(null);
+          setLevelId(null);
         }}>Cancelar</Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!file || !subjectId}
+          disabled={!file || !typeId}
         >
           Importar
         </Button>

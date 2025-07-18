@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SubjectRequest;
 use Inertia\Inertia;
 use App\Http\Services\SubjectService;
+use Illuminate\Support\Facades\Auth;
+
 
 class SubjectController extends Controller
 {
@@ -69,7 +71,8 @@ class SubjectController extends Controller
 
     public function getSubjects()
     {
-        $subjects = $this->service->getAll();
+        $userId = Auth::id();
+        $subjects = $this->service->getForStudent($userId);
         return Inertia::render('Student/Subject/Index', [
             'subjects' => $subjects,
         ]);
