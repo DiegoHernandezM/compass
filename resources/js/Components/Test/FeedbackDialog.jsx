@@ -22,6 +22,11 @@ export default function FeedbackDialog({open, close}) {
         keepMounted
         onClose={close}
         aria-describedby="alert-dialog-slide-description"
+        PaperProps={{
+            sx: {
+            borderRadius: 4, // cambia el valor según qué tan redondeado lo quieras
+            },
+        }}
       >
         <DialogTitle>{"Explicación"}</DialogTitle>
         <DialogContent>

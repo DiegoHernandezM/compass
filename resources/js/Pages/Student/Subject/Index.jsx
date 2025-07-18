@@ -70,7 +70,7 @@ export default function Subjects() {
                 xl={2}
                 sx={{ display: 'flex', justifyContent: 'center' }}
               >
-                <Card sx={{ maxWidth: 300 }}>
+                <Card sx={{ maxWidth: 300, borderRadius: 3, overflow: 'hidden' }}>
                   <CardMedia
                     sx={{ height: 140 }}
                     image={subject.image ? `/storage/${subject.image}` : '/images/default.jpg'}
@@ -80,8 +80,12 @@ export default function Subjects() {
                     <CardContent
                       sx={{
                         maxWidth: 200,
+                        height: 160, // 🔒 Altura fija
                         backgroundColor: subject.color,
                         color: isDarkColor(subject.color) ? '#fff' : '#000',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
                       }}
                     >
                       <Typography gutterBottom variant="h5" component="div">
@@ -90,10 +94,15 @@ export default function Subjects() {
                       <Typography
                         variant="body2"
                         sx={{
-                          color: 'text.secondary',
                           mt: 2,
-                          color: isDarkColor(subject.color) ? '#fff' : '#000'
-                        }}>
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3, // 🔢 Número máximo de líneas
+                          WebkitBoxOrient: 'vertical',
+                          color: isDarkColor(subject.color) ? '#fff' : '#000',
+                        }}
+                      >
                         {subject.description}
                       </Typography>
                     </CardContent>
