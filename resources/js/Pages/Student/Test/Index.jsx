@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import StudentLayout from '@/Layouts/StudentLayout';
 import { Head, usePage } from '@inertiajs/react';
 import {
@@ -27,6 +28,16 @@ export default function Test() {
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [openFeedbackDialog, setOpenFeedbackDialog] = useState(false);
+
+  useEffect(() => {
+    if (showFeedback && !openFeedbackDialog) {
+      const timeout = setTimeout(() => {
+        goToNextQuestion();
+      }, 2500);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [showFeedback, openFeedbackDialog]);
 
   const handleAnswerChange = (e) => {
     setAnswers({
@@ -88,6 +99,20 @@ export default function Test() {
   };
 
   const progressPercent = ((currentIndex + 1) / test.test_questions.length) * 100;
+
+  const goToNextQuestion = () => {
+    if (currentIndex < test.test_questions.length - 1) {
+      setCurrentIndex(currentIndex);
+      setFeedback(null);
+      setCorrectAnswer(null);
+    }
+    setShowFeedback(false);
+  };
+
+  const handleCloseFeedbackDialog = () => {
+    setOpenFeedbackDialog(false);
+    goToNextQuestion(); // avanzar solo cuando el usuario cierra el dialog
+  };
 
   return (
     <StudentLayout>
@@ -219,7 +244,7 @@ export default function Test() {
           </Paper>
         </Box>
       </Box>
-      <FeedbackDialog open={openFeedbackDialog} close={() => setOpenFeedbackDialog(false)}/>
+      <FeedbackDialog open={openFeedbackDialog} close={handleCloseFeedbackDialog} />
     </StudentLayout>
   );
 }
