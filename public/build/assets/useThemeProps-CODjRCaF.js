@@ -1,0 +1,1 @@
+import{a1 as a,R as m}from"./Typography-Cz5b46_Z.js";import{g as p}from"./getThemeProps-B8kFXMoc.js";const i=a();function n({props:t,name:r,defaultTheme:o,themeId:s}){let e=m(o);return s&&(e=e[s]||e),p({theme:e,name:r,props:t})}export{i as s,n as u};
