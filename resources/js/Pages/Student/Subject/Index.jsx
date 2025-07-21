@@ -63,55 +63,106 @@ export default function Subjects() {
               <Grid
                 item
                 key={subject.id}
-                xs={6}
-                sm={4}
-                md={3}
+                xs={12}
+                sm={6}
+                md={4}
                 lg={3}
                 xl={2}
                 sx={{ display: 'flex', justifyContent: 'center' }}
               >
-                <Card sx={{ maxWidth: 300, borderRadius: 3, overflow: 'hidden' }}>
-                  <CardMedia
-                    sx={{ height: 140 }}
-                    image={subject.image ? `/storage/${subject.image}` : '/images/default.jpg'}
-                    title={subject.name}
+                <Card
+                  sx={{
+                    width: 260,
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    backgroundImage: `url(${subject.image ? `/storage/${subject.image}` : '/images/default.jpg'})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    position: 'relative',
+                    color: '#fff',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    p: 2,
+                  }}
+                  elevation={6}
+                >
+                  {/* Overlay para oscurecer imagen y dar contraste */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundColor: 'rgba(0,0,0,0.6)',
+                      zIndex: 1,
+                    }}
                   />
-                  <Box sx={{ flexGrow: 1 }}>
-                    <CardContent
+
+                  {/* Contenido encima del overlay */}
+                  <Box sx={{ zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* Círculo con letra */}
+                    <Box
                       sx={{
-                        maxWidth: 200,
-                        height: 160, // 🔒 Altura fija
-                        backgroundColor: subject.color,
-                        color: isDarkColor(subject.color) ? '#fff' : '#000',
+                        width: 70,
+                        height: 70,
+                        borderRadius: '50%',
+                        backgroundColor: subject.color || '#555',
                         display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 32,
+                        fontWeight: 'bold',
+                        color: '#fff',
+                        mb: 2,
                       }}
                     >
-                      <Typography gutterBottom variant="h5" component="div">
-                        {subject.name}
-                      </Typography>
-                      <Typography
-                        variant="body2"
+                      {subject.name.charAt(0)}
+                    </Box>
+
+                    {/* Nombre */}
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      {subject.name.toUpperCase()}
+                    </Typography>
+
+                    {/* Descripción */}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#ccc',
+                        mb: 2,
+                        maxWidth: '90%',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {subject.description}
+                    </Typography>
+
+                    {/* Enlace estilo botón */}
+                    <Box>
+                      <Button
+                        size="small"
                         sx={{
-                          mt: 2,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 3, // 🔢 Número máximo de líneas
-                          WebkitBoxOrient: 'vertical',
-                          color: isDarkColor(subject.color) ? '#fff' : '#000',
+                          textTransform: 'none',
+                          fontWeight: 'bold',
+                          backgroundColor: 'transparent',
+                          color: '#4dabf7',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                            backgroundColor: 'transparent',
+                          },
+                          p: 0,
+                          minWidth: 'unset',
                         }}
+                        onClick={() => handleStartTest(subject)}
                       >
-                        {subject.description}
-                      </Typography>
-                    </CardContent>
+                        {subject.progress > 0 ? 'Continuar práctica' : 'Iniciar práctica'}
+                      </Button>
+                    </Box>
                   </Box>
-                  <CardActions sx={{ mt: 'auto' }}>
-                    <Button size="small" onClick={() => handleStartTest(subject)}>
-                      {subject.progress > 0 ? 'Continuar Práctica' : 'Iniciar Práctica'}
-                    </Button>
-                  </CardActions>
                 </Card>
               </Grid>
             ))}
