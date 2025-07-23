@@ -28,11 +28,11 @@ export default function UpdateProfileInformation({
         <section className={className}>
             <header>
                 <h2 className="text-lg font-medium text-gray-900">
-                    Profile Information
+                    Información de Perfil
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-600">
-                    Update your account's profile information and email address.
+                    Actualiza la información de tu cuenta y dirección de correo electrónico.
                 </p>
             </header>
 
@@ -93,7 +93,7 @@ export default function UpdateProfileInformation({
                 )}
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton disabled={processing}>Guardar</PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
@@ -103,7 +103,7 @@ export default function UpdateProfileInformation({
                         leaveTo="opacity-0"
                     >
                         <p className="text-sm text-gray-600">
-                            Saved.
+                            Actualizado.
                         </p>
                     </Transition>
                 </div>

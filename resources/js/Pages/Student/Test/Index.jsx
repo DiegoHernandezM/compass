@@ -74,7 +74,7 @@ export default function Test() {
       handleAnswer(selectedOption);
       setTimeout(() => {
         if (currentIndex < test.test_questions.length - 1) {
-          setCurrentIndex(currentIndex + 1);
+          setCurrentIndex(currentIndex);
           setFeedback(null);
           setCorrectAnswer(null);
         }
@@ -117,9 +117,7 @@ export default function Test() {
   return (
     <StudentLayout>
       <Head title="Test - Estudiante" />
-
       <Box sx={{ minHeight: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.05)', p: 2 }}>
-
         <Card
           sx={{
             mb: 4,
@@ -137,7 +135,7 @@ export default function Test() {
             }}
           >
             <Typography variant="h6" gutterBottom>
-              Test de {subject.name}
+              {subject.name}
             </Typography>
             <LinearProgress variant="determinate" value={progressPercent} />
           </CardContent>

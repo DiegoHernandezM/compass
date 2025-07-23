@@ -102,7 +102,7 @@ export default function StudentLayout({ children }) {
               value="/profile"
               icon={<PersonIcon />}
               component={Link}
-              href="/profile"
+              href="/student/profile"
               sx={navActionStyle(subscriptionExpired)}
             />
             <BottomNavigationAction

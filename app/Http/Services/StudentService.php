@@ -5,10 +5,7 @@ namespace App\Http\Services;
 use App\Models\PayPalUser;
 use App\Models\Student;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Exception;
 
 class StudentService
 {
@@ -157,6 +154,25 @@ class StudentService
             $user->restore();
         }
         return $student;
+    }
+
+    public function getProfileStudent($user)
+    {
+        return $this->mStudent->where('user_id', $user->id)->with('user')->first();
+    }
+
+    public function updateProfileStudent(User $user, $data)
+    {
+        $student = $this->mStudent->where('user_id', $user->id)->first();
+        $student->update($data);
+        return $student;
+    }
+
+    public function updateStudentPassword(User $user, array $data)
+    {
+        $user->update([
+            'password' => Hash::make($data['password']),
+        ]);
     }
 
 }
