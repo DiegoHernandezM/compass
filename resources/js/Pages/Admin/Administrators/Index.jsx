@@ -43,7 +43,6 @@ export default function Administrators() {
   };
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 90 },
     { field: 'name', headerName: 'Nombre', flex: 1 },
     { field: 'email', headerName: 'Correo', flex: 1 },
     {

@@ -47,7 +47,7 @@ export default function Subjects() {
             gutterBottom
             sx={{ fontWeight: 'bold', mb: 4 }}
           >
-            ¡Materias!
+            Materias
           </Typography>
 
           <Grid container spacing={4} justifyContent="center">
