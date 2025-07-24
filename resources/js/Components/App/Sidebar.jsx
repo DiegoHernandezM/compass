@@ -1,9 +1,11 @@
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material';
 import { Dashboard, Group, Person, Settings, School, Logout, AutoStories, Description } from '@mui/icons-material';
-import { Link } from '@inertiajs/react';
-const drawerWidth = 240;
+import { Link, usePage } from '@inertiajs/react'; // 👈 importante
+const drawerWidth = 230;
 
 const Sidebar = ({ onClickItem }) => {
+  const { url } = usePage(); // 👈 obtiene la URL actual
+
   const menuItems = [
     { label: 'Dashboard', icon: <Dashboard sx={{color: 'white'}} />, route: 'dashboard' },
     { label: 'Landing', icon: <Settings sx={{color: 'white'}} />, route: 'landing.edit' },
@@ -20,20 +22,38 @@ const Sidebar = ({ onClickItem }) => {
         <Typography variant="h6" noWrap>ATP COMPASS</Typography>
       </Toolbar>
       <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.label}
-            component={Link}
-            href={route(item.route)}
-            method={item.method}
-            onClick={onClickItem}
-            sx={{ borderRadius: '8px', mx: 1, my: 0.5 }}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItem>
-        ))}
+        {menuItems.map((item) => {
+          const isActive = route().current(item.route); 
+
+          return (
+            <ListItem
+              button
+              key={item.label}
+              component={Link}
+              href={route(item.route)}
+              method={item.method}
+              onClick={onClickItem}
+              sx={{
+                borderRadius: '8px',
+                mx: 0.2,
+                my: 0.5,
+                backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: 'white' }}>{item.icon}</ListItemIcon>
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{
+                  color: 'white',
+                  fontWeight: isActive ? 'bold' : 'normal',
+                }}
+              />
+            </ListItem>
+          );
+        })}
       </List>
     </>
   );
