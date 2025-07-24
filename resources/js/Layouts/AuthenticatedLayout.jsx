@@ -1,5 +1,6 @@
 import { Box, CssBaseline, Toolbar, AppBar, Typography, IconButton, Menu, MenuItem, useMediaQuery, Drawer } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SidebarContent from '../Components/App/Sidebar';
 import { usePage, Link } from '@inertiajs/react';
 import { useState } from 'react';
@@ -66,12 +67,14 @@ export default function AuthenticatedLayout({ children }) {
           </Box>
           <div>
             <IconButton onClick={handleMenu} color="inherit" style={{ color: 'white' }}>
-              <MenuIcon />
+              <SettingsIcon />
             </IconButton>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
               <MenuItem disabled>{user?.name}</MenuItem>
               <MenuItem component={Link} href={route('profile.edit')}>Perfil</MenuItem>
-              <MenuItem component={Link} href={route('logout')} method="post" as="button">Salir</MenuItem>
+              <Link href={route('logout')} method="post" as="button">
+                <MenuItem>Salir</MenuItem>
+              </Link>
             </Menu>
           </div>
         </Toolbar>
