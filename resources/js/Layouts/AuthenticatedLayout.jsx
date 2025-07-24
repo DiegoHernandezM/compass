@@ -6,7 +6,7 @@ import { usePage, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { useTheme } from '@mui/material/styles';
 
-const drawerWidth = 240;
+const drawerWidth = 230;
 
 export default function AuthenticatedLayout({ children }) {
   const { user } = usePage().props.auth;
@@ -96,7 +96,7 @@ export default function AuthenticatedLayout({ children }) {
             sx={{
               [`& .MuiDrawer-paper`]: {
                 width: drawerWidth,
-                margin: '16px 0 16px 16px',
+                margin: '0px 0 16px 10px',
                 borderRadius: '16px',
                 boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
                 color: 'white',
