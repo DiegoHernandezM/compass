@@ -96,11 +96,14 @@ export default function AuthenticatedLayout({ children }) {
             sx={{
               [`& .MuiDrawer-paper`]: {
                 width: drawerWidth,
-                margin: '0px 0 16px 10px',
+                top: '15px',
+                height: 'calc(100vh - 30px)',
+                marginLeft: '10px',
                 borderRadius: '16px',
                 boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
                 color: 'white',
                 backgroundColor: '#203764',
+                overflow: 'auto'
               },
             }}
             open
