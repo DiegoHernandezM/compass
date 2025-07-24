@@ -4,6 +4,15 @@ const IntroSection = (props) => {
   return (
     <section className="landing-hero">
       <div className="hero-text">
+        <img 
+          src="/assets/logos/ais-normal.png" 
+          alt="ais" 
+          style={{
+            height: "170px",
+            display: "block",
+            margin: "0 auto"
+          }} 
+        />
         <h2>{props.content.subtitle}</h2>
         <p dangerouslySetInnerHTML={{ __html: props.content.principal_text }} />
         <a href="/register" className="cta-button" style={{ background: "#203764", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
