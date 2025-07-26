@@ -18,6 +18,8 @@ class TestQuestion extends Model
         'is_correct',
         'feedback_test',
         'feedback_image',
+        'limit_time',
+        'type',
     ];
 
     protected $casts = [
@@ -32,5 +34,10 @@ class TestQuestion extends Model
     public function question()
     {
         return $this->belongsTo(Question::class);
+    }
+
+    public function multitaskQuestion()
+    {
+        return $this->belongsTo(MultitaskQuestion::class);
     }
 }

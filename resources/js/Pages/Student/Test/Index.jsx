@@ -28,6 +28,9 @@ export default function Test() {
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [openFeedbackDialog, setOpenFeedbackDialog] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null); // segundos restantes
+  const [maxTime, setMaxTime] = useState(null);   // tiempo total para el progreso
+
 
   useEffect(() => {
     if (showFeedback && !openFeedbackDialog) {
@@ -39,6 +42,33 @@ export default function Test() {
     }
   }, [showFeedback, openFeedbackDialog]);
 
+  useEffect(() => {
+    if (currentQuestion?.limit_time) {
+      setTimeLeft(currentQuestion.limit_time);
+      setMaxTime(currentQuestion.limit_time);
+    } else {
+      setTimeLeft(null);
+      setMaxTime(null);
+    }
+  }, [currentQuestion]);
+
+  useEffect(() => {
+    if (timeLeft === null) return;
+
+    if (timeLeft <= 0) {
+      // Marcar como incorrecto si no respondió
+      handleAnswer(''); // respuesta vacía
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeLeft]);
+
+
   const handleAnswerChange = (e) => {
     setAnswers({
       ...answers,
@@ -46,9 +76,13 @@ export default function Test() {
     });
   };
 
-  const handleAnswer = (selectedOption) => {
-    const currentQuestion = test.test_questions[currentIndex];
+  const handleAnswer = (selectedOption = '') => {
     const isCorrect = selectedOption.toUpperCase() === currentQuestion.correct_answer;
+
+    setAnswers((prev) => ({
+      ...prev,
+      [currentQuestion.id]: selectedOption,
+    }));
 
     setFeedback(isCorrect ? 'correct' : 'incorrect');
 
@@ -56,13 +90,12 @@ export default function Test() {
       setCorrectAnswer(currentQuestion.correct_answer);
     }
 
-    if(!isCorrect  && (currentQuestion.feedback_text || currentQuestion.feedback_image)) {
-      console.log('entro para abrir dialog');
+    if (!isCorrect && (currentQuestion.feedback_text || currentQuestion.feedback_image)) {
       setOpenFeedbackDialog(true);
     }
-    
+
     setShowFeedback(true);
-    // Aquí puedes enviar la respuesta al backend si deseas
+
     setTimeout(() => {
       setShowFeedback(false);
     }, 2500);
@@ -161,6 +194,13 @@ export default function Test() {
               border: '1px solid #e0e0e0',
             }}
           >
+            {maxTime && (
+              <LinearProgress
+                variant="determinate"
+                value={(timeLeft / maxTime) * 100}
+                sx={{ mt: 2, height: 10, borderRadius: 5 }}
+              />
+            )}
             <Typography variant="subtitle1" gutterBottom>
               Pregunta {currentIndex + 1} de {test.test_questions.length}
             </Typography>

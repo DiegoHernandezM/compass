@@ -12,7 +12,8 @@ class Subject extends Model
         'description',
         'image',
         'color',
-        'is_automatic'
+        'is_automatic',
+        'question_type',
     ];
 
     public function setNameAttribute($value)
@@ -40,5 +41,12 @@ class Subject extends Model
     public function tests()
     {
         return $this->hasMany(Test::class);
+    }
+
+    public function multitaskQuestions()
+    {
+        return $this->belongsToMany(MultitaskQuestion::class, 'question_subject', 'subject_id', 'question_id')
+                    ->withTimestamps()
+                    ->withPivot('time_limit');
     }
 }

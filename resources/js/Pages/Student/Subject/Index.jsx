@@ -21,8 +21,6 @@ export default function Subjects() {
       });
       const test = response.data.test.test;
       if (test?.id) {
-        console.log('entro');
-        console.log(test.id);
         router.get(`/student/test/${test.id}/${subject.id}`);
       }
     } catch (error) {

@@ -13,7 +13,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
-import { Inertia } from '@inertiajs/inertia';
 import axios from 'axios';
 
 export default function QuestionsDialog({ open, onClose, subject, handleEditQuestion, handleDelete, handleExport }) {
@@ -39,14 +38,13 @@ export default function QuestionsDialog({ open, onClose, subject, handleEditQues
 
   const columns = [
     { field: 'question', headerName: 'Pregunta', flex: 1 },
-    { field: 'correct_answer', headerName: 'Correcta', width: 120 },
     {
-      field: 'has_dynamic',
-      headerName: 'Dinámica',
+      field: 'correct_answer',
+      headerName: 'Correcta',
       width: 120,
       renderCell: (params) => (
-        <span>{params.value ? 'Sí' : 'No'}</span>
-      ),
+        <span>{params.row.correct_answer || params.row.answer}</span>
+      )
     },
     {
       field: 'actions',

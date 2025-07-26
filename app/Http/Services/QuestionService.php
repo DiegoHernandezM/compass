@@ -5,23 +5,26 @@ namespace App\Http\Services;
 use App\Models\Question;
 use App\Models\QuestionType;
 use App\Models\Subject;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use App\Imports\QuestionsImport;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Models\MultitaskQuestion;
 
 class QuestionService
 {
     protected $model;
     protected $mTypes;
+    protected $mMultitaskQuestions;
+    protected $mSubject;
 
     public function __construct()
     {
         $this->model = new Question();
         $this->mTypes = new QuestionType();
+        $this->mMultitaskQuestions = new MultitaskQuestion();
+        $this->mSubject = new Subject();
     }
 
     public function getAll()
@@ -52,7 +55,12 @@ class QuestionService
 
     public function allBySubject($subjectId)
     {
-        $subject = Subject::find($subjectId);
+        $subject = $this->mSubject->findOrFail($subjectId);
+
+        $isMultitask = $subject->question_type === 'MULTITASKING';
+        $questions = $isMultitask ? $subject->multitaskQuestions : $subject->questions;
+        $subject->questions = $questions;
+
         return $subject->questions;
     }
 
@@ -99,12 +107,35 @@ class QuestionService
             'question_count',
             'has_time_limit',
             'time_limit',
+            'game'
         ]);
-        $questions = $this->model->where('question_type_id', $data['question_type_id'])
-            ->where('question_level_id', $data['question_level_id'])
-            ->inRandomOrder()
-            ->limit($data['question_count'])
-            ->get();
+        $type = $this->mTypes->find($data['question_type_id']);
+        if ($type->name === 'MULTITASKING') {
+            $total = (int) $data['question_count'] * 2;
+            $half = (int) ceil($total / 2); 
+            $mathQuestions = $this->mMultitaskQuestions
+                ->where('question_type_id', $data['question_type_id'])
+                ->where('question_level_id', $data['question_level_id'])
+                ->where('type', 'math')
+                ->inRandomOrder()
+                ->limit($half)
+                ->get();
+            $figureQuestions = $this->mMultitaskQuestions
+                ->where('question_type_id', $data['question_type_id'])
+                ->where('question_level_id', $data['question_level_id'])
+                ->where('type', 'figure')
+                ->inRandomOrder()
+                ->limit($total - $mathQuestions->count())
+                ->get();
+            $questions = $mathQuestions->concat($figureQuestions)->shuffle();
+        } else {
+            $questions = $this->model->where('question_type_id', $data['question_type_id'])
+                ->where('question_level_id', $data['question_level_id'])
+                ->inRandomOrder()
+                ->limit($data['question_count'])
+                ->get();
+        }
+        
         if ($questions->count() < $data['question_count']) {
             return "No hay suficientes preguntas disponibles para este tipo y nivel.";
         }
@@ -119,6 +150,9 @@ class QuestionService
                 'updated_at' => now(),
             ]);
         }
+        $subject = $this->mSubject->find($data['subject_id']);
+        $subject->question_type = $type->name;
+        $subject->save();
         return $questions;
     }
 

@@ -5,23 +5,26 @@ namespace App\Http\Services;
 use \App\Models\TestQuestion;
 use \App\Models\Test;
 use \App\Models\QuestionSubject;
+use \App\Models\Subject;
 
 class TestQuestionService
 {
     protected $mTestQuestion;
     protected $mTest;
     protected $mQuestionSubject;
+    protected $mSubject;
 
     public function __construct()
     {
         $this->mTestQuestion = new TestQuestion();
         $this->mTest = new Test();
         $this->mQuestionSubject = new QuestionSubject();
+        $this->mSubject = new Subject();
     }
 
     public function createOrFindTest($userId, $subjectId)
     {
-        dd($subjectId);
+        $subject = $this->mSubject->find($subjectId);
         $existingTest = $this->mTest->where('user_id', $userId)
             ->where('subject_id', $subjectId)
             ->where('is_completed', false)
@@ -30,12 +33,17 @@ class TestQuestionService
         if ($existingTest) {
             return $existingTest;
         }
+        
         $test = $this->mTest->create([
             'user_id' => $userId,
             'subject_id' => $subjectId,
             'is_completed' => false,
             'progress' => 0,
         ]);
+
+        if($subject->question_type === 'MULTITASKING') {
+            return $this->createMultitaskTest($test, $subjectId);
+        }
         
         $questionSubjects = $this->mQuestionSubject
             ->where('subject_id', $subjectId)
@@ -44,6 +52,7 @@ class TestQuestionService
             ->get();
 
         foreach ($questionSubjects as $qs) {
+            $time = $qs->time_limit;
             $question = $qs->question;
             $options = [
                 'a' => $question->answer_a,
@@ -59,6 +68,7 @@ class TestQuestionService
                 'correct_answer' => $question->correct_answer,
                 'feedback_text' => $question->feedback_text,
                 'feedback_image' => $question->feedback_image,
+                'limit_time' => $time ?? null,
                 'user_answer' => null
             ]);
         }
@@ -69,5 +79,37 @@ class TestQuestionService
     public function findTest($test)
     {
         return $this->mTest->find($test);
+    }
+
+    public function createMultitaskTest($test, $subjectId)
+    {
+        $questionSubjects = $this->mQuestionSubject
+            ->where('subject_id', $subjectId)
+            ->with('multitaskQuestion')
+            ->inRandomOrder()
+            ->get();
+        foreach ($questionSubjects as $qs) {
+            $question = $qs->multitaskQuestion;
+            if (!$question) {
+                continue;
+            }
+            $options = [
+                'a' => $question->option_a,
+                'b' => $question->option_b,
+                'c' => $question->option_c,
+            ];
+            $this->mTestQuestion->create([
+                'test_id'         => $test->id,
+                'question_id'     => $question->id,
+                'question_text'   => $question->question,
+                'options'         => json_encode($options),
+                'correct_answer'  => $question->answer,
+                'feedback_text'   => null,
+                'feedback_image'  => null,
+                'user_answer'     => null,
+                'type'            => $question->type,
+            ]);
+        }
+        return $test->load('testQuestions');
     }
 }

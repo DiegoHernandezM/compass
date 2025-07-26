@@ -36,6 +36,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
       formData.append('question_type_id', typeId);
       formData.append('question_level_id', levelId);
       formData.append('question_count', questionCount);
+      formData.append('game', gameType);
       formData.append('has_time_limit', hasTimeLimit ? '1' : '0');
       if (hasTimeLimit) {
         formData.append('time_limit', limitTime);
@@ -64,7 +65,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
               label="Tipo de cuestionario"
               onChange={(e) => {
                 setTypeId(e.target.value);
-                setLevelId(''); // Reiniciar nivel cuando cambia el tipo
+                setLevelId('');
               }}
               required
             >
