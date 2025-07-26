@@ -59,14 +59,15 @@ export default function ImportQuestionsDialog({ open, onClose, types, onImport, 
               }}
               required
             >
-              {types.map((type) => (
-                <MenuItem key={type.id} value={type.id}>
-                  {type.name}
-                </MenuItem>
-              ))}
+              {types
+                .filter((type) => type.is_automatic === 0)
+                .map((type) => (
+                  <MenuItem key={type.id} value={type.id}>
+                    {type.name}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
-
           <FormControl fullWidth margin="normal" disabled={!levels.length}>
             <InputLabel id="level-select-label">Nivel de complejidad</InputLabel>
             <Select

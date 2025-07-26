@@ -2,31 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Illuminate\Database\Eloquent\Model;
 
-class Question extends Model
+class MultitaskQuestion extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'question',
-        'answer_a',
-        'answer_b',
-        'answer_c',
-        'answer_d',
-        'correct_answer',
-        'feedback_text',
-        'feedback_image',
+        'answer', 
+        'option_a',
+        'option_b',
+        'option_c',
+        'type',
         'question_type_id',
         'question_level_id'
     ];
 
-    public function subjects()
-    {
-    return $this->belongsToMany(Subject::class, 'question_subject');
-    }
+    public const TYPES = [
+        'math' => 'math',
+        'figure' => 'figure',
+    ];
 
     public function type()
     {

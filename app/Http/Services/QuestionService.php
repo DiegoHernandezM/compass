@@ -31,11 +31,23 @@ class QuestionService
 
     public function getTypes()
     {
-        return $this->mTypes->with(['levels' => function ($query) {
-            $query->withCount('questions');
-        }])
-        ->withCount('questions')
-        ->get();
+        return $this->mTypes->with([
+            'levels' => function ($query) {
+                $query->withCount('questions')
+                    ->withCount('multitaskQuestions');
+            }
+        ])
+        ->withCount('questions', 'multitaskQuestions')
+        ->get()
+        ->map(function ($type) {
+            if ($type->name === 'MULTITASKING') {
+                $type->questions_count = intval(($type->multitask_questions_count ?? 0) / 2);
+                $type->levels->each(function ($level) {
+                    $level->questions_count = intval(($level->multitask_questions_count ?? 0) / 2);
+                });
+            }
+            return $type;
+        });
     }
 
     public function allBySubject($subjectId)

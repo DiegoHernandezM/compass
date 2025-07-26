@@ -21,6 +21,7 @@ class TestQuestionService
 
     public function createOrFindTest($userId, $subjectId)
     {
+        dd($subjectId);
         $existingTest = $this->mTest->where('user_id', $userId)
             ->where('subject_id', $subjectId)
             ->where('is_completed', false)

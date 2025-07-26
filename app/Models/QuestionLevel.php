@@ -17,4 +17,9 @@ class QuestionLevel extends Model
     {
         return $this->hasMany(Question::class);
     }
+
+    public function multitaskQuestions()
+{
+    return $this->hasMany(MultitaskQuestion::class);
+}
 }

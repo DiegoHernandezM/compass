@@ -26,6 +26,8 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
   const [hasTimeLimit, setHasTimeLimit] = useState(false);
   const [questionCount, setQuestionCount] = useState('');
   const [limitTime, setLimitTime] = useState('');
+  const isMultitasking = selectedType?.name === 'MULTITASK' || selectedType?.name === 'MULTITASKING';
+  const [gameType, setGameType] = useState('');
 
   const handleSubmit = () => {
     if (subject?.id && typeId) {
@@ -84,7 +86,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
               required={levels.length > 0}
             >
               {levels.map((level) => (
-                <MenuItem key={level.id} value={level.id}>
+                <MenuItem key={level.id} value={level.id} disabled={level.questions_count === 0}>
                   {level.name} - {level.description}
                 </MenuItem>
               ))}
@@ -113,6 +115,22 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
                 onChange={(e) => setQuestionCount(e.target.value)}
                 required
               />
+            </FormControl>
+          )}
+
+          {isMultitasking && (
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="game-type-label">Tipo de juego</InputLabel>
+              <Select
+                labelId="game-type-label"
+                value={gameType}
+                label="Tipo de juego"
+                onChange={(e) => setGameType(e.target.value)}
+                required
+              >
+                <MenuItem value="balde">Balde</MenuItem>
+                <MenuItem value="avion">Avión</MenuItem>
+              </Select>
             </FormControl>
           )}
 

@@ -38,7 +38,6 @@ class QuestionController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al obtener las preguntas.');
         }
-
     }
 
     public function getQuestions($subjectId)

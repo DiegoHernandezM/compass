@@ -11,7 +11,8 @@ class Subject extends Model
         'name',
         'description',
         'image',
-        'color'
+        'color',
+        'is_automatic'
     ];
 
     public function setNameAttribute($value)
