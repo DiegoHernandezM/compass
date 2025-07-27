@@ -5,14 +5,15 @@ namespace App\Http\Services;
 use App\Models\Question;
 use App\Models\QuestionType;
 use App\Models\Subject;
-use App\Models\Level;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use App\Imports\QuestionsImport;
 use App\Imports\SpatialQuestionsImport;
+use App\Imports\LogicalReasoningImport;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\MultitaskQuestion;
+use App\Models\QuestionLevel;
 
 class QuestionService
 {
@@ -28,7 +29,7 @@ class QuestionService
         $this->mTypes = new QuestionType();
         $this->mMultitaskQuestions = new MultitaskQuestion();
         $this->mSubject = new Subject();
-        $this->mLevels = new Level();
+        $this->mLevels = new QuestionLevel();
     }
 
     public function getAll()
@@ -169,9 +170,7 @@ class QuestionService
         $importMap = [
             'ORIENTACION ESPACIAL' => 'importSpatial',
             'RAZONAMIENTO LOGICO' => 'importLogical',
-            'MEMORIA A CORTO PLAZO - MEMORAMA' => 'importMemorama',
             'MEMORIA A CORTO PLAZO - PARAMETROS' => 'importParameters',
-            'MULTITASKING' => 'importMultitask',
             'ATPL' => 'importAtpl',
         ];
 
@@ -252,8 +251,16 @@ class QuestionService
 
     private function importSpatial($type, $file, $level)
     {
-        $imagesByRow = $this->extractImagesByRow($file, 'spatial/questions');
+        $imagesByRow = $this->extractImages($file, 'spatial/questions');
         $importer = new SpatialQuestionsImport($type->id, $level->id, $imagesByRow);
+        Excel::import($importer, $file);
+        return true;
+    }
+
+    private function importLogical($type, $file, $level)
+    {
+        $imagesByRow = $this->extractImages($file, 'spatial/questions');
+        $importer = new LogicalReasoningImport($type->id, $level->id, $imagesByRow);
         Excel::import($importer, $file);
         return true;
     }
