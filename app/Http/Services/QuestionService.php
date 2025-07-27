@@ -5,9 +5,11 @@ namespace App\Http\Services;
 use App\Models\Question;
 use App\Models\QuestionType;
 use App\Models\Subject;
+use App\Models\Level;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use App\Imports\QuestionsImport;
+use App\Imports\SpatialQuestionsImport;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\MultitaskQuestion;
@@ -16,6 +18,7 @@ class QuestionService
 {
     protected $model;
     protected $mTypes;
+    protected $mLevels;
     protected $mMultitaskQuestions;
     protected $mSubject;
 
@@ -25,6 +28,7 @@ class QuestionService
         $this->mTypes = new QuestionType();
         $this->mMultitaskQuestions = new MultitaskQuestion();
         $this->mSubject = new Subject();
+        $this->mLevels = new Level();
     }
 
     public function getAll()
@@ -159,57 +163,99 @@ class QuestionService
     public function importTypeQuestions($typeId, $levelId, $file)
     {
         $type = $this->mTypes->find($typeId);
-        //Aqui va la distribucion para el tipo de examen
-        switch ($type->name) {
-            case 'ORIENTACION ESPACIAL':
-                # code...
-                break;
-            case 'RAZONAMIENTO LOGICO':
-                # code...
-                break;
-            case 'MEMORIA A CORTO PLAZO - MEMORAMA':
-                # code...
-                break;
-            case 'MEMORIA A CORTO PLAZO - PARAMETROS':
-                # code...
-                break;
-            case 'MULTITASKING':
-                # code...
-                break;
-            case 'ATPL':
-                return $this->importAtpl($type, $file);
-                break;
-            default:
-                # code...
-                break;
+        $level = $levelId ? $this->mLevels->find($levelId) : null;
+        $name = $type->name;
+
+        $importMap = [
+            'ORIENTACION ESPACIAL' => 'importSpatial',
+            'RAZONAMIENTO LOGICO' => 'importLogical',
+            'MEMORIA A CORTO PLAZO - MEMORAMA' => 'importMemorama',
+            'MEMORIA A CORTO PLAZO - PARAMETROS' => 'importParameters',
+            'MULTITASKING' => 'importMultitask',
+            'ATPL' => 'importAtpl',
+        ];
+
+        if (!isset($importMap[$name])) {
+            throw new \Exception("Importación no soportada para el tipo: {$name}");
         }
 
+        return $this->{$importMap[$name]}($type, $file, $level);
     }
 
-    private function importAtpl($type, $file)
+    private function extractImagesByRow($file, $folder)
     {
         $spreadsheet = IOFactory::load($file);
         $sheet = $spreadsheet->getActiveSheet();
         $drawings = $sheet->getDrawingCollection();
-        // Subir imágenes y asociarlas con la fila
+
         $imagesByRow = [];
 
         foreach ($drawings as $drawing) {
             $coordinates = $drawing->getCoordinates();
-            $row = preg_replace('/[^0-9]/', '', $coordinates);
+            $row = (int) preg_replace('/[^0-9]/', '', $coordinates);
 
             $tmpPath = tempnam(sys_get_temp_dir(), 'img_');
             file_put_contents($tmpPath, file_get_contents($drawing->getPath()));
 
-            $s3Path = Storage::disk('s3')->putFile('feedback', $tmpPath);
-            $imagesByRow[(int)$row] = $s3Path;
+            $s3Path = Storage::disk('s3')->putFile($folder, $tmpPath);
+            $imagesByRow[$row] = $s3Path;
 
             @unlink($tmpPath);
         }
 
-        // Pasa las imágenes al importador
+        return $imagesByRow;
+    }
+
+    private function extractImages($file, $baseFolder)
+    {
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+        $drawings = $sheet->getDrawingCollection();
+
+        $imagesByKey = [];
+
+        foreach ($drawings as $drawing) {
+            $coordinates = $drawing->getCoordinates(); // Ej: B3
+            $column = preg_replace('/[0-9]/', '', $coordinates); // B
+            $row = preg_replace('/[^0-9]/', '', $coordinates);   // 3
+
+            $tmpPath = tempnam(sys_get_temp_dir(), 'img_');
+            file_put_contents($tmpPath, file_get_contents($drawing->getPath()));
+
+            $s3Path = Storage::disk('s3')->putFile($baseFolder, $tmpPath);
+            @unlink($tmpPath);
+
+            $columnKey = match (strtoupper($column)) {
+                'A' => "question_{$row}",
+                'B' => "a_{$row}",
+                'C' => "b_{$row}",
+                'D' => "c_{$row}",
+                default => null,
+            };
+
+            if ($columnKey) {
+                $imagesByKey[$columnKey] = $s3Path;
+            }
+        }
+
+        return $imagesByKey;
+    }
+
+
+    private function importAtpl($type, $file, $level)
+    {
+        $imagesByRow = $this->extractImagesByRow($file, 'atpl/feedback');
         $importer = new QuestionsImport($type->id, $imagesByRow);
         Excel::import($importer, $file);
         return true;
     }
+
+    private function importSpatial($type, $file, $level)
+    {
+        $imagesByRow = $this->extractImagesByRow($file, 'spatial/questions');
+        $importer = new SpatialQuestionsImport($type->id, $level->id, $imagesByRow);
+        Excel::import($importer, $file);
+        return true;
+    }
+
 }

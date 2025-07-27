@@ -12,6 +12,7 @@ class Question extends Model
 
     protected $fillable = [
         'question',
+        'question_image',
         'answer_a',
         'answer_b',
         'answer_c',
