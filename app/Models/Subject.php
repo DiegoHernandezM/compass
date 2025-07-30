@@ -49,4 +49,5 @@ class Subject extends Model
                     ->withTimestamps()
                     ->withPivot('time_limit');
     }
+
 }

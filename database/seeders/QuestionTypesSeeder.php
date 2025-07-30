@@ -19,6 +19,7 @@ class QuestionTypesSeeder extends Seeder
                 'description' => 'OPERACIONES MATEMATICAS',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
+                'bypass_levels_and_questions' => false,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
@@ -45,6 +46,7 @@ class QuestionTypesSeeder extends Seeder
                 'description' => 'ORIENTACION ESPACIAL',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
+                'bypass_levels_and_questions' => false,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
@@ -77,6 +79,7 @@ class QuestionTypesSeeder extends Seeder
                 'description' => 'RAZONAMIENTO LOGICO',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
+                'bypass_levels_and_questions' => false,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
@@ -103,6 +106,7 @@ class QuestionTypesSeeder extends Seeder
                 'description' => 'MEMORAMA',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
+                'bypass_levels_and_questions' => true,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
@@ -129,6 +133,7 @@ class QuestionTypesSeeder extends Seeder
                 'description' => 'PARAMETROS',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
+                'bypass_levels_and_questions' => false,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
@@ -155,6 +160,7 @@ class QuestionTypesSeeder extends Seeder
                 'description' => 'PARAMETROS',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
+                'bypass_levels_and_questions' => false,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',

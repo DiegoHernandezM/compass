@@ -39,12 +39,6 @@ class TestQuestionController extends Controller
     {
         $test = $this->service->findTest($test);
         $subject = $this->sSubject->findSubject($subjectId);
-        if($test && $subject->question_type === 'MULTITASKING') {
-            return Inertia::render('Student/Test/Multitask', [
-                'test' => $test->load('testQuestions'),
-                'subject' => $subject
-            ]);
-        } 
         return Inertia::render('Student/Test/Index', [
             'test' => $test->load('testQuestions'),
             'subject' => $subject

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\MultitaskQuestion;
 use App\Models\QuestionLevel;
+use App\Models\MemoryTest;
 
 class QuestionService
 {
@@ -22,6 +23,7 @@ class QuestionService
     protected $mLevels;
     protected $mMultitaskQuestions;
     protected $mSubject;
+    protected $mMemoryTest;
 
     public function __construct()
     {
@@ -30,6 +32,7 @@ class QuestionService
         $this->mMultitaskQuestions = new MultitaskQuestion();
         $this->mSubject = new Subject();
         $this->mLevels = new QuestionLevel();
+        $this->mMemoryTest = new MemoryTest();
     }
 
     public function getAll()
@@ -115,6 +118,9 @@ class QuestionService
             'game'
         ]);
         $type = $this->mTypes->find($data['question_type_id']);
+        $subject = $this->mSubject->find($data['subject_id']);
+        $subject->question_type = $type->name;
+        $subject->save();
         if ($type->name === 'MULTITASKING') {
             $total = (int) $data['question_count'] * 2;
             $half = (int) ceil($total / 2); 
@@ -133,6 +139,14 @@ class QuestionService
                 ->limit($total - $mathQuestions->count())
                 ->get();
             $questions = $mathQuestions->concat($figureQuestions)->shuffle();
+        } elseif ($type->name === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
+            return $this->mMemoryTest->create([
+                'subject_id' => $data['subject_id'],
+                'question_type_id' => $data['question_type_id'],
+                'question_level_id' => $data['question_level_id'],
+                'questions_counts' => $data['question_count'],
+                'time_limit' => $data['has_time_limit'] ? $data['time_limit'] : null,
+            ]);
         } else {
             $questions = $this->model->where('question_type_id', $data['question_type_id'])
                 ->where('question_level_id', $data['question_level_id'])
@@ -155,9 +169,6 @@ class QuestionService
                 'updated_at' => now(),
             ]);
         }
-        $subject = $this->mSubject->find($data['subject_id']);
-        $subject->question_type = $type->name;
-        $subject->save();
         return $questions;
     }
 

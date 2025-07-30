@@ -28,6 +28,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
   const [limitTime, setLimitTime] = useState('');
   const isMultitasking = selectedType?.name === 'MULTITASK' || selectedType?.name === 'MULTITASKING';
   const [gameType, setGameType] = useState('');
+  const bypassLevels = selectedType?.bypass_levels_and_questions === 1;
 
   const handleSubmit = () => {
     if (subject?.id && typeId) {
@@ -50,7 +51,6 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
       onClose();
     }
   };
-
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xl">
@@ -77,17 +77,21 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
             </Select>
           </FormControl>
 
-          <FormControl fullWidth margin="normal" disabled={!levels.length}>
+          <FormControl fullWidth margin="normal" disabled={!levels.length || !bypassLevels}>
             <InputLabel id="level-select-label">Nivel de complejidad</InputLabel>
             <Select
               labelId="level-select-label"
               value={levelId}
               label="Nivel de complejidad"
               onChange={(e) => setLevelId(e.target.value)}
-              required={levels.length > 0}
+              required={levels.length > 0 || !bypassLevels}
             >
               {levels.map((level) => (
-                <MenuItem key={level.id} value={level.id} disabled={level.questions_count === 0}>
+                <MenuItem 
+                  key={level.id} 
+                  value={level.id} 
+                  disabled={!bypassLevels} 
+                >
                   {level.name} - {level.description}
                 </MenuItem>
               ))}
@@ -97,11 +101,12 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
           {(selectedLevel || selectedType) && (
             <FormControl fullWidth margin="normal">
               <Typography variant="subtitle1" component="p">
-                Preguntas disponibles sobre examen (
-                {selectedLevel
-                  ? selectedLevel.questions_count || 0
-                  : selectedType?.questions_count || 0}
-                )
+                {bypassLevels
+                  ? 'Número de preguntas para el examen'
+                  : `Preguntas disponibles sobre examen (${selectedLevel
+                      ? selectedLevel.questions_count || 0
+                      : selectedType?.questions_count || 0
+                    })`}
               </Typography>
               <TextField
                 id="count-question-required"
@@ -109,9 +114,13 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
                 type="number"
                 inputProps={{
                   min: 1,
-                  max: selectedLevel
-                    ? selectedLevel.questions_count
-                    : selectedType?.questions_count || 1,
+                  ...(bypassLevels
+                    ? {}
+                    : {
+                        max: selectedLevel
+                          ? selectedLevel.questions_count
+                          : selectedType?.questions_count || 1,
+                      }),
                 }}
                 onChange={(e) => setQuestionCount(e.target.value)}
                 required
@@ -135,7 +144,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
             </FormControl>
           )}
 
-          {typeId && (
+          {bypassLevels || typeId  && (
             <FormGroup>
               <FormControlLabel
                 control={
@@ -151,7 +160,6 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
 
           {hasTimeLimit && (
             <>
-              {console.log(typeId)}
               <FormControl fullWidth margin="normal">
                 <TextField
                   id="limit-time-required"

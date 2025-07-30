@@ -33,7 +33,7 @@ export default function CatchGame() {
         { x: Math.random() * 280, y: 0, id: Date.now() },
       ]);
       setTotal((prev) => prev + 1);
-    }, 1000);
+    }, 1500);
 
     return () => {
       window.removeEventListener('keydown', handleKey);
