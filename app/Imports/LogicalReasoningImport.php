@@ -4,9 +4,10 @@ namespace App\Imports;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use App\Models\Question;
 
-class LogicalReasoningImport implements ToCollection
+class LogicalReasoningImport implements ToCollection, WithHeadingRow
 {
     private int $typeId;
     private int $levelId;
@@ -27,6 +28,7 @@ class LogicalReasoningImport implements ToCollection
             $answerAImage = $this->imagesByRow["a_{$rowNumber}"] ?? null;
             $answerBImage = $this->imagesByRow["b_{$rowNumber}"] ?? null;
             $answerCImage = $this->imagesByRow["c_{$rowNumber}"] ?? null;
+            $answerDImage = $this->imagesByRow["d_{$rowNumber}"] ?? null;
 
 
             Question::create([
@@ -35,6 +37,7 @@ class LogicalReasoningImport implements ToCollection
                 'answer_a' => $answerAImage,
                 'answer_b' => $answerBImage,
                 'answer_c' => $answerCImage,
+                'answer_d' => $answerDImage,
                 'correct_answer' => strtoupper($row['correct_answer']),
                 'question_type_id' => $this->typeId,
                 'question_level_id' => $this->levelId,

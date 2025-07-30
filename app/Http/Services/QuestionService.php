@@ -270,7 +270,7 @@ class QuestionService
 
     private function importLogical($type, $file, $level)
     {
-        $imagesByRow = $this->extractImages($file, 'spatial/questions');
+        $imagesByRow = $this->extractImages($file, 'logical/questions');
         $importer = new LogicalReasoningImport($type->id, $level->id, $imagesByRow);
         Excel::import($importer, $file);
         return true;
