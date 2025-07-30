@@ -1,1 +1,0 @@
-import{Y as m,M as a}from"./ButtonBase-wecvMaha.js";import{g as p}from"./getThemeProps-DGe96xVY.js";const i=m();function n({props:t,name:r,defaultTheme:o,themeId:s}){let e=a(o);return s&&(e=e[s]||e),p({theme:e,name:r,props:t})}export{i as s,n as u};

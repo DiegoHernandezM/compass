@@ -1,0 +1,1 @@
+import{x as r}from"./ButtonBase-DdA8Ku2c.js";function p(t){const{theme:o,name:e,props:n}=t;return!o||!o.components||!o.components[e]||!o.components[e].defaultProps?n:r(o.components[e].defaultProps,n)}export{p as g};
