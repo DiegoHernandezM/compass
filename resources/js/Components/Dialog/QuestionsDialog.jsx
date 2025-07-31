@@ -14,12 +14,29 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 import CloseIcon from '@mui/icons-material/Close';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import * as Icons from '@mui/icons-material';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 export default function QuestionsDialog({ open, close, questions, type }) {
+  const columnsMemory = [
+    {
+      field: 'name',
+      headerName: 'Memorama',
+      flex: 0.9,
+      sortable: true,
+      renderCell: (params) => {
+        const IconComponent = Icons[params.row.name];
+        return IconComponent ? (
+          <IconComponent sx={{ fontSize: 40, color: '#555', mx: 'auto' }} />
+        ) : (
+          <span>{params.row.name}</span>
+        );
+      }
+    },
+  ];
   const columns = [
     {
       field: 'question',
@@ -210,12 +227,13 @@ export default function QuestionsDialog({ open, close, questions, type }) {
           <Box sx={{ height: 500, width: '100%' }}>
             <DataGrid
               rows={questions}
-              columns={columns}
+              columns={type?.bypass_levels_and_questions != 1 ? columns : columnsMemory}
               pageSize={10}
               rowsPerPageOptions={[5, 10, 20]}
               disableSelectionOnClick
               autoHeight
             />
+            
           </Box>
         </Box>
       </Dialog>

@@ -42,3 +42,4 @@ Route::get('/admin/question/export/{subjectId}',[QuestionController::class,'expo
 Route::get('/admin/question/get/{typeId}/{levelId}',[QuestionController::class,'getQuestionSubjectType'])->name('question.show');
 
 Route::post('/admin/question/savetest', [QuestionController::class,'generateTest'])->name('question.test');
+Route::get('/admin/question/check-existence/{subjectId}/{levelId}/{typeId}', [QuestionController::class, 'checkIfTestExists']);

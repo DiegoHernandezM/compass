@@ -16,6 +16,7 @@ use App\Models\MultitaskQuestion;
 use App\Models\QuestionLevel;
 use App\Models\MemoryTest;
 use App\Models\MemoryIcon;
+use App\Models\QuestionSubject;
 
 class QuestionService
 {
@@ -25,6 +26,7 @@ class QuestionService
     protected $mMultitaskQuestions;
     protected $mSubject;
     protected $mMemoryTest;
+    protected $mQuestionSubject;
 
     public function __construct()
     {
@@ -34,6 +36,7 @@ class QuestionService
         $this->mSubject = new Subject();
         $this->mLevels = new QuestionLevel();
         $this->mMemoryTest = new MemoryTest();
+        $this->mQuestionSubject = new QuestionSubject();
     }
 
     public function getAll()
@@ -269,6 +272,32 @@ class QuestionService
         return $this->model->where('question_type_id', $typeId)
             ->where('question_level_id', $levelId)
             ->get();
+    }
+
+    public function checkIfExist($subject, $level, $type)
+    {
+        $findType = $this->mTypes->findOrFail($type);
+        if ($findType->bypass_levels_and_questions) {
+            return $this->mMemoryTest
+                ->where(subject_id, $subject)
+                ->where(question_type_id, $type)
+                ->where(question_level_id, $level)
+                ->firts();
+        }
+        if ($findType->name === 'MULTITASKING') {
+            return $this->mQuestionSubject->where('subject_id', $subject)
+                    ->whereHas('multitaskQuestion', function ($query) use ($type, $level) {
+                        $query->where('question_type_id', $type)
+                            ->where('question_level_id', $level);
+                    })
+                    ->get();
+        }
+            return $this->mQuestionSubject->where('subject_id', $subject)
+                    ->whereHas('question', function ($query) use ($type, $level) {
+                        $query->where('question_type_id', $type)
+                            ->where('question_level_id', $level);
+                    })
+                    ->get();
     }
 
 

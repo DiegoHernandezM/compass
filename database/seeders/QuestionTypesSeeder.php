@@ -187,7 +187,14 @@ class QuestionTypesSeeder extends Seeder
                 'description' => 'CUESTIONARIO NORMAL',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
-                'levels' => []
+                'levels' => [
+                     [
+                        'name' => 'UNICO NIVEL ATPL',
+                        'description' => 'UNICO NIVEL ATPL',
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]
+                ]
             ]
         ];
 

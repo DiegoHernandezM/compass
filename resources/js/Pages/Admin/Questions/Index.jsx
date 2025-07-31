@@ -46,8 +46,8 @@ export default function Questions() {
     }
   }, [errors]);
 
-  const handleEdit = (subject) => {
-    setSelectedSubject(subject);
+  const handleEdit = (type) => {
+    setSelectedType(type);
     setNewsQuestions(true);
   };
 
@@ -188,14 +188,17 @@ export default function Questions() {
           />
         </Box>
       </Box>
+
       <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
+      
       <QuestionNewDialog
         open={newsQuestions}
         onClose={handleCloseNewDialog}
-        subject={selectedSubject}
-        types={types}
+        subjects={subjects}
+        type={selectedType}
         onSave={hancleSaveQuestionSubject}
       />
+      
       <LevelsDialog
         open={dialogOpen}
         onClose={handleCloseDialog}

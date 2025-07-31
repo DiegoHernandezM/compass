@@ -128,4 +128,16 @@ class QuestionController extends Controller
             return response()->json(['error' => 'Error al consultar las preguntas.'], 500);
         }
     }
+
+    public function checkIfTestExists($subject, $level, $type)
+    {
+        try {
+            $exists = $this->service->checkIfExist($subject, $level, $type);
+            return response()->json([
+                'exists' => $exists,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al consultar la existencia de test. '. $e->getMessage() . $e->getLine()], 500);
+        }
+    }
 }
