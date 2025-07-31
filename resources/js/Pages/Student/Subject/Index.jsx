@@ -80,7 +80,7 @@ export default function Subjects() {
                       alt={subject.name}
                       sx={{
                         width: '100%',
-                        height: '100%',
+                        height: 180, // altura fija en px (ajústalo a tu gusto)
                         objectFit: 'cover',
                         borderTopLeftRadius: 12,
                         borderTopRightRadius: 12,
@@ -161,7 +161,7 @@ export default function Subjects() {
                   </Box>
 
                   {/* Contenido inferior */}
-                  <Box sx={{ p: 2, flexGrow: 1, bgcolor: '#fff', color: '#000' }}>
+                  <Box sx={{ p: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', bgcolor: '#fff', color: '#000' }}>
                     <Typography
                       variant="overline"
                       gutterBottom
@@ -187,7 +187,7 @@ export default function Subjects() {
                     </Typography>
 
                     {/* Botón estilo link */}
-                    <Box sx={{ textAlign: 'left' }}>
+                    <Box sx={{ mt: 'auto', textAlign: 'left' }}>
                       <Button
                         size="small"
                         variant="outlined"
@@ -197,7 +197,7 @@ export default function Subjects() {
                           fontSize: '0.6rem',
                           backgroundColor: '#fff',
                           color: '#4f4f4f',
-                          borderRadius: '999px', // completamente redondeado
+                          borderRadius: '999px',
                           borderColor: '#ccc',
                           padding: '4px 12px',
                           '&:hover': {
@@ -210,7 +210,6 @@ export default function Subjects() {
                       >
                         {subject.progress > 0 ? 'Continuar práctica' : 'Iniciar práctica'}
                       </Button>
-
                     </Box>
                   </Box>
 
