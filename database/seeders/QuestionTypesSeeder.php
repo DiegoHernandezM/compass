@@ -157,7 +157,7 @@ class QuestionTypesSeeder extends Seeder
             ],
             [
                 'name' => 'MULTITASKING',
-                'description' => 'PARAMETROS',
+                'description' => 'TEST MULTIPLE',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
                 'bypass_levels_and_questions' => false,
@@ -188,7 +188,7 @@ class QuestionTypesSeeder extends Seeder
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
                 'levels' => [
-                     [
+                    [
                         'name' => 'UNICO NIVEL ATPL',
                         'description' => 'UNICO NIVEL ATPL',
                         'created_at' => Carbon::now(),
