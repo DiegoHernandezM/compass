@@ -31,7 +31,6 @@ class TestQuestionService
 
     public function createOrFindTest($userId, $subjectId)
     {
-        
         $subject = $this->mSubject->find($subjectId);
         $existingTest = $this->mTest->where('user_id', $userId)
             ->where('subject_id', $subjectId)
@@ -39,19 +38,18 @@ class TestQuestionService
             ->with('testQuestions')
             ->with('subject')
             ->first();
+        
         if ($existingTest) {
-            //return $existingTest;
+            return $existingTest;
         }
-         
-        /*
+        
         $test = $this->mTest->create([
             'user_id' => $userId,
             'subject_id' => $subjectId,
             'is_completed' => false,
             'progress' => 0,
         ]);
-        */
-        $test =$existingTest;
+        
         if($subject->question_type === 'MULTITASKING') {
             return $this->createMultitaskTest($test, $subjectId);
         } elseif($subject->question_type === 'MEMORIA A CORTO PLAZO - MEMORAMA') {

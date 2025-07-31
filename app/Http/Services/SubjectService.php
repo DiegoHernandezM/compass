@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Services;
+
 use App\Models\Subject;
+use App\Models\Test;
 use Illuminate\Support\Facades\Storage;
 
 class SubjectService
@@ -53,6 +55,8 @@ class SubjectService
 
     public function getForStudent($userId)
     {
+
+        /*
         return $this->model->with(['tests' => function ($query) use ($userId) {
             $query->where('user_id', $userId)
                 ->where('is_completed', false); // Solo tests activos
@@ -69,6 +73,24 @@ class SubjectService
                 'complete' => $test?->is_complete
             ];
         });
+        */
+        return Test::with(['subject', 'questionSubject.question'])
+            ->where('user_id', $userId)
+            ->where('is_completed', false) // Solo tests activos
+            ->get()
+            ->map(function ($test) {
+                return [
+                    'id' => $test->subject->id,
+                    'name' => $test->subject->name,
+                    'description' => $test->subject->description,
+                    'image' => $test->subject->image,
+                    'color' => $test->subject->color,
+                    'has_active_test' => !!$test,
+                    'progress' => $test?->progress ?? 0,
+                    'complete' => $test?->is_complete,
+                    'level_id' => $test->questionSubject?->question?->question_level_id ?? null,
+                ];
+            });
     }
 
     public function findSubject($id)
