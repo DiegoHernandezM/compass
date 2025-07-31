@@ -78,6 +78,7 @@ export default function StudentLayout({ children }) {
               href="/student/subjects"
               sx={navActionStyle(subscriptionExpired)}
             />
+            {/* 
             <BottomNavigationAction
               disabled={subscriptionExpired}
               label="Simulacro"
@@ -87,6 +88,7 @@ export default function StudentLayout({ children }) {
               href="/student/mock-test"
               sx={navActionStyle(subscriptionExpired)}
             />
+            */}
             <BottomNavigationAction
               disabled={subscriptionExpired}
               label="Resultados"

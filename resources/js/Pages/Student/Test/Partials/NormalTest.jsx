@@ -202,25 +202,60 @@ export default function NormalTest({ test, subject }) {
             Pregunta {currentIndex + 1} de {test.test_questions.length}
           </Typography>
 
-          <Typography variant="h6" gutterBottom>
-            {currentQuestion.question_text}
-          </Typography>
+          {currentQuestion.type === 'image' ? (
+            <Box
+              component="img"
+              src={`${currentQuestion.question_text}`}
+              alt="Pregunta"
+              sx={{
+                width: '100%',
+                maxWidth: 600,
+                height: 'auto',
+                display: 'block',
+                mx: 'auto',
+                mb: 4
+              }}
+            />
+          ) : (
+            <Typography variant="h6" gutterBottom>
+              {currentQuestion.question_text}
+            </Typography>
+          )}
 
           <RadioGroup
             value={answers[currentQuestion.id] || ''}
             onChange={handleAnswerChange}
           >
             {Object.entries(JSON.parse(currentQuestion.options))
-              .filter(([_, value]) => value) // Filtra opciones nulas o vacías
+              .filter(([_, value]) => value)
               .map(([key, value]) => (
                 <FormControlLabel
                   key={key}
                   value={key}
                   control={<Radio />}
-                  label={`${key.toUpperCase()}: ${value}`}
+                  sx={{ mb: 2 }}
+                  label={
+                    typeof value === 'string' && (value.includes('/') || value.match(/\.(png|jpg|jpeg|svg)$/i)) ? (
+                      <Box
+                        component="img"
+                        src={value}
+                        alt={`Opción ${key.toUpperCase()}`}
+                        sx={{
+                          width: 70,
+                          height: 70,
+                          objectFit: 'contain',
+                          border: '1px solid #ccc',
+                          p: 1
+                        }}
+                      />
+                    ) : (
+                      `${key.toUpperCase()}: ${value}`
+                    )
+                  }
                 />
               ))}
           </RadioGroup>
+
 
           <Stack direction="row" justifyContent="space-between" mt={3}>
             <Button

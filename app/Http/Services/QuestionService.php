@@ -240,6 +240,7 @@ class QuestionService
                 'B' => "a_{$row}",
                 'C' => "b_{$row}",
                 'D' => "c_{$row}",
+                'E' => "d_{$row}",
                 default => null,
             };
 

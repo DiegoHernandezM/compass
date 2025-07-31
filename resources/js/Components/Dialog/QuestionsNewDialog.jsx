@@ -26,9 +26,9 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
   const [hasTimeLimit, setHasTimeLimit] = useState(false);
   const [questionCount, setQuestionCount] = useState('');
   const [limitTime, setLimitTime] = useState('');
-  const isMultitasking = selectedType?.name === 'MULTITASK' || selectedType?.name === 'MULTITASKING';
-  const [gameType, setGameType] = useState('');
   const bypassLevels = selectedType?.bypass_levels_and_questions === 1;
+
+  console.log(types);
 
   const handleSubmit = () => {
     if (subject?.id && typeId) {
@@ -37,7 +37,6 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
       formData.append('question_type_id', typeId);
       formData.append('question_level_id', levelId);
       formData.append('question_count', questionCount);
-      formData.append('game', gameType);
       formData.append('has_time_limit', hasTimeLimit ? '1' : '0');
       if (hasTimeLimit) {
         formData.append('time_limit', limitTime);
@@ -77,7 +76,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
             </Select>
           </FormControl>
 
-          <FormControl fullWidth margin="normal" disabled={!levels.length || !bypassLevels}>
+          <FormControl fullWidth margin="normal" disabled={levels.length == 0 || bypassLevels === true}>
             <InputLabel id="level-select-label">Nivel de complejidad</InputLabel>
             <Select
               labelId="level-select-label"
@@ -90,7 +89,7 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
                 <MenuItem 
                   key={level.id} 
                   value={level.id} 
-                  disabled={!bypassLevels} 
+                  disabled={bypassLevels === true} 
                 >
                   {level.name} - {level.description}
                 </MenuItem>
@@ -125,22 +124,6 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
                 onChange={(e) => setQuestionCount(e.target.value)}
                 required
               />
-            </FormControl>
-          )}
-
-          {isMultitasking && (
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="game-type-label">Tipo de juego</InputLabel>
-              <Select
-                labelId="game-type-label"
-                value={gameType}
-                label="Tipo de juego"
-                onChange={(e) => setGameType(e.target.value)}
-                required
-              >
-                <MenuItem value="balde">Balde</MenuItem>
-                <MenuItem value="avion">Avión</MenuItem>
-              </Select>
             </FormControl>
           )}
 

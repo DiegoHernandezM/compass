@@ -33,7 +33,7 @@ export default function Index() {
     return <Multitask subject={subject} test={test} />;
   }
 
-  if (type === 'ATPL' || type === 'MATEMATICAS') {
+  if (type === 'ATPL' || type === 'MATEMATICAS' || type === 'RAZONAMIENTO LOGICO') {
     return <NormalTest subject={subject} test={test} />;
   }
 

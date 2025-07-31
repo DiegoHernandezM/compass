@@ -8,6 +8,7 @@ use \App\Models\QuestionSubject;
 use \App\Models\Subject;
 use \App\Models\MemoryTest;
 use \App\Models\MemoryIcon;
+use Illuminate\Support\Facades\Storage;
 
 class TestQuestionService
 {
@@ -39,22 +40,24 @@ class TestQuestionService
             ->with('subject')
             ->first();
         if ($existingTest) {
-            return $existingTest;
+            //return $existingTest;
         }
-
+         
+        /*
         $test = $this->mTest->create([
             'user_id' => $userId,
             'subject_id' => $subjectId,
             'is_completed' => false,
             'progress' => 0,
         ]);
-
+        */
+        $test =$existingTest;
         if($subject->question_type === 'MULTITASKING') {
             return $this->createMultitaskTest($test, $subjectId);
         } elseif($subject->question_type === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
             return $this->createMemoryTest($test, $subjectId);
         }
-
+        
         $questionSubjects = $this->mQuestionSubject
             ->where('subject_id', $subjectId)
             ->with('question')
@@ -64,22 +67,25 @@ class TestQuestionService
         foreach ($questionSubjects as $qs) {
             $time = $qs->time_limit;
             $question = $qs->question;
+            $isImage = is_null($question->question);
             $options = [
-                'a' => $question->answer_a,
-                'b' => $question->answer_b,
-                'c' => $question->answer_c,
-                'd' => $question->answer_d,
+                'a' => $this->getOptionUrl($question->answer_a, $isImage),
+                'b' => $this->getOptionUrl($question->answer_b, $isImage),
+                'c' => $this->getOptionUrl($question->answer_c, $isImage),
+                'd' => $this->getOptionUrl($question->answer_d, $isImage),
             ];
+
             $this->mTestQuestion->create([
                 'test_id' => $test->id,
                 'question_id' => $question->id,
-                'question_text' => $question->question,
+                'question_text' => $question->question ?? Storage::disk('s3')->url($question->question_image),
                 'options' => json_encode($options),
                 'correct_answer' => $question->correct_answer,
-                'feedback_text' => $question->feedback_text,
-                'feedback_image' => $question->feedback_image,
+                'feedback_text' => $question->feedback_text ?? null,
+                'feedback_image' => $question->feedback_image ?? null,
                 'limit_time' => $time ?? null,
-                'user_answer' => null
+                'user_answer' => null,
+                'type' => $question->question === null ? 'image' : 'text',
             ]);
         }
         return $test->load('testQuestions');
@@ -167,4 +173,11 @@ class TestQuestionService
             default => 3,
         };
     }
+
+    private function getOptionUrl($value, $isImage)
+    {
+        if (!$value) return null;
+        return $isImage ? Storage::disk('s3')->url($value) : $value;
+    }
+
 }
