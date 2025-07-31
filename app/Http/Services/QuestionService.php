@@ -279,25 +279,25 @@ class QuestionService
         $findType = $this->mTypes->findOrFail($type);
         if ($findType->bypass_levels_and_questions) {
             return $this->mMemoryTest
-                ->where(subject_id, $subject)
-                ->where(question_type_id, $type)
-                ->where(question_level_id, $level)
-                ->firts();
+                ->where('subject_id', $subject)
+                ->where('question_type_id', $findType->id)
+                ->where('question_level_id', $level)
+                ->first();
         }
         if ($findType->name === 'MULTITASKING') {
             return $this->mQuestionSubject->where('subject_id', $subject)
-                    ->whereHas('multitaskQuestion', function ($query) use ($type, $level) {
-                        $query->where('question_type_id', $type)
-                            ->where('question_level_id', $level);
-                    })
-                    ->get();
+                ->whereHas('multitaskQuestion', function ($query) use ($type, $level) {
+                    $query->where('question_type_id', $type)
+                        ->where('question_level_id', $level);
+                })
+                ->get();
         }
             return $this->mQuestionSubject->where('subject_id', $subject)
-                    ->whereHas('question', function ($query) use ($type, $level) {
-                        $query->where('question_type_id', $type)
-                            ->where('question_level_id', $level);
-                    })
-                    ->get();
+                ->whereHas('question', function ($query) use ($type, $level) {
+                    $query->where('question_type_id', $type)
+                        ->where('question_level_id', $level);
+                })
+                ->get();
     }
 
 

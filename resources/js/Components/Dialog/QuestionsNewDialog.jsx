@@ -104,20 +104,19 @@ export default function QuestionsNewDialog({ open, onClose, type, subjects, onSa
                 ))}
               </Select>
             </FormControl>
-            <FormControl fullWidth margin="normal" disabled={levels.length == 0 || bypassLevels === true}>
+            <FormControl fullWidth margin="normal" disabled={levels.length == 0}>
               <InputLabel id="level-select-label">Nivel de complejidad</InputLabel>
               <Select
                 labelId="level-select-label"
                 value={levelId ?? ''}
                 label="Nivel de complejidad"
                 onChange={(e) => setLevelId(e.target.value)}
-                required={levels.length > 0 || !bypassLevels}
+                required={levels.length > 0}
               >
                 {levels.map((level) => (
                   <MenuItem 
                     key={level.id} 
-                    value={level.id} 
-                    disabled={bypassLevels === true} 
+                    value={level.id}
                   >
                     {level.name} - {level.description}
                   </MenuItem>
