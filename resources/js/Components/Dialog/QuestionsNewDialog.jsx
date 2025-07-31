@@ -28,8 +28,6 @@ export default function QuestionsNewDialog({ open, onClose, types, subject, onSa
   const [limitTime, setLimitTime] = useState('');
   const bypassLevels = selectedType?.bypass_levels_and_questions === 1;
 
-  console.log(types);
-
   const handleSubmit = () => {
     if (subject?.id && typeId) {
       const formData = new FormData();

@@ -27,17 +27,141 @@ export default function QuestionsDialog({ open, close, questions, type }) {
       flex: 0.9,
       sortable: true,
       renderCell: (params) => (
-        <Tooltip title={params.row.question} arrow>
-          {params.row.question ?? params.row.question_image}
-        </Tooltip>
+        params.row.question ? (
+          <Tooltip title={params.row.question} arrow>
+            <span style={{ cursor: 'default' }}>{params.row.question}</span>
+          </Tooltip>
+        ) : (
+          <Box
+            component="img"
+            src={params.row.question_image}
+            alt="Pregunta"
+            sx={{ width: 300, height: 'auto', objectFit: 'contain' }}
+          />
+        )
       ),
     },
-    { field: 'answer_a', headerName: 'Opción A', flex: 0.5 },
-    { field: 'answer_b', headerName: 'Opción B', flex: 0.5 },
-    { field: 'answer_c', headerName: 'Opción C', flex: 0.5 },
-    { field: 'answer_d', headerName: 'Opción D', flex: 0.5 },
+    {
+      field: 'answer_a',
+      headerName: 'Opción A',
+      flex: 0.9,
+      sortable: true,
+      renderCell: (params) =>
+        params.row.question ? (
+          <span>{params.row.answer_a}</span>
+        ) : (
+          params.row.answer_a ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Box
+                component="img"
+                src={params.row.answer_a}
+                alt="Respuesta A"
+                sx={{ width: 25, height: 25, objectFit: 'contain' }}
+              />
+            </Box>
+          ) : (
+            <span>-</span>
+          )
+        ),
+    },
+    {
+      field: 'answer_b',
+      headerName: 'Opción B',
+      flex: 0.9,
+      sortable: true,
+      renderCell: (params) =>
+        params.row.question ? (
+          <span>{params.row.answer_b}</span>
+        ) : (
+          params.row.answer_b ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Box
+                component="img"
+                src={params.row.answer_b}
+                alt="Respuesta B"
+                sx={{ width: 25, height: 25, objectFit: 'contain' }}
+              />
+            </Box>
+          ) : (
+            <span>-</span>
+          )
+        ),
+    },
+    {
+      field: 'answer_c',
+      headerName: 'Opción C',
+      flex: 0.9,
+      sortable: true,
+      renderCell: (params) =>
+        params.row.question ? (
+          <span>{params.row.answer_c}</span>
+        ) : (
+          params.row.answer_c ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Box
+                component="img"
+                src={params.row.answer_c}
+                alt="Respuesta C"
+                sx={{ width: 25, height: 25, objectFit: 'contain' }}
+              />
+            </Box>
+          ) : (
+            <span>-</span>
+          )
+        ),
+    },
+    {
+      field: 'answer_d',
+      headerName: 'Opción D',
+      flex: 0.9,
+      sortable: true,
+      renderCell: (params) =>
+        params.row.question ? (
+          <span>{params.row.answer_d}</span>
+        ) : (
+          params.row.answer_d ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Box
+                component="img"
+                src={params.row.answer_d}
+                alt="Respuesta D"
+                sx={{ width: 20, height: 20, objectFit: 'contain' }}
+              />
+            </Box>
+          ) : (
+            <span>-</span>
+          )
+        ),
+    },
     { field: 'correct_answer', headerName: 'Respuesta', flex: 0.5 },
-    { field: 'feedback_text', headerName: 'Feedback', flex: 0.5 },
     {
       field: 'actions',
       headerName: 'Acciones',
