@@ -1,94 +1,100 @@
-import React, { useEffect, useState } from 'react';
+import * as React from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
+  Dialog,
+  AppBar,
+  Toolbar,
+  IconButton,
   Typography,
-  Box
+  Slide,
+  Box,
+  Stack,
+  Tooltip
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
-import axios from 'axios';
+import CloseIcon from '@mui/icons-material/Close';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
-export default function QuestionsDialog({ open, onClose, subject, handleEditQuestion, handleDelete, handleExport }) {
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
-  const fetchQuestions = async () => {
-    try {
-      const response = await axios.get(route('question.subject', subject?.id));
-      setQuestions(response.data);
-    } catch (error) {
-      console.error('Error fetching questions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (open && subject?.id) {
-      fetchQuestions();
-    }
-  }, [open, subject?.id]);
-
+export default function QuestionsDialog({ open, close, questions, type }) {
   const columns = [
-    { field: 'question', headerName: 'Pregunta', flex: 1 },
     {
-      field: 'correct_answer',
-      headerName: 'Correcta',
-      width: 120,
+      field: 'question',
+      headerName: 'Pregunta',
+      flex: 0.9,
+      sortable: true,
       renderCell: (params) => (
-        <span>{params.row.correct_answer || params.row.answer}</span>
-      )
+        <Tooltip title={params.row.question} arrow>
+          {params.row.question ?? params.row.question_image}
+        </Tooltip>
+      ),
     },
+    { field: 'answer_a', headerName: 'Opción A', flex: 0.5 },
+    { field: 'answer_b', headerName: 'Opción B', flex: 0.5 },
+    { field: 'answer_c', headerName: 'Opción C', flex: 0.5 },
+    { field: 'answer_d', headerName: 'Opción D', flex: 0.5 },
+    { field: 'correct_answer', headerName: 'Respuesta', flex: 0.5 },
+    { field: 'feedback_text', headerName: 'Feedback', flex: 0.5 },
     {
       field: 'actions',
       headerName: 'Acciones',
-      width: 120,
-      sortable: false,
+      flex: 0.5,
+      sortable: true,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <IconButton onClick={() => handleEditQuestion(params.row)} color="primary">
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => handleDelete(params.row.id)}
-            color="error"
-            size="small"
-          >
-            <DeleteIcon />
-          </IconButton>
+          <Tooltip title="Niveles" arrow>
+            <IconButton onClick={() => handleSowLevels(params.row)} color="primary">
+              <VisibilityIcon />
+            </IconButton>
+          </Tooltip>
         </Stack>
       ),
     },
   ];
-
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Preguntas de la materia: {subject?.name}</DialogTitle>
-      <DialogContent>
-        {loading ? (
-          <Typography>Cargando preguntas...</Typography>
-        ) : (
-          <Box sx={{ height: 400, width: '100%' }}>
+    <React.Fragment>
+      <Dialog
+        fullScreen
+        open={open}
+        onClose={close}
+        slots={{
+          transition: Transition,
+        }}
+      >
+        <AppBar sx={{ position: 'relative' }}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={close}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              {type?.name}
+            </Typography>
+            <Button autoFocus color="inherit" onClick={close}>
+              CERRAR
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <Box p={4}>
+          <Box sx={{ height: 500, width: '100%' }}>
             <DataGrid
               rows={questions}
               columns={columns}
-              pageSize={5}
-              rowsPerPageOptions={[5]}
-              getRowId={(row) => row.id}
+              pageSize={10}
+              rowsPerPageOptions={[5, 10, 20]}
+              disableSelectionOnClick
+              autoHeight
             />
           </Box>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cerrar</Button>
-      </DialogActions>
-    </Dialog>
+        </Box>
+      </Dialog>
+    </React.Fragment>
   );
 }

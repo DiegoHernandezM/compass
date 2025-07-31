@@ -39,5 +39,6 @@ Route::put('/admin/question/update/{id}', [QuestionController::class, 'update'])
 Route::delete('/admin/question/destroy/{id}', [QuestionController::class, 'destroy'])->name('question.destroy');
 Route::post('/admin/question/import', [QuestionController::class,'import'])->name('question.import');
 Route::get('/admin/question/export/{subjectId}',[QuestionController::class,'exportExcel'])->name('question.export');
+Route::get('/admin/question/get/{typeId}/{levelId}',[QuestionController::class,'getQuestionSubjectType'])->name('question.show');
 
 Route::post('/admin/question/savetest', [QuestionController::class,'generateTest'])->name('question.test');

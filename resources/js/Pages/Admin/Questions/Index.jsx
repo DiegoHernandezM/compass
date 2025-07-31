@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
-import { Box, Button, Stack } from '@mui/material';
+import { Box, Button, Stack, Tooltip } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
@@ -10,25 +12,27 @@ import { Inertia } from '@inertiajs/inertia';
 import QuestionForm from '../../../Components/Forms/QuestionForm';
 import QuestionNewDialog from '../../../Components/Dialog/QuestionsNewDialog';
 import ImportQuestionDialog from '../../../Components/Dialog/ImportQuestionDialog';
-import QuestionDialog from '../../../Components/Dialog/QuestionsDialog';
+import LevelsDialog from '../../../Components/Dialog/LevelsDialog';
 import SuccessAlert from '../../../Components/SuccessAlert';
 import ValidationErrorAlert from '@/Components/ValidationErrorAlert';
+import QuestionsDialog from '@/Components/Dialog/QuestionsDialog';
+
 
 export default function Questions() {
   const { errors, flash } = usePage().props;
-  const { questions, subjects, types } = usePage().props;
+  const { subjects, types } = usePage().props;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newsQuestions, setNewsQuestions] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
-
+  const [selectedType, setSelectedType] = useState(null);
   const successMessage = usePage().props?.flash?.success ?? null;
-
   const [openSuccess, setOpenSuccess] = useState(!!successMessage);
   const [openError, setOpenError] = useState(false);
-
+  const [questions, setQuestions] = useState([]);
+  const [openQuestionsDialog, setOpenQuestionsDialog] = useState(false);
 
   useEffect(() => {
     if (successMessage) {
@@ -52,8 +56,8 @@ export default function Questions() {
     setDrawerOpen(true);
   }
 
-  const handleSowQuestions = (subject) => {
-    setSelectedSubject(subject);
+  const handleSowLevels = (subject) => {
+    setSelectedType(subject);
     setDialogOpen(true);
   };
 
@@ -89,8 +93,8 @@ export default function Questions() {
   };
 
   const columns = [
-    { field: 'name', headerName: 'Materia', flex: 0.5 },
-    { field: 'questions_count', headerName: 'Número de preguntas', flex: 0.5 },
+    { field: 'name', headerName: 'Tipo de cuestionario', flex: 0.5 },
+    { field: 'description', headerName: 'Descripción', flex: 0.5 },
     {
       field: 'actions',
       headerName: 'Acciones',
@@ -98,12 +102,16 @@ export default function Questions() {
       sortable: true,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <IconButton onClick={() => handleSowQuestions(params.row)} color="primary">
-            <VisibilityIcon />
-          </IconButton>
-          <IconButton onClick={() => handleEdit(params.row)} color="primary">
-            <AddIcon />
-          </IconButton>
+          <Tooltip title="Niveles" arrow>
+            <IconButton onClick={() => handleSowLevels(params.row)} color="primary">
+              <VisibilityIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Asignar a Materias" arrow>
+            <IconButton onClick={() => handleEdit(params.row)} color="primary">
+              <AddIcon />
+            </IconButton>
+          </Tooltip>
         </Stack>
       ),
     },
@@ -119,6 +127,21 @@ export default function Questions() {
     Inertia.post(route('question.test'), formData, {
       forceFormData: true,
     });
+  };
+
+  const handleSowQuestions = async (level) => {
+    try {
+      const response = await axios.get(route('question.show', {
+        typeId: selectedType?.id,
+        levelId: level?.id,
+      }));
+      if (response.data.questions) {
+        setQuestions(response.data.questions);
+        setOpenQuestionsDialog(true);
+      }
+    } catch (error) {
+      console.error('Error al obtener preguntas:', error);
+    }
   };
 
   return (
@@ -156,7 +179,7 @@ export default function Questions() {
 
         <Box sx={{ height: 500, width: '100%' }}>
           <DataGrid
-            rows={subjects}
+            rows={types}
             columns={columns}
             pageSize={10}
             rowsPerPageOptions={[5, 10, 20]}
@@ -173,12 +196,19 @@ export default function Questions() {
         types={types}
         onSave={hancleSaveQuestionSubject}
       />
-      <QuestionDialog
+      <LevelsDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        subject={selectedSubject}
+        type={selectedType}
         handleEditQuestion={handleEditQuestion}
         handleDelete={handleDelete}
+        handleSowQuestions={handleSowQuestions}
+      />
+      <QuestionsDialog
+        open={openQuestionsDialog}
+        close={() => setOpenQuestionsDialog(false)}
+        questions={questions}
+        type={selectedType}
       />
       <ImportQuestionDialog
         open={importOpen}

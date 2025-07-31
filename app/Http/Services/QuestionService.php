@@ -15,6 +15,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\MultitaskQuestion;
 use App\Models\QuestionLevel;
 use App\Models\MemoryTest;
+use App\Models\MemoryIcon;
 
 class QuestionService
 {
@@ -250,6 +251,24 @@ class QuestionService
         }
 
         return $imagesByKey;
+    }
+
+    public function getByTypeSubject($typeId, $levelId)
+    {
+        $type = $this->mTypes->findOrFail($typeId);
+        if ($type->bypass_levels_and_questions) {
+            return MemoryIcon::where('question_type_id', $typeId)->get();
+        }
+
+        if ($type->name === 'MULTITASKING') {
+            return $this->mMultitaskQuestions->where('question_type_id', $typeId)
+                ->where('question_level_id', $levelId)
+                ->get();
+        }
+
+        return $this->model->where('question_type_id', $typeId)
+            ->where('question_level_id', $levelId)
+            ->get();
     }
 
 

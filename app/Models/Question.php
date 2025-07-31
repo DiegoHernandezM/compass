@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Question extends Model
 {
@@ -23,6 +24,42 @@ class Question extends Model
         'question_type_id',
         'question_level_id'
     ];
+
+    public function getQuestionImageAttribute($value)
+    {
+        if ($value && Storage::disk('s3')->exists($value)) {
+            return Storage::disk('s3')->url($value);
+        }
+        return null;
+    }
+
+    public function getAnswerAAttribute($value)
+    {
+        return $this->shouldReturnS3Url($value) ? Storage::disk('s3')->url($value) : $value;
+    }
+
+    public function getAnswerBAttribute($value)
+    {
+        return $this->shouldReturnS3Url($value) ? Storage::disk('s3')->url($value) : $value;
+    }
+
+    public function getAnswerCAttribute($value)
+    {
+        return $this->shouldReturnS3Url($value) ? Storage::disk('s3')->url($value) : $value;
+    }
+
+    public function getAnswerDAttribute($value)
+    {
+        return $this->shouldReturnS3Url($value) ? Storage::disk('s3')->url($value) : $value;
+    }
+
+    private function shouldReturnS3Url($value)
+    {
+        return is_null($this->question) &&
+            !is_null($this->question_image) &&
+            $value &&
+            Storage::disk('s3')->exists($value);
+    }
 
     public function subjects()
     {

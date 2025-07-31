@@ -116,4 +116,16 @@ class QuestionController extends Controller
             return redirect()->back()->with('error', 'Error al exportar las preguntas.');
         }
     }
+
+    public function getQuestionSubjectType($typeId, $levelId)
+    {
+        try {
+            $questions = $this->service->getByTypeSubject($typeId, $levelId);
+            return response()->json([
+                'questions' => $questions,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al consultar las preguntas.'], 500);
+        }
+    }
 }
