@@ -3,22 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 import Memory from './Partials/Memory';
 import Multitask from './Partials/Multitask';
 import NormalTest from './Partials/NormalTest';
-import {
-  Box,
-  Typography,
-  Paper,
-  Card,
-  CardContent,
-  LinearProgress,
-  Stack,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  Button,
-  Fade
-} from '@mui/material';
-import { useState } from 'react';
-
+import { Box,Typography } from '@mui/material';
 
 export default function Index() {
   const { test, subject } = usePage().props;

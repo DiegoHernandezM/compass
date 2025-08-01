@@ -29,7 +29,7 @@ class TestQuestionService
         $this->mIcons = new MemoryIcon();
     }
 
-    public function createOrFindTest($userId, $subjectId)
+    public function createOrFindTest($userId, $subjectId, $levelId)
     {
         $subject = $this->mSubject->find($subjectId);
         $existingTest = $this->mTest->where('user_id', $userId)
@@ -51,16 +51,18 @@ class TestQuestionService
         ]);
         
         if($subject->question_type === 'MULTITASKING') {
-            return $this->createMultitaskTest($test, $subjectId);
+            return $this->createMultitaskTest($test, $subjectId, $levelId);
         } elseif($subject->question_type === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
-            return $this->createMemoryTest($test, $subjectId);
+            return $this->createMemoryTest($test, $subjectId, $levelId);
         }
         
         $questionSubjects = $this->mQuestionSubject
             ->where('subject_id', $subjectId)
+            ->where('level_id', $levelId)
             ->with('question')
             ->inRandomOrder()
             ->get();
+            dd($questionSubjects);
 
         foreach ($questionSubjects as $qs) {
             $time = $qs->time_limit;
@@ -94,10 +96,11 @@ class TestQuestionService
         return $this->mTest->with('subject')->find($test);
     }
 
-    public function createMultitaskTest($test, $subjectId)
+    public function createMultitaskTest($test, $subjectId, $levelId)
     {
         $questionSubjects = $this->mQuestionSubject
             ->where('subject_id', $subjectId)
+            ->where('level_id', $levelId)
             ->with('multitaskQuestion')
             ->inRandomOrder()
             ->get();
@@ -126,7 +129,7 @@ class TestQuestionService
         return $test->load('testQuestions');
     }
 
-    public function createMemoryTest($test, $subject)
+    public function createMemoryTest($test, $subject, $levelId)
     { 
         $settings = $this->mMTests
             ->where('subject_id', $subject)

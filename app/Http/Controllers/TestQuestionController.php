@@ -24,7 +24,7 @@ class TestQuestionController extends Controller
         try {
             $userId = Auth::id();
             $subjectId = $request->input('subject_id');
-            $test = $this->service->createOrFindTest($userId, $subjectId);
+            $test = $this->service->createOrFindTest($userId, $subjectId, $request->level_id);
             return response()->json([
                 'success' => true,
                 'test' => ['test' => $test],

@@ -13,11 +13,13 @@ import { router } from '@inertiajs/react';
 export default function Subjects() {
   const { props } = usePage();
   const { subjects } = props;
+  console.log(subjects);
 
   const handleStartTest = async (subject) => {
     try {
       const response = await axios.post(route('student.test.create'), {
         subject_id: subject.id,
+        level_id: subject.level_id,
       });
       const test = response.data.test.test;
       if (test?.id) {
