@@ -1,1 +1,0 @@
-import{Y as m,H as a}from"./ButtonBase-DdA8Ku2c.js";import{g as p}from"./getThemeProps-CQcBN-ro.js";const i=m();function n({props:t,name:r,defaultTheme:o,themeId:s}){let e=a(o);return s&&(e=e[s]||e),p({theme:e,name:r,props:t})}export{i as s,n as u};
