@@ -40,8 +40,6 @@ export default function Subjects() {
         }}
       >
         <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
-         
-
           <Grid container spacing={4} justifyContent="center">
             {subjects.map((subject) => (
               <Grid
@@ -92,7 +90,24 @@ export default function Subjects() {
                         backgroundColor: 'rgba(0, 0, 0, 0.4)', // Ajusta la opacidad si lo quieres más oscuro
                       }}
                     />
-
+                    <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 8,
+                          left: 8,
+                          backgroundColor: 'rgba(0,0,0,0.5)',
+                          boxShadow: 3,
+                          color: '#fff',
+                          px: 1.2,
+                          py: 0.5,
+                          fontSize: 11,
+                          fontWeight: 'bold',
+                          borderRadius: 1,
+                          zIndex: 3,
+                        }}
+                      >
+                        {subject?.level_name}
+                    </Box>
                     <Box 
                       sx={{
                         position: 'absolute',
@@ -116,8 +131,8 @@ export default function Subjects() {
                       <CircularProgress
                         variant="determinate"
                         value={subject.progress || 0}
-                        size={70}
-                        thickness={2}
+                        size={63}
+                        thickness={3}
                         sx={{
                           position: 'absolute',
                           color: '#e6fc6a',
@@ -208,7 +223,6 @@ export default function Subjects() {
                   </Box>
 
                 </Card>
-
               </Grid>
             ))}
           </Grid>

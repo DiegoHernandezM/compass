@@ -18,6 +18,8 @@ export default function StudentLayout({ children }) {
   const [value, setValue] = useState(url);
   const { props } = usePage();
   const subscriptionExpired = props.subscriptionExpired ?? false;
+  const hideAppBar = url.startsWith('/student/test/');
+
 
   // Aqui van las url para el AppBar
   const pageTitles = {
@@ -50,49 +52,51 @@ export default function StudentLayout({ children }) {
 
   return (
     <Box sx={{ pb: 7 }}>
-      <AppBar
-        position="fixed"
-        elevation={6}
-        sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          top: 5,
-          left: drawerWidth + 15,
-          right: 30,
-          width:  `calc(100% - ${drawerWidth + 30}px)`,
-          borderRadius: '10px',
-          backgroundColor: '#203764',
-          color: '#333',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-          px: 1,
-        }}
-      >
-        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="h6" noWrap color='white'>
-              {pageTitles[url] || 'ATP COMPASS'}
-            </Typography>
-          </Box>
-          <div>
-            <IconButton onClick={handleMenu} color="inherit" style={{ color: 'white' }}>
-              <SettingsIcon />
-            </IconButton>
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-              <MenuItem disabled>{user?.name}</MenuItem>
-              <MenuItem component={Link} href={route('student.profile')}>Perfil</MenuItem>
-              <Link href={route('logout')} method="post" as="button">
-                <MenuItem>Salir</MenuItem>
-              </Link>
-            </Menu>
-          </div>
-        </Toolbar>
-      </AppBar>
+      {!hideAppBar && (
+        <AppBar
+          position="fixed"
+          elevation={6}
+          sx={{
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            top: 5,
+            left: drawerWidth + 15,
+            right: 30,
+            width: `calc(100% - ${drawerWidth + 30}px)`,
+            borderRadius: '10px',
+            backgroundColor: '#203764',
+            color: '#333',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+            px: 1,
+          }}
+        >
+          <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography variant="h6" noWrap color='white'>
+                {pageTitles[url] || 'ATP COMPASS'}
+              </Typography>
+            </Box>
+            <div>
+              <IconButton onClick={handleMenu} color="inherit" style={{ color: 'white' }}>
+                <SettingsIcon />
+              </IconButton>
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+                <MenuItem disabled>{user?.name}</MenuItem>
+                <MenuItem component={Link} href={route('student.profile')}>Perfil</MenuItem>
+                <Link href={route('logout')} method="post" as="button">
+                  <MenuItem>Salir</MenuItem>
+                </Link>
+              </Menu>
+            </div>
+          </Toolbar>
+        </AppBar>
+      )}
       <CssBaseline />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 2,
-          mt: 8,
+          mt: hideAppBar ? 0 : 8,
         }}
       >
         {children}

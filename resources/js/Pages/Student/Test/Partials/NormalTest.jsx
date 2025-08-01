@@ -1,6 +1,4 @@
 import { useEffect } from 'react';
-import StudentLayout from '@/Layouts/StudentLayout';
-import { Head, usePage } from '@inertiajs/react';
 import {
   Box,
   Typography,
@@ -16,10 +14,14 @@ import {
   Fade
 } from '@mui/material';
 import { useState } from 'react';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 import FeedbackDialog from '../../../../Components/Test/FeedbackDialog';
 
 export default function NormalTest({ test, subject }) {
+  const theme = useTheme();
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('md')); // true si pantalla ≥ 960px
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')); // sm = 600px
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const currentQuestion = test.test_questions[currentIndex];
@@ -150,7 +152,10 @@ export default function NormalTest({ test, subject }) {
     <>
       <Card
         sx={{
-          mb: 4,
+          mb: isLargeScreen ? 2 : 1,
+          mt: isLargeScreen ? 2 : 1,
+          mx: isLargeScreen ? 'auto' : 1,
+          width: isLargeScreen ? '60%' : '100%',
           borderRadius: 3,
           boxShadow: 3,
           backgroundColor: 'rgba(255,255,255,0.95)',
@@ -173,17 +178,20 @@ export default function NormalTest({ test, subject }) {
 
       <Box
         sx={{
-          height: 'calc(100vh - 220px)',
+          mt: isSmallScreen ? 4 : 4, // más espacio en pantallas pequeñas
+          mb: 2,
+          px: 1,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'center',
+          minHeight: 'calc(100vh - 220px)',
         }}
       >
         <Paper
           elevation={3}
           sx={{
             width: '100%',
-            maxWidth: 700,
+            maxWidth: isLargeScreen ? 600 : '95%',
             p: 3,
             borderRadius: 3,
             boxShadow: 3,
