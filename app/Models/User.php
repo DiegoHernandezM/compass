@@ -56,6 +56,6 @@ class User extends Authenticatable
 
     public function paypal_user()
     {
-        return $this->hasOne(PaypalUser::class);
+        return $this->hasOne(PayPalUser::class);
     }
 }
