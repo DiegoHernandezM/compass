@@ -12,6 +12,8 @@ class QuestionSubject extends Model
         'question_id',
         'subject_id',
         'time_limit',
+        'question_type_id',
+        'question_level_id'
     ];
 
     public function question()

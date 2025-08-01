@@ -168,6 +168,8 @@ class QuestionService
             DB::table('question_subject')->insert([
                 'question_id' => $question->id,
                 'subject_id' => $data['subject_id'],
+                'question_type_id' => $data['question_type_id'],
+                'question_level_id' => $data['question_level_id'],
                 'time_limit' => $data['has_time_limit'] ? $data['time_limit'] : null,
                 'created_at' => now(),
                 'updated_at' => now(),

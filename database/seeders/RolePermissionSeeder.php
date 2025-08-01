@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Student;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -37,6 +38,21 @@ class RolePermissionSeeder extends Seeder
                  'password' => Hash::make('password')
              ]
          );
+
+         Student::create([
+            'name' => 'Estudiante',
+            'birthdate' => '1992-07-20',
+            'gender' => 'Masculino',
+            'address' => 'Calle 123',
+            'zip_code' => '12345',
+            'city' => 'Ciudad',
+            'country' => 'País',
+            'phone' => '1234567890',
+            'school' => 'Escuela',
+            'user_id' => $student->id,
+         ]);
+
+
          $student->assignRole($studentRole);
     }
 }
