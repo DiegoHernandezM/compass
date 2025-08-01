@@ -3,6 +3,7 @@
 namespace App\Http\Services;
 
 use App\Models\Subject;
+use App\Models\MemoryTest;
 use App\Models\QuestionSubject;
 use Illuminate\Support\Facades\Storage;
 
@@ -54,51 +55,31 @@ class SubjectService
     }
 
     public function getForStudent($userId)
-    {
-
-        /*
-        return $this->model->with(['tests' => function ($query) use ($userId) {
-            $query->where('user_id', $userId)
-                ->where('is_completed', false); // Solo tests activos
-        }])->get()->map(function ($subject) {
-            $test = $subject->tests->first(); // Solo uno activo por materia
-            return [
-                'id' => $subject->id,
-                'name' => $subject->name,
-                'description' => $subject->description,
-                'image' => $subject->image,
-                'color' => $subject->color,
-                'has_active_test' => !!$test,
-                'progress' => $test?->progress ?? 0,
-                'complete' => $test?->is_complete
-            ];
-        });
-        */
+    {   
         return QuestionSubject::with(['level', 'question', 'subject', 'subject.tests' => function ($query) use ($userId) {
-                $query->where('user_id', $userId)
-                    ->where('is_completed', false);
-            }])
-            ->get()
-            ->groupBy(fn($qs) => $qs->subject_id . '-' . $qs->question_level_id)
-            ->map(function ($group) {
-                $qs = $group->first(); // uno por combinación
-                $test = $qs->subject->tests->first(); // test activo si existe
-                
-                return [
-                    'id' => $qs->subject->id,
-                    'name' => $qs->subject->name,
-                    'description' => $qs->subject->description,
-                    'image' => $qs->subject->image,
-                    'color' => $qs->subject->color,
-                    'has_active_test' => !!$test,
-                    'progress' => $test?->progress ?? 0,
-                    'complete' => $test?->is_complete ?? false,
-                    'level_id' => $qs->level->id ?? null,
-                    'level_name' => $qs->level->name ?? 'N/A',
-                ];
-            })
-            ->values();
-        
+                    $query->where('user_id', $userId)
+                        ->where('is_completed', false);
+                }])
+                ->get()
+                ->groupBy(fn($qs) => $qs->subject_id . '-' . $qs->question_level_id)
+                ->map(function ($group) {
+                    $qs = $group->first(); // uno por combinación
+                    $test = $qs->subject->tests->first(); // test activo si existe
+                    
+                    return [
+                        'id' => $qs->subject->id,
+                        'name' => $qs->subject->name,
+                        'description' => $qs->subject->description,
+                        'image' => $qs->subject->image,
+                        'color' => $qs->subject->color,
+                        'has_active_test' => !!$test,
+                        'progress' => $test?->progress ?? 0,
+                        'complete' => $test?->is_complete ?? false,
+                        'level_id' => $qs->level->id ?? null,
+                        'level_name' => $qs->level->name ?? 'N/A',
+                    ];
+                })
+                ->values();
     }
 
     public function findSubject($id)

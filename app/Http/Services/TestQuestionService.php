@@ -34,6 +34,7 @@ class TestQuestionService
         $subject = $this->mSubject->find($subjectId);
         $existingTest = $this->mTest->where('user_id', $userId)
             ->where('subject_id', $subjectId)
+            ->where('question_level_id', $levelId)
             ->where('is_completed', false)
             ->with('testQuestions')
             ->with('subject')
@@ -47,6 +48,7 @@ class TestQuestionService
             'user_id' => $userId,
             'subject_id' => $subjectId,
             'is_completed' => false,
+            'question_level_id' => $levelId,
             'progress' => 0,
         ]);
         
@@ -58,27 +60,25 @@ class TestQuestionService
         
         $questionSubjects = $this->mQuestionSubject
             ->where('subject_id', $subjectId)
-            ->where('level_id', $levelId)
+            ->where('question_level_id', $levelId)
             ->with('question')
             ->inRandomOrder()
             ->get();
-            dd($questionSubjects);
 
         foreach ($questionSubjects as $qs) {
             $time = $qs->time_limit;
             $question = $qs->question;
-            $isImage = is_null($question->question);
             $options = [
-                'a' => $this->getOptionUrl($question->answer_a, $isImage),
-                'b' => $this->getOptionUrl($question->answer_b, $isImage),
-                'c' => $this->getOptionUrl($question->answer_c, $isImage),
-                'd' => $this->getOptionUrl($question->answer_d, $isImage),
+                'a' => $question->answer_a, 
+                'b' => $question->answer_b, 
+                'c' => $question->answer_c, 
+                'd' => $question->answer_d,
             ];
 
             $this->mTestQuestion->create([
                 'test_id' => $test->id,
                 'question_id' => $question->id,
-                'question_text' => $question->question ?? Storage::disk('s3')->url($question->question_image),
+                'question_text' => $question->question ?? $question->question_image,
                 'options' => json_encode($options),
                 'correct_answer' => $question->correct_answer,
                 'feedback_text' => $question->feedback_text ?? null,
@@ -100,7 +100,7 @@ class TestQuestionService
     {
         $questionSubjects = $this->mQuestionSubject
             ->where('subject_id', $subjectId)
-            ->where('level_id', $levelId)
+            ->where('question_level_id', $levelId)
             ->with('multitaskQuestion')
             ->inRandomOrder()
             ->get();
@@ -133,6 +133,7 @@ class TestQuestionService
     { 
         $settings = $this->mMTests
             ->where('subject_id', $subject)
+            ->where('question_level_id', $levelId)
             ->first();
         if (!$settings) {
             throw new \Exception('No hay configuración de memorama para esta materia.');

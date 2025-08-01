@@ -13,6 +13,7 @@ class Test extends Model
         'question_subject_id',
         'is_completed',
         'progress',
+        'question_level_id'
     ];
 
     public function user()
@@ -34,4 +35,5 @@ class Test extends Model
     {
         return $this->belongsTo(QuestionSubject::class);
     }
+
 }

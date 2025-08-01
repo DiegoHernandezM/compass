@@ -50,4 +50,10 @@ class Subject extends Model
                     ->withPivot('time_limit');
     }
 
+    public function memoryTests()
+    {
+        return $this->hasMany(MemoryTest::class);
+    }
+
+
 }

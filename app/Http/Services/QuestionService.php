@@ -144,13 +144,37 @@ class QuestionService
                 ->get();
             $questions = $mathQuestions->concat($figureQuestions)->shuffle();
         } elseif ($type->name === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
-            return $this->mMemoryTest->create([
+            $memory = $this->mMemoryTest->create([
                 'subject_id' => $data['subject_id'],
                 'question_type_id' => $data['question_type_id'],
                 'question_level_id' => $data['question_level_id'],
                 'questions_counts' => $data['question_count'],
                 'time_limit' => $data['has_time_limit'] ? $data['time_limit'] : null,
             ]);
+            $icons = MemoryIcon::where('question_type_id', $memory->question_type_id)
+                ->pluck('name')
+                ->toArray();
+            for ($i = 0; $i < $data['question_count']; $i++) {
+                $iconsToRemember = collect($icons)->shuffle()->take($this->getIconsCountByLevel($memory->question_level_id))->values()->all();
+                $iconString = implode(',', $iconsToRemember);
+
+                $this->model->create([
+                        'question' => $iconString,
+                        'answer_a' => $iconString,
+                        'answer_b' => $iconString,
+                        'answer_c' => $iconString,
+                        'correct_answer' => 'A',
+                        'feedback_text'   => null,
+                        'feedback_image'  => null,
+                        'question_type_id' => $memory->question_type_id,
+                        'question_level_id' => $memory->question_level_id,
+                ]);
+            }
+            $questions = $this->model->where('question_type_id', $data['question_type_id'])
+                ->where('question_level_id', $data['question_level_id'])
+                ->inRandomOrder()
+                ->limit($data['question_count'])
+                ->get();
         } else {
             $questions = $this->model->where('question_type_id', $data['question_type_id'])
                 ->where('question_level_id', $data['question_level_id'])
@@ -325,6 +349,16 @@ class QuestionService
         $importer = new LogicalReasoningImport($type->id, $level->id, $imagesByRow);
         Excel::import($importer, $file);
         return true;
+    }
+
+    private function getIconsCountByLevel($levelId)
+    {
+        return match($levelId) {
+            11 => 3,
+            12 => 4,
+            13 => 5,
+            default => 3,
+        };
     }
 
 }
