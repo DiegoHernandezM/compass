@@ -11,11 +11,13 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class QuestionsImport implements ToCollection, WithHeadingRow
 {
     private int $typeId;
+    private int $levelId;
     private array $imagesByRow;
 
-    public function __construct(int $typeId, array $imagesByRow = [])
+    public function __construct(int $typeId, int $levelId, array $imagesByRow = [])
     {
         $this->typeId = $typeId;
+        $this->levelId = $levelId;
         $this->imagesByRow = $imagesByRow;
     }
 
@@ -57,12 +59,14 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                     'correct_answer' => strtoupper($row['correct_answer']),
                     'feedback_text' => $row['feedback_text'] ?? null,
                     'question_type_id' => $this->typeId,
+                    'question_level_id' => $this->levelId,
                     // feedback_image ya se actualizó arriba si aplica
                 ]);
             } else {
                 // Crear nueva
                 Question::create([
                     'question_type_id' => $this->typeId,
+                    'question_level_id' => $this->levelId,
                     'question' => $row['question'],
                     'answer_a' => $row['answer_a'],
                     'answer_b' => $row['answer_b'],

@@ -35,7 +35,7 @@ export default function QuestionsNewDialog({ open, onClose, type, subjects, onSa
       if (subjectId && levelId) {
         try {
           const response = await axios.get(`/admin/question/check-existence/${subjectId}/${levelId}/${type?.id}`);
-          if (response.data.exists) {
+          if (response.data?.exists.length > 0) {
             console.log(response.data.exists);
             setShowConfirmation(true); // Muestra el modal
           }

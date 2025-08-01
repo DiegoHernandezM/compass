@@ -73,7 +73,6 @@ class SubjectController extends Controller
     {
         $userId = Auth::id();
         $subjects = $this->service->getForStudent($userId);
-        //dd($subjects);
         
         return Inertia::render('Student/Subject/Index', [
             'subjects' => $subjects,

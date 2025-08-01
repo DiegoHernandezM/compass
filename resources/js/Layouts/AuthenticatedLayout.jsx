@@ -43,7 +43,7 @@ export default function AuthenticatedLayout({ children }) {
         elevation={6}
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          top: 24,
+          top: 15,
           left: isMobile ? 16 : drawerWidth + 24,
           right: 24,
           width: isMobile ? `calc(100% - 32px)` : `calc(100% - ${drawerWidth + 28}px)`,
@@ -141,7 +141,8 @@ export default function AuthenticatedLayout({ children }) {
         sx={{
           flexGrow: 1,
           p: 3,
-          mt: 12,
+          mt: 5,
+          backgroundColor: 'white'
         }}
       >
         <Toolbar />

@@ -25,4 +25,14 @@ class QuestionSubject extends Model
     {
         return $this->belongsTo(MultitaskQuestion::class, 'question_id');
     }
+
+    public function level()
+    {
+        return $this->belongsTo(QuestionLevel::class, 'question_level_id');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id');
+    }
 }

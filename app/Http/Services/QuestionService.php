@@ -306,7 +306,7 @@ class QuestionService
     private function importAtpl($type, $file, $level)
     {
         $imagesByRow = $this->extractImagesByRow($file, 'atpl/feedback');
-        $importer = new QuestionsImport($type->id, $imagesByRow);
+        $importer = new QuestionsImport($type->id, $level->id, $imagesByRow);
         Excel::import($importer, $file);
         return true;
     }

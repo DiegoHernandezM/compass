@@ -40,13 +40,7 @@ export default function Subjects() {
         }}
       >
         <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ fontWeight: 'bold', mb: 4 }}
-          >
-            Materias
-          </Typography>
+         
 
           <Grid container spacing={4} justifyContent="center">
             {subjects.map((subject) => (

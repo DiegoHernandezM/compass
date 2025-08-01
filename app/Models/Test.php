@@ -32,6 +32,6 @@ class Test extends Model
 
     public function questionSubject()
     {
-        return $this->belongsTo(QuestionSubject::class, 'question_subject_id');
+        return $this->belongsTo(QuestionSubject::class);
     }
 }
