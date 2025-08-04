@@ -168,18 +168,6 @@ class QuestionTypesSeeder extends Seeder
                         'created_at' => Carbon::now(),
                         'updated_at' => Carbon::now(),
                     ],
-                    [
-                        'name' => 'NIVEL 2',
-                        'description' => 'MEDIO',
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now(),
-                    ],
-                    [
-                        'name' => 'NIVEL 3',
-                        'description' => 'AVANZADO',
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now(),
-                    ]
                 ]
             ],
             [
@@ -189,7 +177,7 @@ class QuestionTypesSeeder extends Seeder
                 'updated_at' => Carbon::now(),
                 'levels' => [
                     [
-                        'name' => 'UNICO NIVEL ATPL',
+                        'name' => 'NIVEL 1',
                         'description' => 'UNICO NIVEL ATPL',
                         'created_at' => Carbon::now(),
                         'updated_at' => Carbon::now(),

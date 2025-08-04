@@ -11,7 +11,9 @@ class MultitaskQuestionFactoryService
     public function generate()
     {
         $type = QuestionType::where('name', 'MULTITASKING')->first();
+        MultitaskQuestion::where('question_type_id', $type->id)->delete();
         $level = QuestionLevel::where('question_type_id', $type->id)->where('name', "NIVEL 1")->first();
+
 
         if (!$type || !$level) {
             throw new \Exception("Falta el tipo de pregunta o nivel para multitask.");
@@ -20,7 +22,7 @@ class MultitaskQuestionFactoryService
         $questions = [];
 
         // Generar preguntas tipo 'math'
-        foreach (range(1, 30) as $i) {
+        foreach (range(1, 100) as $i) {
             $a = rand(1, 12);
             $b = rand(1, 12);
             $result = $a * $b;
@@ -43,7 +45,7 @@ class MultitaskQuestionFactoryService
         }
 
         // Generar preguntas tipo 'figure'
-        foreach (range(1, 30) as $i) {
+        foreach (range(1, 100) as $i) {
             // Figuras posibles
             $symbols = ['▲', '■', '★', '⬡', '●', '◆', '⬤'];
 
