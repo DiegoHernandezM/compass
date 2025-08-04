@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\QuestionTypeController;
 
 // Dashboard Routes for Admin
 Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
@@ -40,6 +41,8 @@ Route::delete('/admin/question/destroy/{id}', [QuestionController::class, 'destr
 Route::post('/admin/question/import', [QuestionController::class,'import'])->name('question.import');
 Route::get('/admin/question/export/{subjectId}',[QuestionController::class,'exportExcel'])->name('question.export');
 Route::get('/admin/question/get/{typeId}/{levelId}',[QuestionController::class,'getQuestionSubjectType'])->name('question.show');
+Route::put('/admin/type/update/{id}', [QuestionTypeController::class, 'update'])->name('type.update');
+
 
 Route::post('/admin/question/savetest', [QuestionController::class,'generateTest'])->name('question.test');
 Route::get('/admin/question/check-existence/{subjectId}/{levelId}/{typeId}', [QuestionController::class, 'checkIfTestExists']);

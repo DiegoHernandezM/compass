@@ -26,24 +26,10 @@ export default function LevelsDialog({ open, onClose, type, handleEditQuestion, 
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <Tooltip title="Editar" arrow>
-            <IconButton onClick={() => handleEditQuestion(params.row)} color="primary">
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
           <Tooltip title="Ver preguntas" arrow>
             <IconButton onClick={() => handleSowQuestions(params.row)} color="primary">
               <VisibilityIcon />
             </IconButton>
-          </Tooltip>
-          <Tooltip title="Eliminar nivel" arrow>
-            <IconButton
-              onClick={() => handleDelete(params.row.id)}
-              color="error"
-              size="small"
-            >
-            <DeleteIcon />
-          </IconButton>
           </Tooltip>
         </Stack>
       ),
