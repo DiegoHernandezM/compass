@@ -13,7 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import Stack from '@mui/material/Stack';
 
-export default function LevelsDialog({ open, onClose, type, handleEditQuestion, handleDelete, handleSowQuestions }) {
+export default function LevelsDialog({ open, onClose, type, handleSowQuestions }) {
   const columns = [
     { field: 'name', headerName: 'Nivel', flex: 0.1 },
     { field: 'description', headerName: 'Descripción', flex: 0.5 },

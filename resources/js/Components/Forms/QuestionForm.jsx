@@ -123,13 +123,6 @@ export default function QuestionForm({ open, onClose, question = null, subjectId
           </FormControl>
           <TextField label="Retroalimentación" name="feedback_text" fullWidth multiline rows={3} value={form.feedback_text} onChange={handleChange} margin="normal" />
           <input type="file" name="feedback_image" onChange={handleChange} style={{ marginTop: 16 }} />
-
-          <FormControlLabel
-            control={<Checkbox checked={form.has_dynamic} onChange={handleChange} name="has_dynamic" />}
-            label="¿Contiene dinámica?"
-            sx={{ mt: 2 }}
-          />
-
           <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
             {question ? 'Actualizar' : 'Crear'}
           </Button>

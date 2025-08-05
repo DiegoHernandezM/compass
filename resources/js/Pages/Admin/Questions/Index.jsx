@@ -201,9 +201,7 @@ export default function Questions() {
           />
         </Box>
       </Box>
-
       <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
-      
       <QuestionNewDialog
         open={newsQuestions}
         onClose={handleCloseNewDialog}
@@ -211,20 +209,13 @@ export default function Questions() {
         type={selectedType}
         onSave={hancleSaveQuestionSubject}
       />
-      
-      <LevelsDialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        type={selectedType}
-        handleEditQuestion={handleEditQuestion}
-        handleDelete={handleDelete}
-        handleSowQuestions={handleSowQuestions}
-      />
+      <LevelsDialog open={dialogOpen} onClose={handleCloseDialog} type={selectedType} handleSowQuestions={handleSowQuestions} />
       <QuestionsDialog
         open={openQuestionsDialog}
         close={() => setOpenQuestionsDialog(false)}
         questions={questions}
         type={selectedType}
+        handleEditQuestion={handleEditQuestion}
       />
       <ImportQuestionDialog
         open={importOpen}
@@ -237,7 +228,7 @@ export default function Questions() {
         }}
         handleExport={handleExport}
       />
-      <TypeForm open={openEditTypeDialog} onClose={() => setOpenEditTypeDialog(false)} type={selectedType} onSubmit={handleUpdateType}/> 
+      <TypeForm open={openEditTypeDialog} onClose={() => setOpenEditTypeDialog(false)} type={selectedType} onSubmit={handleUpdateType} />
     </AuthenticatedLayout>
   );
 }

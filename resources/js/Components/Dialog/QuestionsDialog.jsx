@@ -13,14 +13,14 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import CloseIcon from '@mui/icons-material/Close';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
 import * as Icons from '@mui/icons-material';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function QuestionsDialog({ open, close, questions, type }) {
+export default function QuestionsDialog({ open, close, questions, type, handleEditQuestion }) {
   const columnsMemory = [
     {
       field: 'name',
@@ -186,9 +186,9 @@ export default function QuestionsDialog({ open, close, questions, type }) {
       sortable: true,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <Tooltip title="Niveles" arrow>
-            <IconButton onClick={() => handleSowLevels(params.row)} color="primary">
-              <VisibilityIcon />
+          <Tooltip title="Editar" arrow>
+            <IconButton onClick={() => handleEditQuestion(params.row)} color="primary">
+              <EditIcon />
             </IconButton>
           </Tooltip>
         </Stack>
