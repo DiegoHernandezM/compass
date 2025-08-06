@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Services\QuestionService;
 use App\Http\Services\SubjectService;
 use App\Http\Requests\QuestionRequest;
+use App\Http\Requests\MultitaskQuestionRequest;
 use Inertia\Inertia;
 use App\Exports\QuestionsExport;
 use App\Imports\QuestionsImport;
@@ -36,7 +37,7 @@ class QuestionController extends Controller
                 'types' => $types
             ]);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al obtener las preguntas.');
+            return redirect()->back()->with('error', 'Error al obtener las preguntas. ' .$e->getMessage());
         }
     }
 
@@ -46,7 +47,7 @@ class QuestionController extends Controller
             $questions = $this->service->allBySubject($subjectId);
             return response()->json($questions);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al obtener las preguntas.');
+            return redirect()->back()->with('error', 'Error al obtener las preguntas. ' .$e->getMessage());
         }
     }
 
@@ -57,7 +58,7 @@ class QuestionController extends Controller
             $this->service->create($request->validated());
             return redirect()->back()->with('success', 'Pregunta creada con éxito.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al crear la pregunta.');
+            return redirect()->back()->with('error', 'Error al crear la pregunta. ' .$e->getMessage());
         }
 
     }
@@ -68,15 +69,15 @@ class QuestionController extends Controller
             $this->service->update($id, $request->validated());
             return redirect()->back()->with('success', 'Pregunta actualizada.');
         } catch(\Exception $e) {
-            return redirect()->back()->with('error', 'Error al actualizar la pregunta.');
+            return redirect()->back()->with('error', 'Error al actualizar la pregunta. ' .$e->getMessage());
         }
 
     }
 
-    public function updateMultitask(Request $request, $id)
+    public function updateMultitask(MultitiaskQuestionRequest $request, $id)
     {
          try {
-            $this->service->updateMultitiaskQuestion($id, $request->all());
+            $this->service->updateMultitiaskQuestion($id, $request->validated());
             return redirect()->back()->with('success', 'Pregunta actualizada.');
         } catch(\Exception $e) {
             return redirect()->back()->with('error', 'Error al actualizar la pregunta. ' .$e->getMessage());
@@ -89,7 +90,7 @@ class QuestionController extends Controller
             $this->service->delete($id);
             return redirect()->back()->with('success', 'Pregunta eliminada.');
         } catch(\Exception $e) {
-            return redirect()->back()->with('error', 'Error al eliminar la pregunta.');
+            return redirect()->back()->with('error', 'Error al eliminar la pregunta. ' .$e->getMessage());
         }
     }
 
@@ -103,7 +104,7 @@ class QuestionController extends Controller
             return redirect()->back()->with('success', 'Preguntas importadas con éxito.');
         } catch (\Exception $e) {
             dd($e->getMessage());
-            return redirect()->back()->with('error', 'Error al importar las preguntas.');
+            return redirect()->back()->with('error', 'Error al importar las preguntas. ' .$e->getMessage());
         }
     }
 
@@ -112,7 +113,7 @@ class QuestionController extends Controller
         try {
             return Excel::download(new QuestionsExport($subjectId), 'preguntas_materia_imagenes.xlsx');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al exportar las preguntas.');
+            return redirect()->back()->with('error', 'Error al exportar las preguntas. ' .$e->getMessage());
         }
     }
 
@@ -122,8 +123,7 @@ class QuestionController extends Controller
             $test = $this->service->allSaveTest($request);
             return redirect()->back()->with('success', 'Test creado con éxito.');
         } catch (\Exception $e) {
-            dd($e->getMessage());
-            return redirect()->back()->with('error', 'Error al exportar las preguntas.');
+            return redirect()->back()->with('error', 'Error al exportar las preguntas. ' .$e->getMessage());
         }
     }
 

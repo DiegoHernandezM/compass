@@ -22,7 +22,6 @@ class QuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'subject_id' => 'required|exists:subjects,id',
             'question' => 'required|string',
             'answer_a' => 'required|string',
             'answer_b' => 'required|string',
@@ -37,8 +36,6 @@ class QuestionRequest extends FormRequest
 
     public function messages(): array {
         return [
-            'subject_id.required' => 'La materia es obligatoria.',
-            'subject_id.exists' => 'La materia no existe.',
             'question.required' => 'La pregunta es obligatoria.',
             'answer_a.required' => 'La respuesta A es obligatoria.',
             'answer_b.required' => 'La respuesta B es obligatoria.',
