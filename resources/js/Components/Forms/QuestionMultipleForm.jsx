@@ -56,7 +56,6 @@ export default function QuestionForm({ open, onClose, question = null, subjectId
 
   const handleChange = (e) => {
     const { name, type, files, value, checked } = e.target;
-    const newValue = type === 'file' ? files[0] : type === 'checkbox' ? checked : value;
     setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
