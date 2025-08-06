@@ -101,6 +101,18 @@ class QuestionService
         return $question;
     }
 
+    public function updateMultitiaskQuestion($id, $request)
+    {
+        $question = $this->mMultitaskQuestions->find($id);
+        $question->question = $request['question'];
+        $question->option_a = $request['option_a'];
+        $question->option_b = $request['option_b'];
+        $question->option_c = $request['option_c'];
+        $question->answer = $request['answer'];
+        $question->save();
+        return $question;
+    }
+
     public function delete($id)
     {
         $question = $this->model->find($id);

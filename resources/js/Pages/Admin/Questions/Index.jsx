@@ -205,7 +205,7 @@ export default function Questions() {
         </Box>
       </Box>
       {typeForm == 'MULTITASKING' ? (
-        <QuestionMultipleForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
+        <QuestionMultipleForm open={drawerOpen} onClose={handleClose} question={selectedQuestion}/>
       ) : (
         <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
       )}

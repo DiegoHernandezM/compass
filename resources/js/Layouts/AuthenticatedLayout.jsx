@@ -5,11 +5,14 @@ import SidebarContent from '../Components/App/Sidebar';
 import { usePage, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { useTheme } from '@mui/material/styles';
+import ErrorAlert from '@/Components/ErrorAlert';
 
 const drawerWidth = 230;
 
 export default function AuthenticatedLayout({ children }) {
   const { user } = usePage().props.auth;
+  const errorMessage = usePage().props?.flash?.error ?? null;
+  const [openError, setOpenError] = useState(!!errorMessage);
   const { url } = usePage();
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,7 +40,11 @@ export default function AuthenticatedLayout({ children }) {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-
+      <ErrorAlert
+        open={openError}
+        onClose={() => setOpenError(false)}
+        message={errorMessage}
+      />
       <AppBar
         position="fixed"
         elevation={6}

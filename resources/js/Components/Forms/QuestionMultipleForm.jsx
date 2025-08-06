@@ -14,10 +14,9 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { Inertia } from '@inertiajs/inertia';
 
-export default function QuestionForm({ open, onClose, question = null, subjectId }) {
+export default function QuestionForm({ open, onClose, question = null }) {
   console.log(question);
   const [form, setForm] = useState({
-    subject_id: subjectId,
     question: '',
     option_a: '',
     option_b: '',
@@ -26,50 +25,28 @@ export default function QuestionForm({ open, onClose, question = null, subjectId
   });
 
   useEffect(() => {
-    if (subjectId) {
-      setForm((prev) => ({ ...prev, subject_id: subjectId }));
-    }
-  }, [subjectId]);
-
-  useEffect(() => {
-    if (question) {
-      setForm({
-        subject_id: question.subject_id || subjectId || '',
-        question: question.question || '',
-        option_a: question.option_a || '',
-        option_b: question.option_b || '',
-        option_c: question.option_c || '',
-        answer: question.answer || '',
-      });
-    } else {
-      setForm({
-        subject_id: subjectId || '',
-        question: '',
-        option_a: '',
-        option_b: '',
-        option_c: '',
-        option_d: '',
-        answer: '',
-      });
-    }
-  }, [question, subjectId]);
+    setForm({
+      question: question.question || '',
+      option_a: question.option_a || '',
+      option_b: question.option_b || '',
+      option_c: question.option_c || '',
+      answer: question.answer || '',
+    });
+  }, [question]);
 
   const handleChange = (e) => {
     const { name, type, files, value, checked } = e.target;
+    const newValue = type === 'file' ? files[0] : type === 'checkbox' ? checked : value;
     setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = { ...form };
-    if (question) {
-      Inertia.post(route('question.update', question.id), {
-        ...payload,
-        _method: 'PUT',
-      }, { forceFormData: true });
-    } else {
-      Inertia.post(route('question.store'), payload, { forceFormData: true });
-    }
+    Inertia.post(route('question-multitask.update', question.id), {
+      ...payload,
+      _method: 'PUT',
+    });
     onClose();
   };
 
@@ -87,7 +64,7 @@ export default function QuestionForm({ open, onClose, question = null, subjectId
           <TextField label="Pregunta" name="question" fullWidth value={form.question} onChange={handleChange} margin="normal" required />
           <TextField label="Respuesta A" name="option_a" fullWidth value={form.option_a} onChange={handleChange} margin="normal" required />
           <TextField label="Respuesta B" name="option_b" fullWidth value={form.option_b} onChange={handleChange} margin="normal" required />
-          <TextField label="Respuesta C" name="option_c" fullWidth value={form.option_c} onChange={handleChange} margin="normal" required />
+          <TextField label="Respuesta C" name="option_c" fullWidth value={form.option_c} onChange={handleChange} margin="normal" />
           <FormControl fullWidth margin="normal" required>
             <InputLabel id="correct-answer-label">Respuesta Correcta</InputLabel>
             {question?.type == 'figure' ? (

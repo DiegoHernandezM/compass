@@ -42,7 +42,7 @@ Route::post('/admin/question/import', [QuestionController::class,'import'])->nam
 Route::get('/admin/question/export/{subjectId}',[QuestionController::class,'exportExcel'])->name('question.export');
 Route::get('/admin/question/get/{typeId}/{levelId}',[QuestionController::class,'getQuestionSubjectType'])->name('question.show');
 Route::put('/admin/type/update/{id}', [QuestionTypeController::class, 'update'])->name('type.update');
-
+Route::put('/admin/question-multitask/update/{id}', [QuestionController::class, 'updateMultitask'])->name('question-multitask.update');
 
 Route::post('/admin/question/savetest', [QuestionController::class,'generateTest'])->name('question.test');
 Route::get('/admin/question/check-existence/{subjectId}/{levelId}/{typeId}', [QuestionController::class, 'checkIfTestExists']);
