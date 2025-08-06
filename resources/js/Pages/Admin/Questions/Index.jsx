@@ -13,6 +13,7 @@ import EditIcon from '@mui/icons-material/Edit';
 // imports
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import QuestionForm from '@/Components/Forms/QuestionForm';
+import QuestionMultipleForm from '@/Components/Forms/QuestionMultipleForm';
 import QuestionNewDialog from '@/Components/Dialog/QuestionsNewDialog';
 import ImportQuestionDialog from '@/Components/Dialog/ImportQuestionDialog';
 import LevelsDialog from '@/Components/Dialog/LevelsDialog';
@@ -37,6 +38,7 @@ export default function Questions() {
   const [questions, setQuestions] = useState([]);
   const [openQuestionsDialog, setOpenQuestionsDialog] = useState(false);
   const [openEditTypeDialog, setOpenEditTypeDialog] = useState(false);
+  const [typeForm, setTypeForm] = useState(null);
 
   useEffect(() => {
     if (successMessage) {
@@ -55,9 +57,10 @@ export default function Questions() {
     setNewsQuestions(true);
   };
 
-  const handleEditQuestion = (question) => {
+  const handleEditQuestion = (question, type) => {
     setSelectedQuestion(question);
     setDrawerOpen(true);
+    type == 'MULTITASKING' ? setTypeForm('MULTITASKING') : setTypeForm('SINGLE');
   }
 
   const handleSowLevels = (subject) => {
@@ -201,7 +204,11 @@ export default function Questions() {
           />
         </Box>
       </Box>
-      <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
+      {typeForm == 'MULTITASKING' ? (
+        <QuestionMultipleForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
+      ) : (
+        <QuestionForm open={drawerOpen} onClose={handleClose} question={selectedQuestion} subjectId={selectedSubject?.id} />
+      )}
       <QuestionNewDialog
         open={newsQuestions}
         onClose={handleCloseNewDialog}

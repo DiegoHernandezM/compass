@@ -65,7 +65,7 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
       sortable: true,
       renderCell: (params) =>
         params.row.question ? (
-          <span>{params.row.answer_a}</span>
+          <span>{params.row.answer_a ?? params.row.option_a}</span>
         ) : (
           params.row.answer_a ? (
             <Box
@@ -95,7 +95,7 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
       sortable: true,
       renderCell: (params) =>
         params.row.question ? (
-          <span>{params.row.answer_b}</span>
+          <span>{params.row.answer_b ?? params.row.option_b}</span>
         ) : (
           params.row.answer_b ? (
             <Box
@@ -125,7 +125,7 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
       sortable: true,
       renderCell: (params) =>
         params.row.question ? (
-          <span>{params.row.answer_c}</span>
+          <span>{params.row.answer_c ?? params.row.option_c}</span>
         ) : (
           params.row.answer_c ? (
             <Box
@@ -178,7 +178,16 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
           )
         ),
     },
-    { field: 'correct_answer', headerName: 'Respuesta', flex: 0.5 },
+    {
+      field: 'correct_answer',
+      headerName: 'Respuesta',
+      flex: 0.9,
+      sortable: true,
+      renderCell: (params) =>
+      (
+        <span>{params.row.correct_answer ?? params.row.answer}</span>
+      )
+    },
     {
       field: 'actions',
       headerName: 'Acciones',
@@ -187,7 +196,7 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
           <Tooltip title="Editar" arrow>
-            <IconButton onClick={() => handleEditQuestion(params.row)} color="primary">
+            <IconButton onClick={() => handleEditQuestion(params.row, type?.name)} color="primary">
               <EditIcon />
             </IconButton>
           </Tooltip>
