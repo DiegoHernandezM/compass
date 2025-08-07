@@ -38,7 +38,7 @@ export default function PlanePathGame() {
       if (inPath) {
         setScore((prev) => prev + 1);
       }
-    }, 100);
+    }, 140);
 
     return () => clearInterval(interval);
   }, [planeY, pathOffset]);
