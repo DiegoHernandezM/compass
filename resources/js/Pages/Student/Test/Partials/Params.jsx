@@ -41,14 +41,11 @@ export default function Params({ test, subject }) {
       const [key, value] = line.split(':');
       if (key && value) parsed[key.trim().toUpperCase()] = value.trim(); // <- upper case
     });
-    console.log(parsed);
     setParameters(parsed);
 
     const level = test.question_level_id;
-    console.log(currentQuestion);
     const totalKeys = Object.keys(parsed);
     const countToHide = level === 14 ? 1 : level === 15 ? 2 : 4;
-    console.log(countToHide);
     const shuffled = [...totalKeys].sort(() => 0.5 - Math.random());
     setHiddenParams(shuffled.slice(0, countToHide));
 
