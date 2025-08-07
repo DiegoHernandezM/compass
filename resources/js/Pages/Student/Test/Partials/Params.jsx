@@ -10,8 +10,7 @@ import {
 } from '@mui/material';
 import { useMediaQuery, useTheme } from '@mui/material';
 
-export default function Params({ test, subject }) {
-  console.log(subject);
+export default function Params({ test, subject }) { 
   const theme = useTheme();
   const isLargeScreen = useMediaQuery(theme.breakpoints.up('md')); // true si pantalla ≥ 960px
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')); // sm = 600px
@@ -40,14 +39,16 @@ export default function Params({ test, subject }) {
     const parsed = {};
     currentQuestion.question_text.split('\n').forEach(line => {
       const [key, value] = line.split(':');
-      if (key && value) parsed[key.trim()] = value.trim();
+      if (key && value) parsed[key.trim().toUpperCase()] = value.trim(); // <- upper case
     });
+    console.log(parsed);
     setParameters(parsed);
 
-    // Determine how many to hide
-    const level = currentQuestion.question_level_id;
+    const level = test.question_level_id;
+    console.log(currentQuestion);
     const totalKeys = Object.keys(parsed);
     const countToHide = level === 14 ? 1 : level === 15 ? 2 : 4;
+    console.log(countToHide);
     const shuffled = [...totalKeys].sort(() => 0.5 - Math.random());
     setHiddenParams(shuffled.slice(0, countToHide));
 
@@ -180,7 +181,7 @@ export default function Params({ test, subject }) {
                   mb={2}
                 >
                   <Typography>{key}</Typography>
-                  {showMemoryPanel || !hiddenParams.includes(key) ? (
+                  {showMemoryPanel || !hiddenParams.includes(key.toUpperCase()) ? (
                     <Typography>{value}</Typography>
                   ) : (
                     <input
