@@ -6,8 +6,6 @@ import {
   TextField,
   Button,
   IconButton,
-  Checkbox,
-  FormControlLabel,
   FormControl,
   InputLabel,
   Select,
@@ -16,9 +14,8 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { Inertia } from '@inertiajs/inertia';
 
-export default function QuestionForm({ open, onClose, question = null, subjectId }) {
+export default function QuestionForm({ open, onClose, question = null }) {
   const [form, setForm] = useState({
-    subject_id: subjectId,
     question: '',
     answer_a: '',
     answer_b: '',
@@ -27,44 +24,21 @@ export default function QuestionForm({ open, onClose, question = null, subjectId
     correct_answer: '',
     feedback_text: '',
     feedback_image: null,
-    has_dynamic: false,
   });
-  
-  useEffect(() => {
-    if (subjectId) {
-      setForm((prev) => ({ ...prev, subject_id: subjectId }));
-    }
-  }, [subjectId]);
 
   useEffect(() => {
-    if (question) {
-      setForm({
-        subject_id: question.subject_id || subjectId || '',
-        question: question.question || '',
-        answer_a: question.answer_a || '',
-        answer_b: question.answer_b || '',
-        answer_c: question.answer_c || '',
-        answer_d: question.answer_d || '',
-        correct_answer: question.correct_answer || '',
-        feedback_text: question.feedback_text || '',
-        feedback_image: null,
-        has_dynamic: question.has_dynamic || false,
-      });
-    } else {
-      setForm({
-        subject_id: subjectId || '',
-        question: '',
-        answer_a: '',
-        answer_b: '',
-        answer_c: '',
-        answer_d: '',
-        correct_answer: '',
-        feedback_text: '',
-        feedback_image: null,
-        has_dynamic: false,
-      });
-    }
-  }, [question, subjectId]);
+    setForm({
+      question: question?.question || '',
+      answer_a: question?.answer_a || '',
+      answer_b: question?.answer_b || '',
+      answer_c: question?.answer_c || '',
+      answer_d: question?.answer_d || '',
+      correct_answer: question?.correct_answer || '',
+      feedback_text: question?.feedback_text || '',
+      feedback_image: null,
+      has_dynamic: question?.has_dynamic || false,
+    }); 
+  }, [question]);
 
   const handleChange = (e) => {
     const { name, type, files, value, checked } = e.target;
@@ -74,15 +48,11 @@ export default function QuestionForm({ open, onClose, question = null, subjectId
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = { ...form };
-    if (question) {
-      Inertia.post(route('question.update', question.id), {
-        ...payload,
-        _method: 'PUT',
-      }, { forceFormData: true });
-    } else {
-      Inertia.post(route('question.store'), payload, { forceFormData: true });
-    }
+    const payload = { ...form };  
+    Inertia.post(route('question.update', question.id), {
+      ...payload,
+      _method: 'PUT',
+    }, { forceFormData: true });
     onClose();
   };
 
@@ -124,7 +94,7 @@ export default function QuestionForm({ open, onClose, question = null, subjectId
           <TextField label="Retroalimentación" name="feedback_text" fullWidth multiline rows={3} value={form.feedback_text} onChange={handleChange} margin="normal" />
           <input type="file" name="feedback_image" onChange={handleChange} style={{ marginTop: 16 }} />
           <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-            {question ? 'Actualizar' : 'Crear'}
+             Actualizar
           </Button>
         </Box>
       </Box>
