@@ -3,6 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 import Memory from './Partials/Memory';
 import Multitask from './Partials/Multitask';
 import NormalTest from './Partials/NormalTest';
+import Params from './Partials/Params';
 import { Box,Typography } from '@mui/material';
 
 export default function Index() {
@@ -12,6 +13,10 @@ export default function Index() {
 
   if (type === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
     return <Memory subject={subject} test={test} />;
+  }
+
+  if (type === 'MEMORIA A CORTO PLAZO - PARAMETROS') {
+    return <Params subject={subject} test={test} />;
   }
 
   if (type === 'MULTITASKING') {
