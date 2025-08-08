@@ -244,8 +244,13 @@ export default function Questions() {
         onClose={() => setImportOpen(false)}
         types={types}
         onImport={(formData) => {
+          setLoading(true);
           Inertia.post(route('question.import'), formData, {
             forceFormData: true,
+            onFinish: () => {
+              console.log('termino de guardar');
+              setLoading(false);
+            },
           });
         }}
         handleExport={handleExport}

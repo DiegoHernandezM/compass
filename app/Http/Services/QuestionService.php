@@ -294,6 +294,49 @@ class QuestionService
         return $imagesByKey;
     }
 
+    private function extractImagesWithMap(string $file, string $baseFolder, array $colKeyMap): array
+    {
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+        $drawings = $sheet->getDrawingCollection();
+
+        $imagesByKey = [];
+
+        foreach ($drawings as $drawing) {
+            $coordinates = $drawing->getCoordinates(); // e.g. B3
+            $column = preg_replace('/[0-9]/', '', $coordinates); // B
+            $row    = preg_replace('/[^0-9]/', '', $coordinates); // 3
+
+            $baseKey = $colKeyMap[strtoupper($column)] ?? null;
+            if (!$baseKey) continue;
+
+            $tmpPath = tempnam(sys_get_temp_dir(), 'img_');
+
+            if ($drawing instanceof MemoryDrawing) {
+                ob_start();
+                call_user_func(
+                    $drawing->getRenderingFunction(),
+                    $drawing->getImageResource()
+                );
+                $imageData = ob_get_clean();
+                file_put_contents($tmpPath, $imageData);
+            } else {
+                file_put_contents($tmpPath, file_get_contents($drawing->getPath()));
+            }
+
+            // putFile retorna algo como "spatial/questions/archivo.png"
+            $s3Path = Storage::disk('s3')->putFile($baseFolder, $tmpPath);
+
+            @unlink($tmpPath);
+
+            $key = "{$baseKey}_{$row}";
+            $imagesByKey[$key] = $s3Path; // <-- aquí ya es solo la key, sin URL pública
+        }
+
+        return $imagesByKey;
+    }
+
+
     public function getByTypeSubject($typeId, $levelId)
     {
         $type = $this->mTypes->findOrFail($typeId);
@@ -349,11 +392,23 @@ class QuestionService
 
     private function importSpatial($type, $file, $level)
     {
-        $imagesByRow = $this->extractImages($file, 'spatial/questions');
+        $map = [
+            'A' => 'question_image',
+            'B' => 'answer_a',
+            'C' => 'answer_b',
+            'D' => 'answer_c',
+            'E' => 'answer_d',
+            'H' => 'feedback_image',
+        ];
+
+        $imagesByRow = $this->extractImagesWithMap($file, 'spatial/questions', $map);
+
         $importer = new SpatialQuestionsImport($type->id, $level->id, $imagesByRow);
         Excel::import($importer, $file);
+
         return true;
     }
+
 
     private function importLogical($type, $file, $level)
     {

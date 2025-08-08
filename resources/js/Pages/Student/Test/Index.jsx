@@ -23,7 +23,7 @@ export default function Index() {
     return <Multitask subject={subject} test={test} />;
   }
 
-  if (type === 'ATPL' || type === 'MATEMATICAS' || type === 'RAZONAMIENTO LOGICO') {
+  if (type === 'ATPL' || type === 'MATEMATICAS' || type === 'RAZONAMIENTO LOGICO' || type === 'ORIENTACION ESPACIAL') {
     return <NormalTest subject={subject} test={test} />;
   }
 

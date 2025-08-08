@@ -21,6 +21,22 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export default function QuestionsDialog({ open, close, questions, type, handleEditQuestion }) {
+  const isImage = (v) => {
+    if (typeof v !== 'string') return false;
+    const val = v.trim().toLowerCase();
+    return (
+      val.startsWith('data:image/') ||
+      /\.(png|jpe?g|gif|svg|webp)$/.test(val)
+    );
+  };
+
+  // Si guardas la key (ej: "spatial/questions/archivo.png"):
+  const buildImageUrl = (v) => {
+    if (!v) return '';
+    if (v.startsWith('http') || v.startsWith('data:')) return v;
+    // Ajusta esta base a tu URL pública de S3 o a tu route que sirve archivos
+    return `${import.meta.env.VITE_S3_PUBLIC_URL}/${v}`;
+  };
   const columnsMemory = [
     {
       field: 'name',
@@ -63,120 +79,117 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
       headerName: 'Opción A',
       flex: 0.9,
       sortable: true,
-      renderCell: (params) =>
-        params.row.question ? (
-          <span>{params.row.answer_a ?? params.row.option_a}</span>
-        ) : (
-          params.row.answer_a ? (
+      renderCell: ({ row }) => {
+        // Si viene 'question', mostrar texto (tu regla original)
+        if (row.question) {
+          const textVal = row.answer_a ?? row.option_a ?? '';
+          return <span>{textVal || '-'}</span>;
+        }
+
+        // Si NO viene 'question', decidir por tipo de dato en answer_a/option_a
+        const val = row.answer_a ?? row.option_a ?? '';
+        if (!val) return <span>-</span>;
+
+        return isImage(val) ? (
+          <Box sx={{ width:'100%', display:'flex', justifyContent:'center', alignItems:'center' }}>
             <Box
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Box
-                component="img"
-                src={params.row.answer_a}
-                alt="Respuesta A"
-                sx={{ width: 25, height: 25, objectFit: 'contain' }}
-              />
-            </Box>
-          ) : (
-            <span>-</span>
-          )
-        ),
+              component="img"
+              src={buildImageUrl(val)}
+              alt="Respuesta A"
+              sx={{ width: 25, height: 25, objectFit: 'contain' }}
+            />
+          </Box>
+        ) : (
+          <span>{val}</span>
+        );
+      }
     },
     {
       field: 'answer_b',
       headerName: 'Opción B',
       flex: 0.9,
       sortable: true,
-      renderCell: (params) =>
-        params.row.question ? (
-          <span>{params.row.answer_b ?? params.row.option_b}</span>
-        ) : (
-          params.row.answer_b ? (
+      renderCell: ({ row }) => {
+        if (row.question) {
+          const textVal = row.answer_b ?? row.option_b ?? '';
+          return <span>{textVal || '-'}</span>;
+        }
+        const val = row.answer_b ?? row.option_b ?? '';
+        if (!val) return <span>-</span>;
+
+        return isImage(val) ? (
+          <Box sx={{ width:'100%', display:'flex', justifyContent:'center', alignItems:'center' }}>
             <Box
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Box
-                component="img"
-                src={params.row.answer_b}
-                alt="Respuesta B"
-                sx={{ width: 25, height: 25, objectFit: 'contain' }}
-              />
-            </Box>
-          ) : (
-            <span>-</span>
-          )
-        ),
+              component="img"
+              src={buildImageUrl(val)}
+              alt="Respuesta B"
+              sx={{ width: 25, height: 25, objectFit: 'contain' }}
+            />
+          </Box>
+        ) : (
+          <span>{val}</span>
+        );
+      }
     },
     {
       field: 'answer_c',
       headerName: 'Opción C',
       flex: 0.9,
       sortable: true,
-      renderCell: (params) =>
-        params.row.question ? (
-          <span>{params.row.answer_c ?? params.row.option_c}</span>
-        ) : (
-          params.row.answer_c ? (
+      renderCell: ({ row }) => {
+        // Si viene 'question', mostrar texto (tu regla original)
+        if (row.question) {
+          const textVal = row.answer_c ?? row.option_c ?? '';
+          return <span>{textVal || '-'}</span>;
+        }
+
+        // Si NO viene 'question', decidir por tipo de dato en answer_a/option_a
+        const val = row.answer_c ?? row.option_c ?? '';
+        if (!val) return <span>-</span>;
+
+        return isImage(val) ? (
+          <Box sx={{ width:'100%', display:'flex', justifyContent:'center', alignItems:'center' }}>
             <Box
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Box
-                component="img"
-                src={params.row.answer_c}
-                alt="Respuesta C"
-                sx={{ width: 25, height: 25, objectFit: 'contain' }}
-              />
-            </Box>
-          ) : (
-            <span>-</span>
-          )
-        ),
+              component="img"
+              src={buildImageUrl(val)}
+              alt="Respuesta C"
+              sx={{ width: 25, height: 25, objectFit: 'contain' }}
+            />
+          </Box>
+        ) : (
+          <span>{val}</span>
+        );
+      }
     },
     {
       field: 'answer_d',
       headerName: 'Opción D',
       flex: 0.9,
       sortable: true,
-      renderCell: (params) =>
-        params.row.question ? (
-          <span>{params.row.answer_d}</span>
-        ) : (
-          params.row.answer_d ? (
+      renderCell: ({ row }) => {
+        // Si viene 'question', mostrar texto (tu regla original)
+        if (row.question) {
+          const textVal = row.answer_d ?? row.option_d ?? '';
+          return <span>{textVal || '-'}</span>;
+        }
+
+        // Si NO viene 'question', decidir por tipo de dato en answer_a/option_a
+        const val = row.answer_d ?? row.option_d ?? '';
+        if (!val) return <span>-</span>;
+
+        return isImage(val) ? (
+          <Box sx={{ width:'100%', display:'flex', justifyContent:'center', alignItems:'center' }}>
             <Box
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Box
-                component="img"
-                src={params.row.answer_d}
-                alt="Respuesta D"
-                sx={{ width: 20, height: 20, objectFit: 'contain' }}
-              />
-            </Box>
-          ) : (
-            <span>-</span>
-          )
-        ),
+              component="img"
+              src={buildImageUrl(val)}
+              alt="Respuesta D"
+              sx={{ width: 25, height: 25, objectFit: 'contain' }}
+            />
+          </Box>
+        ) : (
+          <span>{val}</span>
+        );
+      }
     },
     {
       field: 'correct_answer',
