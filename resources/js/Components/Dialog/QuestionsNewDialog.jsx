@@ -199,7 +199,7 @@ export default function QuestionsNewDialog({ open, onClose, type, subjects, onSa
         </DialogActions>
       </Dialog>
       <Dialog open={showConfirmation} onClose={() => setShowConfirmation(false)}>
-          <DialogTitle>Existen oreguntas asignadas a esta materia</DialogTitle>
+          <DialogTitle>Existen preguntas asignadas a esta materia</DialogTitle>
           <DialogContent>
             Al continuar se reasignarán las nuevas preguntas a la materia con el nivel asignado. ¿Quieres continuar?
           </DialogContent>

@@ -4,7 +4,7 @@ import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Inertia } from '@inertiajs/inertia';
 // material
-import { Box, Button, Stack, Tooltip } from '@mui/material';
+import { Box, Button, Stack, Tooltip, CircularProgress, Backdrop } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
@@ -39,6 +39,7 @@ export default function Questions() {
   const [openQuestionsDialog, setOpenQuestionsDialog] = useState(false);
   const [openEditTypeDialog, setOpenEditTypeDialog] = useState(false);
   const [typeForm, setTypeForm] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (successMessage) {
@@ -136,8 +137,13 @@ export default function Questions() {
   };
 
   const hancleSaveQuestionSubject = (formData) => {
+    setLoading(true);
     Inertia.post(route('question.test'), formData, {
       forceFormData: true,
+      onFinish: () => {
+        console.log('termino de guardar');
+        setLoading(false);
+      },
     });
   };
 
@@ -204,6 +210,15 @@ export default function Questions() {
           />
         </Box>
       </Box>
+      <Backdrop
+        open={loading}
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.modal + 1, // encima de modales
+        }}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       {typeForm == 'MULTITASKING' ? (
         <QuestionMultipleForm open={drawerOpen} onClose={handleClose} question={selectedQuestion}/>
       ) : (

@@ -20,6 +20,7 @@ class QuestionTypesSeeder extends Seeder
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
                 'bypass_levels_and_questions' => false,
+                'is_automatic' => true,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
@@ -107,6 +108,7 @@ class QuestionTypesSeeder extends Seeder
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
                 'bypass_levels_and_questions' => true,
+                'is_automatic' => true,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
@@ -134,6 +136,7 @@ class QuestionTypesSeeder extends Seeder
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
                 'bypass_levels_and_questions' => false,
+                'is_automatic' => true,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
@@ -161,6 +164,7 @@ class QuestionTypesSeeder extends Seeder
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
                 'bypass_levels_and_questions' => false,
+                'is_automatic' => true,
                 'levels' => [
                     [
                         'name' => 'NIVEL 1',
