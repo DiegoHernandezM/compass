@@ -217,7 +217,8 @@ export default function NormalTest({ test, subject }) {
               alt="Pregunta"
               sx={{
                 width: '100%',
-                maxWidth: 600,
+                maxWidth: 350,
+                maxHeight:350,
                 height: 'auto',
                 display: 'block',
                 mx: 'auto',
