@@ -151,7 +151,6 @@ export default function NormalTest({ test, subject }) {
     if (currentIndex < test.test_questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
-    //goToNextQuestion(); // avanzar solo cuando el usuario cierra el dialog
   };
 
   return (
