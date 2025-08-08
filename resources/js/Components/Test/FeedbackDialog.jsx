@@ -11,7 +11,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function FeedbackDialog({open, close}) {
+export default function FeedbackDialog({open, close, message, image}) {
   return (
     <React.Fragment>
       <Dialog
@@ -31,12 +31,26 @@ export default function FeedbackDialog({open, close}) {
         <DialogTitle>{"Explicación"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-slide-description">
-            Let Google help apps determine location. This means sending anonymous
-            location data to Google, even when no apps are running.
+            {message}
+            {image && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  margin: '20px 0',
+                }}
+              >
+                <img
+                  src={image}
+                  alt="feedback image"
+                  style={{ height: 300, width: 'auto' }}
+                />
+              </div>
+            )}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={close}>Cerrar</Button>
+          <Button onClick={close}>Cerrar</Button> 
         </DialogActions>
       </Dialog>
     </React.Fragment>

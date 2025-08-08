@@ -31,6 +31,7 @@ export default function NormalTest({ test, subject }) {
   const [openFeedbackDialog, setOpenFeedbackDialog] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null); // segundos restantes
   const [maxTime, setMaxTime] = useState(null);   // tiempo total para el progreso
+  const [holdForDialog, setHoldForDialog] = useState(false);
 
 
   useEffect(() => {
@@ -93,6 +94,7 @@ export default function NormalTest({ test, subject }) {
 
     if (!isCorrect && (currentQuestion.feedback_text || currentQuestion.feedback_image)) {
       setOpenFeedbackDialog(true);
+      setHoldForDialog(true);
     }
 
     setShowFeedback(true);
@@ -145,7 +147,11 @@ export default function NormalTest({ test, subject }) {
 
   const handleCloseFeedbackDialog = () => {
     setOpenFeedbackDialog(false);
-    goToNextQuestion(); // avanzar solo cuando el usuario cierra el dialog
+    setHoldForDialog(false);
+    if (currentIndex < test.test_questions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+    //goToNextQuestion(); // avanzar solo cuando el usuario cierra el dialog
   };
 
   return (
@@ -290,7 +296,7 @@ export default function NormalTest({ test, subject }) {
             onExited={() => {
               setFeedback(null);
               setCorrectAnswer(null);
-
+              if (openFeedbackDialog || holdForDialog) return;
               if (currentIndex < test.test_questions.length - 1) {
                 setCurrentIndex(currentIndex + 1);
               }
@@ -322,7 +328,12 @@ export default function NormalTest({ test, subject }) {
           </Fade>
         </Paper>
       </Box>
-      <FeedbackDialog open={openFeedbackDialog} close={handleCloseFeedbackDialog} />
+      <FeedbackDialog 
+        open={openFeedbackDialog}
+        close={handleCloseFeedbackDialog}
+        message={currentQuestion?.feedback_text}
+        image={currentQuestion?.feedback_image}
+      />
     </>
   );
 }

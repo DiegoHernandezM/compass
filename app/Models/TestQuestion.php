@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class TestQuestion extends Model
 {
@@ -25,6 +26,14 @@ class TestQuestion extends Model
     protected $casts = [
         'options' => 'array',
     ];
+
+    public function getFeedbackImageAttribute($value)
+    {
+        if ($value && Storage::disk('s3')->exists($value)) {
+            return Storage::disk('s3')->url($value);
+        }
+        return null;
+    }
 
     public function test()
     {
