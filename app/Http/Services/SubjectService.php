@@ -56,27 +56,38 @@ class SubjectService
 
     public function getForStudent($userId)
     {   
-        return QuestionSubject::with(['level', 'question', 'subject', 'subject.tests' => function ($query) use ($userId) {
-                    $query->where('user_id', $userId)
-                        ->where('is_completed', false);
-                }])
+        return QuestionSubject::with([
+                    'level',
+                    'question',
+                    'subject',
+                    'subject.tests' => function ($query) use ($userId) {
+                        $query->where('user_id', $userId)
+                            ->where('is_completed', false)
+                            ->orderByDesc('updated_at'); // ← trae el más reciente primero
+                    }
+                ])
                 ->get()
                 ->groupBy(fn($qs) => $qs->subject_id . '-' . $qs->question_level_id)
                 ->map(function ($group) {
-                    $qs = $group->first(); // uno por combinación
-                    $test = $qs->subject->tests->first(); // test activo si existe
-                    
+                    $qs   = $group->first(); // una combinación (subject_id + level)
+                    // dentro de los tests ya cargados, toma el que coincide con el nivel y sea el más reciente
+                    $test = $qs->subject->tests
+                        ->where('question_level_id', $qs->question_level_id)
+                        ->sortByDesc('updated_at')
+                        ->first();
+
                     return [
-                        'id' => $qs->subject->id,
-                        'name' => $qs->subject->name,
-                        'description' => $qs->subject->description,
-                        'image' => $qs->subject->image,
-                        'color' => $qs->subject->color,
-                        'has_active_test' => !!$test,
-                        'progress' => $test?->progress ?? 0,
-                        'complete' => $test?->is_complete ?? false,
-                        'level_id' => $qs->level->id ?? null,
-                        'level_name' => $qs->level->name ?? 'N/A',
+                        'id'            => $qs->subject->id,
+                        'name'          => $qs->subject->name,
+                        'description'   => $qs->subject->description,
+                        'image'         => $qs->subject->image,
+                        'color'         => $qs->subject->color,
+                        'has_active_test' => (bool) $test,
+                        'progress'      => $test?->progress ?? 0,          // ← null-safe
+                        'complete'      => $test?->is_completed ?? false,   // ← corrige el nombre del campo
+                        'level_id'      => $qs->level->id ?? null,
+                        'level_name'    => $qs->level->name ?? 'N/A',
+                        'generic_id'    => $qs->subject_id . '-' . $qs->question_level_id,
                     ];
                 })
                 ->values();

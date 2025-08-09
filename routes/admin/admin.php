@@ -46,3 +46,5 @@ Route::put('/admin/question-multitask/update/{id}', [QuestionController::class, 
 
 Route::post('/admin/question/savetest', [QuestionController::class,'generateTest'])->name('question.test');
 Route::get('/admin/question/check-existence/{subjectId}/{levelId}/{typeId}', [QuestionController::class, 'checkIfTestExists']);
+
+
