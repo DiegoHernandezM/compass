@@ -52,7 +52,8 @@ Route::get('/admin/question/check-existence/{subjectId}/{levelId}/{typeId}', [Qu
 
 Route::get('/admin/personal-reports', [PersonalReportController::class, 'index'])
         ->name('personal-reports.index');
-
 Route::post('/admin/personal-reports/import', [PersonalReportController::class, 'store'])
     ->name('personal-reports.import');
+Route::get('/personal-reports/export-dashboard', PersonalReportController::class)
+    ->name('personal-reports.export-dashboard');
 

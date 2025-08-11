@@ -114,11 +114,8 @@ export default function PersonalReportsIndex() {
     { field: 'opened_at', headerName: 'F. de alta', flex: 1, minWidth: 160,
       renderCell: (params) => <Box>{fmt(params.row?.opened_at)}</Box>
     },
-    { field: 'closed_at', headerName: 'F. de cierre', flex: 1, minWidth: 160,
-      renderCell: (params) => <Box>{fmt(params.row?.closed_at)}</Box>
-    },
-    { field: 'status', headerName: 'Estado', flex: 0.8, minWidth: 120,
-      renderCell: (p) => <Box>{p.row?.status ?? ''}</Box>
+    { field: 'count', headerName: 'No. de registros', flex: 0.8, minWidth: 120,
+      renderCell: (p) => <Box>{p.row?.count ?? ''}</Box>
     },
     { field: 'assignee', headerName: 'Asignado', flex: 1.2, minWidth: 160,
       renderCell: (p) => <Box>{p.row?.assignee ?? ''}</Box>
@@ -190,6 +187,12 @@ export default function PersonalReportsIndex() {
                   disabled={!data.file || uploading}
                 >
                   {uploading ? 'Importando...' : 'Importar'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => window.location.href = route('personal-reports.export-dashboard')}
+                >
+                  Descargar dashboard Excel
                 </Button>
               </Stack>
 
