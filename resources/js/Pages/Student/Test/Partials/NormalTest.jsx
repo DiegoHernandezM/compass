@@ -35,14 +35,18 @@ export default function NormalTest({ test, subject }) {
   const [holdForDialog, setHoldForDialog] = useState(false);
 
   const sentAnswersRef = useRef(new Set());
+  const locallyAnsweredRef = useRef(new Set()); // <- marca local inmediata (incluye timeout)
 
   // ---------- helpers ----------
-  const isServerAnswered = (q) => Boolean(q?.user_answer);
+  // Considera respondida en servidor si ya hay user_answer O is_correct no es null (timeout con respuesta null)
+  const isServerAnswered = (q) => q?.is_correct !== null || Boolean(q?.user_answer);
 
   const hydrateAnswersFromProps = (questions) => {
     const acc = {};
     questions.forEach(q => {
       if (q.user_answer) acc[q.id] = String(q.user_answer).toLowerCase();
+      // si tu backend marca timeout con user_answer = null pero is_correct != null,
+      // no seteamos valor visible, pero el readOnly lo cubre isServerAnswered(q)
     });
     return acc;
   };
@@ -59,7 +63,10 @@ export default function NormalTest({ test, subject }) {
     return null;
   };
 
-  const readOnly = currentQuestion ? isServerAnswered(currentQuestion) : false;
+  // readOnly si ya contestó en servidor o si ya la marcamos localmente (por ej. timeout)
+  const readOnly = currentQuestion
+    ? isServerAnswered(currentQuestion) || locallyAnsweredRef.current.has(currentQuestion.id)
+    : false;
 
   // ---------- init: hidrata y posiciona ----------
   useEffect(() => {
@@ -99,8 +106,8 @@ export default function NormalTest({ test, subject }) {
         if (prev === null) return prev;
         if (prev <= 1) {
           clearInterval(interval);
-          // tiempo agotado => marcar incorrecto y enviar
-          handleAnswer('');
+          // tiempo agotado => marcar incorrecto y enviar (byTimeout = true)
+          handleAnswer(null, true);
           return 0;
         }
         return prev - 1;
@@ -112,53 +119,68 @@ export default function NormalTest({ test, subject }) {
 
   // ---------- handlers ----------
   const handleAnswerChange = (e) => {
-    if (readOnly) return; // bloquea edición si ya está respondida en servidor
+    if (readOnly) return; // bloquea edición
     setAnswers(prev => ({
       ...prev,
       [currentQuestion.id]: e.target.value.toLowerCase(),
     }));
   };
 
-  const handleAnswer = (selectedOption = '') => {
-    // si ya está respondida en servidor, no re-enviar
+  const handleAnswer = (selectedOption = '', byTimeout = false) => {
+    // si ya está respondida en servidor o marcada localmente, no re-enviar
     if (readOnly) return;
 
     const keyLower = (selectedOption || '').toLowerCase();
     const keyUpper = keyLower.toUpperCase();
-    const isCorrect = keyUpper === currentQuestion.correct_answer;
+    const isCorrect = !byTimeout && keyUpper === currentQuestion.correct_answer;
 
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: keyLower }));
-    setFeedback(isCorrect ? 'correct' : 'incorrect');
+    // Marca local como contestada (incluye timeout) para bloquear inmediatamente
+    locallyAnsweredRef.current.add(currentQuestion.id);
 
-    if (!isCorrect) setCorrectAnswer(currentQuestion.correct_answer);
-    if (!isCorrect && (currentQuestion.feedback_text || currentQuestion.feedback_image)) {
-      setOpenFeedbackDialog(true);
-      setHoldForDialog(true);
+    // Guarda valor local:
+    // - si timeout, guarda un sentinel para que el Radio se vea vacío pero readOnly
+    // - si normal, guarda la opción
+    setAnswers(prev => ({
+      ...prev,
+      [currentQuestion.id]: byTimeout ? '__timeout__' : keyLower,
+    }));
+
+    if (!byTimeout) {
+      setFeedback(isCorrect ? 'correct' : 'incorrect');
+      if (!isCorrect) setCorrectAnswer(currentQuestion.correct_answer);
+      if (!isCorrect && (currentQuestion.feedback_text || currentQuestion.feedback_image)) {
+        setOpenFeedbackDialog(true);
+        setHoldForDialog(true);
+      }
+      setShowFeedback(true);
+    } else {
+      // si prefieres mostrar también feedback en timeout, quita este else y usa el bloque de arriba
+      setShowFeedback(false);
     }
 
-    setShowFeedback(true);
-
+    // Enviar al backend (en timeout mandamos user_answer = null, is_correct = 0)
     sendAnswer({
       test_id: test?.id,
       subject_id: subject?.id ?? null,
-      current_question: currentQuestion, // objeto completo
-      is_correct: isCorrect ? 1 : 0,
-      user_answer: keyUpper,
+      current_question: currentQuestion,
+      is_correct: byTimeout ? 0 : (isCorrect ? 1 : 0),
+      user_answer: byTimeout ? null : keyUpper,
     });
 
-    setTimeout(() => setShowFeedback(false), 2500);
+    if (!byTimeout) {
+      setTimeout(() => setShowFeedback(false), 5000); // si quieres más tiempo de feedback
+    }
   };
 
   const sendAnswer = (payload) => {
     const key = `${payload.test_id}:${payload.current_question?.question_id}`;
-    if (sentAnswersRef.current.has(key)) return; // evita duplicados si haces click doble
+    if (sentAnswersRef.current.has(key)) return; // evita duplicados por doble click
     sentAnswersRef.current.add(key);
 
     Inertia.post(route('answer.save'), payload, {
       preserveScroll: true,
       onError: () => sentAnswersRef.current.delete(key),
-      // opcional: refrescar solo 'test' para que venga user_answer actualizado
-      // onSuccess: () => Inertia.reload({ only: ['test'] }),
+      // onSuccess: () => Inertia.reload({ only: ['test'] }), // si quieres refrescar user_answer/is_correct
     });
   };
 
@@ -171,7 +193,7 @@ export default function NormalTest({ test, subject }) {
     }
 
     const selectedOption = answers[currentQuestion.id];
-    if (selectedOption) {
+    if (selectedOption && selectedOption !== '__timeout__') {
       handleAnswer(selectedOption);
       setTimeout(() => {
         setFeedback(null);
@@ -186,9 +208,10 @@ export default function NormalTest({ test, subject }) {
 
   const handleFinish = () => {
     const selectedOption = answers[currentQuestion.id];
-    if (selectedOption) handleAnswer(selectedOption);
+    if (selectedOption && selectedOption !== '__timeout__') handleAnswer(selectedOption);
   };
 
+  // progreso basado en backend (respondidas reales: user_answer o is_correct !== null)
   const answeredCount = test.test_questions.filter(q => isServerAnswered(q)).length;
   const progressPercent = (answeredCount / test.test_questions.length) * 100;
 
@@ -217,6 +240,13 @@ export default function NormalTest({ test, subject }) {
     if (/^[\w.\-\/]+?\.(png|jpe?g|gif|svg|webp)$/i.test(s)) return true;
     return false;
   };
+
+  // valor visible del radio: si timeout, no marcar nada
+  const selectedValue =
+    (answers[currentQuestion.id] === '__timeout__'
+      ? ''
+      : (answers[currentQuestion.id] || currentQuestion?.user_answer || '')
+    ).toString().toLowerCase();
 
   return (
     <>
@@ -293,11 +323,7 @@ export default function NormalTest({ test, subject }) {
           )}
 
           <RadioGroup
-            value={
-              (answers[currentQuestion.id] || currentQuestion?.user_answer || '')
-                .toString()
-                .toLowerCase()
-            }
+            value={selectedValue}
             onChange={readOnly ? undefined : handleAnswerChange}
           >
             {Object.entries(JSON.parse(currentQuestion.options))
@@ -345,7 +371,7 @@ export default function NormalTest({ test, subject }) {
 
           <Fade
             in={showFeedback}
-            timeout={{ enter: 300, exit: 500 }}
+            timeout={{ enter: 300, exit: 1000 }} // salida más suave
             onExited={() => {
               setFeedback(null);
               setCorrectAnswer(null);

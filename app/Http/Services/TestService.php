@@ -56,7 +56,7 @@ class TestService
             // 5) Recalcular progreso
             $total    = $test->testQuestions()->count();
             $answered = $test->testQuestions()
-                ->whereNotNull('user_answer')
+                ->whereNotNull('is_correct')
                 ->count();
 
             // 6) Calcular progreso

@@ -20,6 +20,8 @@ Route::get('/', function () {
 
 
 
+
+
 Route::middleware(['auth', 'role:student', CheckSubscription::class,])->group(function () {
     Route::get('/student-dashboard', function () {
         return Inertia::render('StudentDashboard', [
