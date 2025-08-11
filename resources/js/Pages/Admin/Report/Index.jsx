@@ -4,7 +4,8 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import {
   Box, Button, Card, CardContent, CardHeader,
   Stack, Typography, LinearProgress, Alert,
-  TextField, Select, MenuItem, InputLabel, FormControl
+  TextField, Select, MenuItem, InputLabel, FormControl, Dialog, DialogTitle, DialogContent, DialogContentText,
+  DialogActions
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 
@@ -17,6 +18,24 @@ export default function PersonalReportsIndex() {
   const [textFilter, setTextFilter] = useState('');
   const [ageFilter, setAgeFilter] = useState('all'); // '1w' | '2w' | '3w' | '1m' | 'gt1m' | 'all'
   const parseDate = (v) => (v ? new Date(v) : null);
+
+  const [openDescDialog, setOpenDescDialog] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState('Detalle');
+  const [dialogText, setDialogText] = useState('');
+
+  const handleCellDoubleClick = (params) => {
+    console.log(params);
+    // Solo abrir para la columna "description" (ajusta el field si usas otro nombre)
+    if (params.field !== 'description') return;
+
+    const value = params?.row?.description ?? '';
+    if (!value) return;
+
+    setDialogTitle(`Ticket ${params?.row?.ticket_number ?? ''}`);
+    setDialogText(value);
+    setOpenDescDialog(true);
+  };
+
 
   const { data, setData, post, reset, errors, progress } = useForm({
     file: null,
@@ -114,7 +133,16 @@ export default function PersonalReportsIndex() {
     },
     { field: 'description', headerName: 'Descripción', flex: 1.6, minWidth: 220,
       renderCell: (p) => (
-        <Box sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <Box
+          sx={{
+            width: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            cursor: (p.row?.description ? 'zoom-in' : 'default')
+          }}
+          title="Doble clic para ver completo"
+        >
           {p.row?.description ?? ''}
         </Box>
       )
@@ -205,15 +233,27 @@ export default function PersonalReportsIndex() {
               </FormControl>
             </Box>
             <DataGrid
-              rows={filteredRows}
+              rows={Array.isArray(latest) ? latest : []}
               columns={columns}
               getRowId={(r) => r?.id ?? `${r.ticket_number}-${r.opened_at}-${Math.random()}`}
               pageSize={10}
-              rowsPerPageOptions={[5, 10, 20]}
+              rowsPerPageOptions={[5,10,20]}
               disableSelectionOnClick
               autoHeight
+              onCellDoubleClick={handleCellDoubleClick}
             />
           </CardContent>
+          <Dialog open={openDescDialog} onClose={() => setOpenDescDialog(false)} maxWidth="md" fullWidth>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogContent dividers>
+              <Typography sx={{ whiteSpace: 'pre-wrap' }}>
+                {dialogText}
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenDescDialog(false)} variant="contained">Cerrar</Button>
+            </DialogActions>
+          </Dialog>
         </Card>
 
       </Box>

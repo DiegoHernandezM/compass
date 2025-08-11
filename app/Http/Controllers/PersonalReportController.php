@@ -19,7 +19,7 @@ class PersonalReportController extends Controller
     public function index()
     {
         // Puedes paginar si prefieres
-        $latest = PersonalReport::latest()->take(25)->get();
+        $latest = PersonalReport::all();
 
         return Inertia::render('Admin/Report/Index', [
             'latest' => $latest,
