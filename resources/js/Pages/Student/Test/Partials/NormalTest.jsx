@@ -13,7 +13,8 @@ import {
   RadioGroup,
   FormControlLabel,
   Button,
-  Fade
+  Fade,
+  Chip
 } from '@mui/material';
 import { useMediaQuery, useTheme } from '@mui/material';
 import FeedbackDialog from '@/Components/Test/FeedbackDialog';
@@ -41,6 +42,9 @@ export default function NormalTest({ test, subject }) {
 
   const [openResult, setOpenResult] = useState(false);
   const [resultStats, setResultStats] = useState({ correct: 0, total: 0 });
+
+  const correctKey = String(currentQuestion?.correct_answer || '').toUpperCase();
+
 
   // ---------- helpers ----------
   // Considera respondida en servidor si ya hay user_answer O is_correct no es null (timeout con respuesta null)
@@ -166,28 +170,10 @@ export default function NormalTest({ test, subject }) {
       is_correct: byTimeout ? 0 : (isCorrect ? 1 : 0),
       user_answer: byTimeout ? null : keyUpper,
     });
-    if (!byTimeout) {
-      setTimeout(() => setShowFeedback(false), 5000); // si quieres más tiempo de feedback
-    }
-  };
-  /*
-  const sendAnswer = (payload) => {
-    const key = `${payload.test_id}:${payload.current_question?.question_id}`;
-    if (sentAnswersRef.current.has(key)) return; // evita duplicados por doble click
-    sentAnswersRef.current.add(key);
 
-    Inertia.post(route('answer.save'), payload, {
-      preserveScroll: true,
-      preserveState: true, // mantiene tu estado actual
-      onSuccess: () => {
-        // No hacer reload aquí
-      },
-      onError: () => {
-        sentAnswersRef.current.delete(key);
-      },
-    });
+    setTimeout(() => setShowFeedback(false), 5000); // si quieres más tiempo de feedback
   };
-  */
+
   const sendAnswer = async (payload) => {
     const key = `${payload.test_id}:${payload.current_question?.question_id}`;
     if (sentAnswersRef.current.has(key)) return;
@@ -217,6 +203,9 @@ export default function NormalTest({ test, subject }) {
     } finally {
       clearTimeout(timer);
     }
+    const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
+    if (nextIdx !== null) setCurrentIndex(nextIdx);
+    else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
   };
 
   const handleNext = () => {
@@ -226,7 +215,6 @@ export default function NormalTest({ test, subject }) {
       else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
       return;
     }
-
     const selectedOption = answers[currentQuestion.id];
     if (selectedOption && selectedOption !== '__timeout__') {
       handleAnswer(selectedOption);
@@ -382,7 +370,10 @@ export default function NormalTest({ test, subject }) {
               sx={{ width: '100%', maxWidth: 350, maxHeight: 350, height: 'auto', display: 'block', mx: 'auto', mb: 4 }}
             />
           ) : (
-            <Typography variant="h6" gutterBottom>
+            <Typography 
+              variant="h6"
+              sx={{marginBottom:'20px'}}
+              gutterBottom>
               {currentQuestion.question_text}
             </Typography>
           )}
@@ -401,7 +392,7 @@ export default function NormalTest({ test, subject }) {
                     value={key}
                     control={<Radio disabled={readOnly} />}
                     disabled={readOnly}
-                    sx={{ mb: 2, ...(readOnly ? { opacity: 0.8 } : {}) }}
+                    sx={{ mb: 2, marginTop: '15px', ...(readOnly ? { opacity: 0.8 } : {}) }}
                     label={
                       isImage(valStr) ? (
                         <Box
@@ -419,20 +410,6 @@ export default function NormalTest({ test, subject }) {
               })}
           </RadioGroup>
 
-          <Stack direction="row" justifyContent="space-between" mt={3}>
-            <Button variant="outlined" onClick={handlePrevious} disabled={currentIndex === 0}>
-              Anterior
-            </Button>
-            {currentIndex < test.test_questions.length - 1 ? (
-              <Button variant="contained" onClick={handleNext}>
-                Siguiente
-              </Button>
-            ) : (
-              <Button variant="contained" color="success" onClick={handleFinish}>
-                Finalizar
-              </Button>
-            )}
-          </Stack>
 
           <Fade
             in={showFeedback}
@@ -441,9 +418,6 @@ export default function NormalTest({ test, subject }) {
               setFeedback(null);
               setCorrectAnswer(null);
               if (openFeedbackDialog || holdForDialog) return;
-              //const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
-              //if (nextIdx !== null) setCurrentIndex(nextIdx);
-              // else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
             }}
           >
             <Box
@@ -470,6 +444,25 @@ export default function NormalTest({ test, subject }) {
               </Typography>
             </Box>
           </Fade>
+          {readOnly && (
+            <Typography variant="h5" sx={{ mb: 2 }}>
+              Correcta: <strong>{correctKey}</strong>
+            </Typography>
+          )}
+          <Stack direction="row" justifyContent="space-between" mt={3}>
+            <Button variant="outlined" onClick={handlePrevious} disabled={currentIndex === 0}>
+              Anterior
+            </Button>
+            {currentIndex < test.test_questions.length - 1 ? (
+              <Button variant="contained" onClick={handleNext}>
+                Siguiente
+              </Button>
+            ) : (
+              <Button variant="contained" color="success" onClick={handleFinish}>
+                Finalizar
+              </Button>
+            )}
+          </Stack>
         </Paper>
       </Box>
 

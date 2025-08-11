@@ -12,6 +12,14 @@ export default function TestResultDialog({ open, onClose, correct = 0, total = 0
   const [pct, setPct] = useState(0);
   const [count, setCount] = useState(0);
   const videoRef = useRef(null);
+  let resultMessage = '';
+  if (targetPct >= 90) {
+    resultMessage = '¡Excelente resultado!';
+  } else if (targetPct >= 70) {
+    resultMessage = '¡Bien hecho!';
+  } else {
+    resultMessage = 'Necesitas mejorar, sigue practicando.';
+  }
 
   // Animación del círculo
   useEffect(() => {
@@ -80,7 +88,7 @@ export default function TestResultDialog({ open, onClose, correct = 0, total = 0
           position: 'absolute',
           inset: 0,
           zIndex: 0,
-          opacity: 0.9, // opacidad del video
+          opacity: 1, // opacidad del video
           overflow: 'hidden',
           minHeight: 650
         }}
@@ -99,7 +107,7 @@ export default function TestResultDialog({ open, onClose, correct = 0, total = 0
       </Box>
 
       {/* Contenido */}
-      <Box sx={{ position: 'relative', zIndex: 1, backgroundColor: 'rgba(255,255,255,0.75)', minHeight: 650 }}>
+      <Box sx={{ position: 'relative', zIndex: 1, backgroundColor: 'rgba(255,255,255,0.85)', minHeight: 650 }}>
         <DialogTitle sx={{ fontWeight: 700 }}>¡Test terminado!</DialogTitle>
 
         <DialogContent>
@@ -122,7 +130,7 @@ export default function TestResultDialog({ open, onClose, correct = 0, total = 0
               {correct} de {total}
             </Typography>
             <Typography variant="overline" color="text.secondary" sx={{ mt: 0.5 }}>
-              <strong>¡Bien hecho!</strong> Tu porcentaje es {targetPct}%.
+              <strong>{resultMessage}</strong> Tu porcentaje es {targetPct}%.
             </Typography>
           </Box>
         </DialogContent>
