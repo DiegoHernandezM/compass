@@ -64,6 +64,7 @@ export default function PersonalReportsIndex() {
   };
 
   const isInAgeRange = (openedAt, key) => {
+    console.log('entrox');
     if (key === 'all') return true;
     if (!openedAt) return false;
 
@@ -233,7 +234,7 @@ export default function PersonalReportsIndex() {
               </FormControl>
             </Box>
             <DataGrid
-              rows={Array.isArray(latest) ? latest : []}
+              rows={filteredRows}
               columns={columns}
               getRowId={(r) => r?.id ?? `${r.ticket_number}-${r.opened_at}-${Math.random()}`}
               pageSize={10}

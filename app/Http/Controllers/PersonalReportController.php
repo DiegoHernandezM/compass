@@ -28,7 +28,8 @@ class PersonalReportController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        try{
+$request->validate([
             'file' => ['required','file','mimes:xlsx,xls,csv'],
         ]);
 
@@ -42,5 +43,9 @@ class PersonalReportController extends Controller
         }
 
         return back()->with('success', 'Reporte importado correctamente.');
+        } catch(\Exception $e){
+            return back()->with('error', $e->getMessage());
+        }
+        
     }
 }
