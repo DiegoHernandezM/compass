@@ -26,7 +26,7 @@ class PersonalReportController extends Controller
     public function __invoke()
     {
         $filename = 'dashboard_tickets_'.now()->format('Y-m-d_H-i').'.xlsx';
-        return Excel::download(new \App\Exports\PersonalReportsDashboardExport(), $filename);
+        return Excel::download(new PersonalReportsDashboardExport(), $filename);
     }
 
     public function index()
