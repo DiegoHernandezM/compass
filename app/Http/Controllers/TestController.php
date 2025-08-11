@@ -26,7 +26,7 @@ class TestController extends Controller
             ]);
 
             $this->sTest->saveStudentAnswer($data);
-            return redirect()->back();
+            return response()->noContent();
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }

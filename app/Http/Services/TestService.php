@@ -33,7 +33,7 @@ class TestService
 
             // 4) Ubicar la fila de TestQuestion correspondiente a esta pregunta dentro del test
             $testQuestion = $test->testQuestions()
-                ->where('question_id', $questionId)
+                ->where('id', $questionId)
                 ->first();
 
             // Fallback opcional por texto si fuera necesario

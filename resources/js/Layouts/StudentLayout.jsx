@@ -1,3 +1,7 @@
+import { Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import { Inertia } from '@inertiajs/inertia';
+
 import { Box, CssBaseline, BottomNavigation, BottomNavigationAction,Menu, MenuItem,  Paper, AppBar, Toolbar, Typography, IconButton } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
@@ -5,9 +9,9 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import InsightsIcon from '@mui/icons-material/Insights';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
-import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
-import { Inertia } from '@inertiajs/inertia';
+
+import ErrorAlert from '@/Components/ErrorAlert';
+
 
 export default function StudentLayout({ children }) {
   const drawerWidth = 0;
@@ -19,6 +23,8 @@ export default function StudentLayout({ children }) {
   const { props } = usePage();
   const subscriptionExpired = props.subscriptionExpired ?? false;
   const hideAppBar = url.startsWith('/student/test/');
+  const errorMessage = usePage().props?.flash?.error ?? null;
+  const [openError, setOpenError] = useState(!!errorMessage);
 
 
   // Aqui van las url para el AppBar
@@ -52,6 +58,11 @@ export default function StudentLayout({ children }) {
 
   return (
     <Box sx={{ pb: 7 }}>
+      <ErrorAlert
+        open={openError}
+        onClose={() => setOpenError(false)}
+        message={errorMessage}
+      />
       {!hideAppBar && (
         <AppBar
           position="fixed"

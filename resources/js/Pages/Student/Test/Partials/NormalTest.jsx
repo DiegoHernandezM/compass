@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Inertia } from '@inertiajs/inertia';
+import axios from 'axios';
 import {
   Box,
   Typography,
@@ -15,7 +16,8 @@ import {
   Fade
 } from '@mui/material';
 import { useMediaQuery, useTheme } from '@mui/material';
-import FeedbackDialog from '../../../../Components/Test/FeedbackDialog';
+import FeedbackDialog from '@/Components/Test/FeedbackDialog';
+import TestResultDialog from '@/Components/Dialog/TestResultDialog';
 
 export default function NormalTest({ test, subject }) {
   const theme = useTheme();
@@ -36,6 +38,9 @@ export default function NormalTest({ test, subject }) {
 
   const sentAnswersRef = useRef(new Set());
   const locallyAnsweredRef = useRef(new Set()); // <- marca local inmediata (incluye timeout)
+
+  const [openResult, setOpenResult] = useState(false);
+  const [resultStats, setResultStats] = useState({ correct: 0, total: 0 });
 
   // ---------- helpers ----------
   // Considera respondida en servidor si ya hay user_answer O is_correct no es null (timeout con respuesta null)
@@ -126,17 +131,15 @@ export default function NormalTest({ test, subject }) {
     }));
   };
 
+  
   const handleAnswer = (selectedOption = '', byTimeout = false) => {
     // si ya está respondida en servidor o marcada localmente, no re-enviar
     if (readOnly) return;
-
     const keyLower = (selectedOption || '').toLowerCase();
     const keyUpper = keyLower.toUpperCase();
     const isCorrect = !byTimeout && keyUpper === currentQuestion.correct_answer;
-
     // Marca local como contestada (incluye timeout) para bloquear inmediatamente
     locallyAnsweredRef.current.add(currentQuestion.id);
-
     // Guarda valor local:
     // - si timeout, guarda un sentinel para que el Radio se vea vacío pero readOnly
     // - si normal, guarda la opción
@@ -153,9 +156,6 @@ export default function NormalTest({ test, subject }) {
         setHoldForDialog(true);
       }
       setShowFeedback(true);
-    } else {
-      // si prefieres mostrar también feedback en timeout, quita este else y usa el bloque de arriba
-      setShowFeedback(false);
     }
 
     // Enviar al backend (en timeout mandamos user_answer = null, is_correct = 0)
@@ -166,12 +166,11 @@ export default function NormalTest({ test, subject }) {
       is_correct: byTimeout ? 0 : (isCorrect ? 1 : 0),
       user_answer: byTimeout ? null : keyUpper,
     });
-
     if (!byTimeout) {
       setTimeout(() => setShowFeedback(false), 5000); // si quieres más tiempo de feedback
     }
   };
-
+  /*
   const sendAnswer = (payload) => {
     const key = `${payload.test_id}:${payload.current_question?.question_id}`;
     if (sentAnswersRef.current.has(key)) return; // evita duplicados por doble click
@@ -179,9 +178,45 @@ export default function NormalTest({ test, subject }) {
 
     Inertia.post(route('answer.save'), payload, {
       preserveScroll: true,
-      onError: () => sentAnswersRef.current.delete(key),
-      // onSuccess: () => Inertia.reload({ only: ['test'] }), // si quieres refrescar user_answer/is_correct
+      preserveState: true, // mantiene tu estado actual
+      onSuccess: () => {
+        // No hacer reload aquí
+      },
+      onError: () => {
+        sentAnswersRef.current.delete(key);
+      },
     });
+  };
+  */
+  const sendAnswer = async (payload) => {
+    const key = `${payload.test_id}:${payload.current_question?.question_id}`;
+    if (sentAnswersRef.current.has(key)) return;
+    sentAnswersRef.current.add(key);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort('timeout'), 4000); // 4s
+
+    try {
+      await axios.post(route('answer.save'), payload, {
+        signal: controller.signal,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+      });
+      // opcional: si quisieras refrescar algo después, hazlo aquí
+      // sin interrumpir feedback/dialog
+    } catch (err) {
+      if (err.message === 'timeout' || err.code === 'ERR_CANCELED') {
+        console.warn('⏳ La petición se canceló por timeout (4s).');
+      } else {
+        console.error('❌ Error al enviar respuesta', err);
+      }
+      // permitir reintento si falló
+      sentAnswersRef.current.delete(key);
+    } finally {
+      clearTimeout(timer);
+    }
   };
 
   const handleNext = () => {
@@ -208,7 +243,14 @@ export default function NormalTest({ test, subject }) {
 
   const handleFinish = () => {
     const selectedOption = answers[currentQuestion.id];
-    if (selectedOption && selectedOption !== '__timeout__') handleAnswer(selectedOption);
+    if (selectedOption && selectedOption !== '__timeout__') {
+      // envía y muestra feedback como ya lo tenías
+      handleAnswer(selectedOption);
+    }
+    // calcula y abre el dialog (no bloquea el flujo)
+    const stats = computeResults();
+    setResultStats(stats);
+    setOpenResult(true);
   };
 
   // progreso basado en backend (respondidas reales: user_answer o is_correct !== null)
@@ -247,6 +289,29 @@ export default function NormalTest({ test, subject }) {
       ? ''
       : (answers[currentQuestion.id] || currentQuestion?.user_answer || '')
     ).toString().toLowerCase();
+
+  const computeResults = () => {
+    const total = test.test_questions.length;
+
+    // Tomamos la elección local (answers) o la del back (user_answer)
+    const correct = test.test_questions.reduce((acc, q) => {
+      // ignora timeouts locales
+      const local = answers[q.id];
+      const choice = (local && local !== '__timeout__')
+        ? local.toUpperCase()
+        : (q.user_answer || null);
+
+      if (!choice) return acc;
+      return acc + (choice === q.correct_answer ? 1 : 0);
+    }, 0);
+
+    return { correct, total };
+  };
+
+  const goToSubjects = () => {
+    // Ajusta la ruta a la que corresponda en tu app
+    Inertia.get(route('student.subject.index'));
+  };
 
   return (
     <>
@@ -376,9 +441,9 @@ export default function NormalTest({ test, subject }) {
               setFeedback(null);
               setCorrectAnswer(null);
               if (openFeedbackDialog || holdForDialog) return;
-              const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
-              if (nextIdx !== null) setCurrentIndex(nextIdx);
-              else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
+              //const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
+              //if (nextIdx !== null) setCurrentIndex(nextIdx);
+              // else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
             }}
           >
             <Box
@@ -413,6 +478,14 @@ export default function NormalTest({ test, subject }) {
         close={handleCloseFeedbackDialog}
         message={currentQuestion?.feedback_text}
         image={currentQuestion?.feedback_image}
+      />
+
+      <TestResultDialog
+        open={openResult}
+        onClose={() => setOpenResult(false)}
+        correct={resultStats.correct}
+        total={resultStats.total}
+        onGoToSubjects={goToSubjects}
       />
     </>
   );
