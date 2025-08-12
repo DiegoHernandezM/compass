@@ -8,7 +8,6 @@ import resultVideo from '@/assets/video/result_video.mp4';
 const Transition = (props) => <Slide direction="up" {...props} />;
 
 export default function TestResultDialog({ open, onClose, correct = 0, total = 0, onGoToSubjects, showReview }) {
-  console.log(showReview);  
   const targetPct = total > 0 ? Math.round((correct / total) * 100) : 0;
   const [pct, setPct] = useState(0);
   const [count, setCount] = useState(0);

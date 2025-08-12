@@ -19,7 +19,7 @@ import { useMediaQuery, useTheme } from '@mui/material';
 import FeedbackDialog from '@/Components/Test/FeedbackDialog';
 import TestResultDialog from '@/Components/Dialog/TestResultDialog';
 
-export default function NormalTest({ test, subject }) {
+export default function NormalTest({ test, subject, type }) {
   const theme = useTheme();
   const isLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -42,7 +42,6 @@ export default function NormalTest({ test, subject }) {
   const [resultStats, setResultStats] = useState({ correct: 0, total: 0 });
 
   const correctKey = String(currentQuestion?.correct_answer || '').toUpperCase();
-
 
   // ---------- helpers ----------
   // Considera respondida en servidor si ya hay user_answer O is_correct no es null (timeout con respuesta null)
@@ -255,9 +254,6 @@ export default function NormalTest({ test, subject }) {
   const handleCloseFeedbackDialog = () => {
     setOpenFeedbackDialog(false);
     setHoldForDialog(false);
-    const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
-    if (nextIdx !== null) setCurrentIndex(nextIdx);
-    else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
   };
 
   const isImage = (v) => {
@@ -360,7 +356,7 @@ export default function NormalTest({ test, subject }) {
             Pregunta {currentIndex + 1} de {test.test_questions.length}
           </Typography>
 
-          {currentQuestion.type === 'image' ? (
+          {currentQuestion?.type === 'image' ? (
             <Box
               component="img"
               src={`${currentQuestion.question_text}`}
@@ -421,7 +417,7 @@ export default function NormalTest({ test, subject }) {
               </Button>
             )}
           </Stack>
-          {currentQuestion?.type != 'image' && correctAnswer != null ? (
+          {type !== 'RAZONAMIENTO LOGICO' && correctAnswer != null ? (
             <Fade
               in={showFeedback}
               timeout={{ enter: 300, exit: 1000 }} // salida más suave
@@ -457,7 +453,7 @@ export default function NormalTest({ test, subject }) {
             </Fade>
           ): null}
           
-          {readOnly && currentQuestion?.type !== 'image' ? (
+          {readOnly && type !== 'RAZONAMIENTO LOGICO' ? (
             <Typography variant="h5" sx={{ mb: 2 }}>
               Correcta: <strong>{correctKey}</strong>
             </Typography>

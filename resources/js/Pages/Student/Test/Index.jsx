@@ -22,7 +22,7 @@ export default function Index() {
   }
 
   if (type === 'ATPL' || type === 'MATEMATICAS' || type === 'RAZONAMIENTO LOGICO' || type === 'ORIENTACION ESPACIAL') {
-    return <NormalTest subject={subject} test={test} />;
+    return <NormalTest subject={subject} test={test} type={type} />;
   }
 
   if (type === 'MEMORIA A CORTO PLAZO - MEMORAMA') {

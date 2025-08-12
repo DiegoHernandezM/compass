@@ -27,6 +27,16 @@ class TestQuestion extends Model
         'options' => 'array',
     ];
 
+    CONST TYPE = [
+        'MATEMATICAS' => 'text',
+        'ORIENTACION ESPACIAL' => 'text',
+        'RAZONAMIENTO LOGICO' => 'image',
+        'MEMORIA A CORTO PLAZO - MEMORAMA' => 'image',
+        'MEMORIA A CORTO PLAZO - PARAMETROS' => 'text',
+        'MULTITASKING' => 'multitask',
+        'ATPL' => 'text'
+    ];
+
     public function getFeedbackImageAttribute($value)
     {
         if ($value && Storage::disk('s3')->exists($value)) {
