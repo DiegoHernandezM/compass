@@ -194,8 +194,8 @@ export default function Memory({ subject, test }) {
         <Box
           onClick={() => handleIconClick(iconName)}
           sx={{
-            backgroundColor: 'white',
-            border: `3px solid ${borderColor}`,
+            backgroundColor: 'rgba(32, 55, 100, 0.85)', // Azul #203764 sutil con opacidad
+            border: '3px solid #ECD358', // Marco dorado
             borderRadius: 2,
             p: 2,
             cursor: phase === 'select' ? 'pointer' : 'default',
@@ -207,9 +207,19 @@ export default function Memory({ subject, test }) {
             justifyContent: 'center',
             maxWidth: 200,
             mx: 'auto',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+
+            '&:hover': {
+              transform: 'scale(1.05)',
+              boxShadow: '0 0 15px rgba(236, 211, 88, 0.6)', // Glow dorado sutil
+            },
           }}
         >
-          {IconComponent ? <IconComponent sx={{ fontSize: 90 }} /> : iconName}
+          {IconComponent ? (
+            <IconComponent sx={{ fontSize: 90, color: 'white' }} /> // Iconos blancos
+          ) : (
+            iconName
+          )}
         </Box>
       </Grid>
     );
@@ -244,12 +254,12 @@ export default function Memory({ subject, test }) {
         <Box mt={5} display="flex" justifyContent="center" alignItems="center" height="300px">
           <Box
             sx={{
-              backgroundColor: 'white',
-              border: '3px solid #ccc',
+              backgroundColor: 'rgba(32, 55, 100, 0.85)', // Fondo azul sutil
+              border: '3px solid #ECD358', // Marco dorado
               borderRadius: 2,
               width: 200,
               height: 200,
-              boxShadow: 3,
+              boxShadow: '0 0 10px rgba(236, 211, 88, 0.5)', // Glow suave dorado
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -257,7 +267,9 @@ export default function Memory({ subject, test }) {
           >
             {(() => {
               const IconComponent = Icons[displayedIcon];
-              return IconComponent ? <IconComponent sx={{ fontSize: 90 }} /> : null;
+              return IconComponent ? (
+                <IconComponent sx={{ fontSize: 90, color: 'white' }} /> // Icono blanco
+              ) : null;
             })()}
           </Box>
         </Box>
