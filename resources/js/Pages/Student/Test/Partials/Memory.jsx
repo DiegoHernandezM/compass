@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import axios from 'axios';
 import { Box, Typography, Button, Grid } from '@mui/material';
 import * as Icons from '@mui/icons-material';
 
@@ -9,6 +10,8 @@ export default function Memory({ subject, test }) {
   const [displayedIcon, setDisplayedIcon] = useState(null);
   const [selectedIcons, setSelectedIcons] = useState([]);
   const [isFinished, setIsFinished] = useState(false);
+  const sentAnswersRef = useRef(new Set());
+
 
   const currentQuestion = questions[currentIndex];
   const correctIcons = useMemo(
@@ -48,6 +51,21 @@ export default function Memory({ subject, test }) {
 
   const checkAnswers = () => {
     setPhase('feedback');
+
+    // Determinar aciertos (no importa el orden)
+    const selectedSorted = [...selectedIcons].sort();
+    const correctSorted = [...correctIcons].sort();
+    const isCorrect = JSON.stringify(selectedSorted) === JSON.stringify(correctSorted);
+
+    // Enviar al backend
+    sendAnswer({
+      test_id: test.id,
+      subject_id: subject?.id ?? null,
+      current_question: currentQuestion,
+      is_correct: isCorrect ? 1 : 0,
+      user_answer: selectedIcons.join(','), // puede ser útil para mostrar qué eligió
+    });
+
     setTimeout(() => {
       if (currentIndex + 1 < questions.length) {
         setCurrentIndex(currentIndex + 1);
@@ -58,6 +76,7 @@ export default function Memory({ subject, test }) {
       }
     }, 3000);
   };
+
 
   const renderIcon = (iconName) => {
     const IconComponent = Icons[iconName];
@@ -107,6 +126,34 @@ export default function Memory({ subject, test }) {
       </Box>
     );
   }
+
+  const sendAnswer = async (payload) => {
+    const key = `${payload.test_id}:${payload.current_question?.question_id}`;
+    if (sentAnswersRef.current.has(key)) return;
+    sentAnswersRef.current.add(key);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort('timeout'), 4000);
+
+    try {
+      await axios.post(route('answer.save'), payload, {
+        signal: controller.signal,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+      });
+    } catch (err) {
+      if (err.message === 'timeout' || err.code === 'ERR_CANCELED') {
+        console.warn('⏳ La petición se canceló por timeout (4s).');
+      } else {
+        console.error('❌ Error al enviar respuesta', err);
+      }
+      sentAnswersRef.current.delete(key);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
 
   return (
     <Box

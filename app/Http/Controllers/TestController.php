@@ -25,6 +25,8 @@ class TestController extends Controller
                 'user_answer'      => ['nullable','string','max:10'],
             ]);
 
+            dd($data);
+
             $this->sTest->saveStudentAnswer($data);
             return response()->noContent();
         } catch (\Exception $e) {
