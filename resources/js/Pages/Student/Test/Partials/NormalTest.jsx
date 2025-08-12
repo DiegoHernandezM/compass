@@ -13,8 +13,7 @@ import {
   RadioGroup,
   FormControlLabel,
   Button,
-  Fade,
-  Chip
+  Fade
 } from '@mui/material';
 import { useMediaQuery, useTheme } from '@mui/material';
 import FeedbackDialog from '@/Components/Test/FeedbackDialog';
@@ -28,7 +27,6 @@ export default function NormalTest({ test, subject }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const currentQuestion = test.test_questions[currentIndex];
-
   const [feedback, setFeedback] = useState(null); // null | 'correct' | 'incorrect'
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -410,45 +408,47 @@ export default function NormalTest({ test, subject }) {
               })}
           </RadioGroup>
 
-
-          <Fade
-            in={showFeedback}
-            timeout={{ enter: 300, exit: 1000 }} // salida más suave
-            onExited={() => {
-              setFeedback(null);
-              setCorrectAnswer(null);
-              if (openFeedbackDialog || holdForDialog) return;
-            }}
-          >
-            <Box
-              sx={{
-                mt: 2,
-                p: 2,
-                borderRadius: 2,
-                backgroundColor: feedback === 'correct' ? '#dcfce7' : '#fee2e2',
-                color: feedback === 'correct' ? '#15803d' : '#b91c1c',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
+          {currentQuestion?.type != 'image' ?? (
+            <Fade
+              in={showFeedback}
+              timeout={{ enter: 300, exit: 1000 }} // salida más suave
+              onExited={() => {
+                setFeedback(null);
+                setCorrectAnswer(null);
+                if (openFeedbackDialog || holdForDialog) return;
               }}
             >
-              <img
-                src={feedback === 'correct' ? '/assets/correct.gif' : '/assets/incorrect.gif'}
-                alt="feedback gif"
-                style={{ height: 70 }}
-              />
-              <Typography variant="h6">
-                {feedback === 'correct'
-                  ? '¡Muy bien! Respuesta correcta.'
-                  : `Incorrecto. La respuesta correcta era: ${correctAnswer}`}
-              </Typography>
-            </Box>
-          </Fade>
-          {readOnly && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: feedback === 'correct' ? '#dcfce7' : '#fee2e2',
+                  color: feedback === 'correct' ? '#15803d' : '#b91c1c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                }}
+              >
+                <img
+                  src={feedback === 'correct' ? '/assets/correct.gif' : '/assets/incorrect.gif'}
+                  alt="feedback gif"
+                  style={{ height: 70 }}
+                />
+                <Typography variant="h6">
+                  {feedback === 'correct'
+                    ? '¡Muy bien! Respuesta correcta.'
+                    : `Incorrecto. La respuesta correcta era: ${correctAnswer}`}
+                </Typography>
+              </Box>
+            </Fade>
+          )}
+          
+          {readOnly && currentQuestion?.type !== 'image' ? (
             <Typography variant="h5" sx={{ mb: 2 }}>
               Correcta: <strong>{correctKey}</strong>
             </Typography>
-          )}
+          ) : null}
           <Stack direction="row" justifyContent="space-between" mt={3}>
             <Button variant="outlined" onClick={handlePrevious} disabled={currentIndex === 0}>
               Anterior
