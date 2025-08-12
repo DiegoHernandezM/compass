@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-
+import planeImg from '@/assets/images/plane.png';
 export default function PlanePathGame() {
   const [planeY, setPlaneY] = useState(130);
   const [pathOffset, setPathOffset] = useState(0);
@@ -108,15 +108,16 @@ export default function PlanePathGame() {
         })}
 
         {/* Avión */}
-        <div
+        <img
+          src={planeImg}
+          alt="Plane"
           style={{
             position: 'absolute',
             left: 20,
             top: planeY,
-            width: 30,
-            height: planeHeight,
-            backgroundColor: 'white',
-            borderRadius: 4,
+            width: 120, // antes 50
+            height: planeHeight * 4, // escala proporcional
+            objectFit: 'contain',
           }}
         />
       </div>
@@ -138,7 +139,7 @@ export default function PlanePathGame() {
       </div>
 
       {/* Información de puntuación */}
-      <div className="mt-4 text-sm text-gray-200">
+      <div className="mt-4 text-sm">
         <p>Score: {score}</p>
         <p>Ticks totales: {totalTicks}</p>
       </div>
