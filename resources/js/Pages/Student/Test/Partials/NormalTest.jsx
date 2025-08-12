@@ -407,8 +407,21 @@ export default function NormalTest({ test, subject }) {
                 );
               })}
           </RadioGroup>
-
-          {currentQuestion?.type != 'image' ?? (
+          <Stack direction="row" justifyContent="space-between" mt={3}>
+            <Button variant="outlined" onClick={handlePrevious} disabled={currentIndex === 0}>
+              Anterior
+            </Button>
+            {currentIndex < test.test_questions.length - 1 ? (
+              <Button variant="contained" onClick={handleNext}>
+                Siguiente
+              </Button>
+            ) : (
+              <Button variant="contained" color="success" onClick={handleFinish}>
+                Finalizar
+              </Button>
+            )}
+          </Stack>
+          {currentQuestion?.type != 'image' && correctAnswer != null ? (
             <Fade
               in={showFeedback}
               timeout={{ enter: 300, exit: 1000 }} // salida más suave
@@ -442,27 +455,14 @@ export default function NormalTest({ test, subject }) {
                 </Typography>
               </Box>
             </Fade>
-          )}
+          ): null}
           
           {readOnly && currentQuestion?.type !== 'image' ? (
             <Typography variant="h5" sx={{ mb: 2 }}>
               Correcta: <strong>{correctKey}</strong>
             </Typography>
           ) : null}
-          <Stack direction="row" justifyContent="space-between" mt={3}>
-            <Button variant="outlined" onClick={handlePrevious} disabled={currentIndex === 0}>
-              Anterior
-            </Button>
-            {currentIndex < test.test_questions.length - 1 ? (
-              <Button variant="contained" onClick={handleNext}>
-                Siguiente
-              </Button>
-            ) : (
-              <Button variant="contained" color="success" onClick={handleFinish}>
-                Finalizar
-              </Button>
-            )}
-          </Stack>
+          
         </Paper>
       </Box>
 
@@ -479,6 +479,7 @@ export default function NormalTest({ test, subject }) {
         correct={resultStats.correct}
         total={resultStats.total}
         onGoToSubjects={goToSubjects}
+        showReview={true}
       />
     </>
   );

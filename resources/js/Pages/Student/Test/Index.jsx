@@ -11,9 +11,7 @@ export default function Index() {
   const renderTestComponent = () => {
   const type = test?.subject?.question_type;
 
-  if (type === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
-    return <Memory subject={subject} test={test} />;
-  }
+  
 
   if (type === 'MEMORIA A CORTO PLAZO - PARAMETROS') {
     return <Params subject={subject} test={test} />;
@@ -25,6 +23,10 @@ export default function Index() {
 
   if (type === 'ATPL' || type === 'MATEMATICAS' || type === 'RAZONAMIENTO LOGICO' || type === 'ORIENTACION ESPACIAL') {
     return <NormalTest subject={subject} test={test} />;
+  }
+
+  if (type === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
+    return <Memory subject={subject} test={test} />;
   }
 
   return (

@@ -7,7 +7,8 @@ import resultVideo from '@/assets/video/result_video.mp4';
 
 const Transition = (props) => <Slide direction="up" {...props} />;
 
-export default function TestResultDialog({ open, onClose, correct = 0, total = 0, onGoToSubjects }) {
+export default function TestResultDialog({ open, onClose, correct = 0, total = 0, onGoToSubjects, showReview }) {
+  console.log(showReview);  
   const targetPct = total > 0 ? Math.round((correct / total) * 100) : 0;
   const [pct, setPct] = useState(0);
   const [count, setCount] = useState(0);
@@ -107,7 +108,7 @@ export default function TestResultDialog({ open, onClose, correct = 0, total = 0
       </Box>
 
       {/* Contenido */}
-      <Box sx={{ position: 'relative', zIndex: 1, backgroundColor: 'rgba(255,255,255,0.85)', minHeight: 650 }}>
+      <Box sx={{ position: 'relative', zIndex: 1, backgroundColor: 'rgba(255,255,255,0.90)', minHeight: 650 }}>
         <DialogTitle sx={{ fontWeight: 700 }}>¡Test terminado!</DialogTitle>
 
         <DialogContent>
@@ -136,9 +137,11 @@ export default function TestResultDialog({ open, onClose, correct = 0, total = 0
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-          <Button variant="contained" onClick={onClose} fullWidth>
-            Revisar
-          </Button>
+          {showReview == true ? (
+            <Button variant="contained" onClick={onClose} fullWidth>
+              Revisar
+            </Button>
+          ) : null}
           <Button
             variant="contained"
             onClick={onGoToSubjects}
