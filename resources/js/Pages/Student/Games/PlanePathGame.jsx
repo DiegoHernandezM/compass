@@ -1,20 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import planeImg from '@/assets/images/plane.png';
+
 export default function PlanePathGame() {
+  // ----- Constantes de juego / avión -----
+  const gameHeight = 300;
+  const gameWidth = 300;
+
+  const planeHeight = 20;     // altura base (lógica)
+  const PLANE_SCALE = 4;      // escala visual
+  const PLANE_WIDTH = 120;    // ancho visual de la imagen
+  const planeHeightPx = planeHeight * PLANE_SCALE; // altura visual real
+
+  const offsetY = 55;         // semiancho del corredor (desde el centro)
+  const HITBOX_PAD = 0;       // puedes poner 5-10 si quieres tolerancia
+
+  // ----- Estado -----
   const [planeY, setPlaneY] = useState(130);
   const [pathOffset, setPathOffset] = useState(0);
   const [score, setScore] = useState(0);
   const [totalTicks, setTotalTicks] = useState(0);
   const [startTime] = useState(Date.now());
-  const gameHeight = 300;
-  const gameWidth = 300;
-  const planeHeight = 20;
-  const offsetY = 55; // distancia desde el centro hacia arriba y abajo
 
   // Movimiento del avión
-  const moveUp = () => setPlaneY((prev) => Math.max(0, prev - 20));
-  const moveDown = () => setPlaneY((prev) => Math.min(gameHeight - planeHeight, prev + 20));
+  const moveUp = () =>
+    setPlaneY(prev => Math.max(0, prev - 20));
+
+  const moveDown = () =>
+    setPlaneY(prev => Math.min(gameHeight - planeHeightPx, prev + 20)); // usa altura visual
 
   // Control por teclado
   useEffect(() => {
@@ -26,22 +39,36 @@ export default function PlanePathGame() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // Movimiento del camino + score
+  // Movimiento del camino + score (ajustado al tamaño real del avión)
   useEffect(() => {
     const interval = setInterval(() => {
-      setPathOffset((prev) => prev + 5);
-      setTotalTicks((prev) => prev + 1);
+      // Calcula el próximo offset para usarlo en el seno
+      const nextOffset = pathOffset + 5;
+      setPathOffset(nextOffset);
+      setTotalTicks(prev => prev + 1);
 
-      const waveCenter = 130 + Math.sin((pathOffset + 50) / 30) * 60;
-      const inPath = planeY > waveCenter - offsetY && planeY < waveCenter + offsetY;
+      // Centro del corredor "ondulado"
+      const waveCenter = 130 + Math.sin((nextOffset + 50) / 30) * 60;
+
+      // Hitbox vertical del avión (top/bottom)
+      const planeTop = planeY;
+      const planeBottom = planeY + planeHeightPx;
+
+      // Límites del corredor (con tolerancia opcional)
+      const laneTop = waveCenter - offsetY - HITBOX_PAD;
+      const laneBottom = waveCenter + offsetY + HITBOX_PAD;
+
+      // Está dentro si cualquier parte del rectángulo vertical del avión
+      // se solapa con el corredor
+      const inPath = planeBottom > laneTop && planeTop < laneBottom;
 
       if (inPath) {
-        setScore((prev) => prev + 1);
+        setScore(prev => prev + 1);
       }
     }, 140);
 
     return () => clearInterval(interval);
-  }, [planeY, pathOffset]);
+  }, [planeY, pathOffset, planeHeightPx, offsetY]);
 
   // Envío al backend (llámalo cuando termine el juego)
   const sendResult = async () => {
@@ -107,7 +134,7 @@ export default function PlanePathGame() {
           );
         })}
 
-        {/* Avión */}
+        {/* Avión (imagen) */}
         <img
           src={planeImg}
           alt="Plane"
@@ -115,9 +142,11 @@ export default function PlanePathGame() {
             position: 'absolute',
             left: 20,
             top: planeY,
-            width: 120, // antes 50
-            height: planeHeight * 4, // escala proporcional
+            width: PLANE_WIDTH,
+            height: planeHeightPx,
             objectFit: 'contain',
+            pointerEvents: 'none', // evita seleccionar la imagen al clickear
+            userSelect: 'none',
           }}
         />
       </div>
@@ -144,7 +173,6 @@ export default function PlanePathGame() {
         <p>Ticks totales: {totalTicks}</p>
       </div>
 
-      {/* Botón para enviar resultados al backend */}
       {/* <button onClick={sendResult} className="mt-2 px-4 py-1 bg-blue-500 text-white rounded">
         Enviar resultados
       </button> */}
