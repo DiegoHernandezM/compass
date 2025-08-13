@@ -76,6 +76,7 @@ class StudentService
             $this->mPaypal->updateOrCreate(
                 ['user_id' => $student->user_id],
                 [
+                    'amount' => 0,
                     'address' => json_encode($addressArray),
                     'expires_at' => $expiresDate,
                     'create_time' => now(),

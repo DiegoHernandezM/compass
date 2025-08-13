@@ -3,6 +3,7 @@
 use App\Http\Middleware\CheckSubscription;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LandingContentController;
+use App\Http\Controllers\StudentHomeController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -19,15 +20,18 @@ Route::get('/', function () {
 });
 
 
-
-
-
 Route::middleware(['auth', 'role:student', CheckSubscription::class,])->group(function () {
     Route::get('/student-dashboard', function () {
+        $controller = new StudentHomeController();
+        $data = $controller->index();
         return Inertia::render('StudentDashboard', [
             'subscriptionExpired' => session('subscription_expired', false),
             'user' => Auth::user(),
-            'clientId' => config('services.paypal.client_id')
+            'clientId' => config('services.paypal.client_id'),
+            'kpis' => $data['kpis'] ?? [],
+            'sparkline' => $data['sparkline'] ?? [],
+            'quick' => $data['quick'] ?? [],
+            'subjectsTop' => $data['subjectsTop'] ?? [],
         ]);
     })->name('student.dashboard');
 });
