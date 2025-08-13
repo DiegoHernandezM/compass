@@ -133,14 +133,25 @@ export default function Params({ test, subject }) {
     }).finally(() => clearTimeout(timer));
   };
 
+  const normalizeValue = (val) => {
+    if (!val) return '';
+    // Intentar convertir a número
+    const num = Number(val);
+    if (!isNaN(num)) {
+      return Math.floor(num); // quita decimales
+    }
+    return val.toLowerCase().trim();
+  };
+
+
   // ► Enviar respuesta y mostrar feedback
   const handleSubmit = async () => {
     if (!currentQuestion) return;
 
     // Compara solo los ocultos
     const incorrectKey = hiddenParams.find(key => {
-      const real = (parameters[key] || '').toLowerCase().trim();
-      const input = (userInputs[key] || '').toLowerCase().trim();
+      const real = normalizeValue(parameters[key]);
+      const input = normalizeValue(userInputs[key]);
       return real !== input;
     });
 
@@ -299,7 +310,7 @@ export default function Params({ test, subject }) {
                       <Typography>{value}</Typography>
                     ) : (
                       <input
-                        type="text"
+                        type="number"
                         value={userInputs[key] || ''}
                         onChange={(e) => handleChange(key, e.target.value)}
                         disabled={readOnly}
