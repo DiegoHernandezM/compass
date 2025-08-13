@@ -6,6 +6,8 @@ use App\Models\PayPalUser;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Mail\StudentWelcomeMail;
+use Illuminate\Support\Facades\Mail;
 
 class StudentService
 {
@@ -73,7 +75,7 @@ class StudentService
                 'country_code' => 'MX',
             ];
 
-            $this->mPaypal->updateOrCreate(
+            $paypal = $this->mPaypal->updateOrCreate(
                 ['user_id' => $student->user_id],
                 [
                     'amount' => 0,
@@ -83,6 +85,15 @@ class StudentService
                     'updated_at' => now(),
                     'status' => $data['status'] ?? 'COMPLETED',
                 ]
+            );
+
+            Mail::to($user->email)->send(
+                new StudentWelcomeMail(
+                    $student->name,
+                    $user->email,
+                    $data['password'],
+                    $paypal->expires_at
+                )
             );
         }
 
