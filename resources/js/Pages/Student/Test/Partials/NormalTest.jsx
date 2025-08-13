@@ -475,7 +475,7 @@ export default function NormalTest({ test, subject, type }) {
         correct={resultStats.correct}
         total={resultStats.total}
         onGoToSubjects={goToSubjects}
-        showReview={true}
+        showReview={type !== 'RAZONAMIENTO LOGICO' ? true : false}
       />
     </>
   );
