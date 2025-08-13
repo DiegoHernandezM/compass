@@ -1,5 +1,7 @@
 import React from "react";
-import { Head, Link, usePage } from '@inertiajs/react';
+import axios from 'axios';
+import { router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Box, Typography, Paper, Card, CardContent, Grid, Button } from '@mui/material';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip
@@ -11,10 +13,7 @@ import PayPalComponent from "@/Components/PayPal/PayPalComponent.jsx";
 
 export default function StudentDashboard() {
   const { kpis, sparkline, quick, subjectsTop, user, clientId, subscriptionExpired} = usePage().props;
-  console.log(usePage().props);
-
   const fmtPct = (n) => `${n ?? 0}%`;
-
   const cards = [
     { label: 'Promedio', value: fmtPct(kpis?.avgPercent) },
     { label: 'Mejor', value: fmtPct(kpis?.bestPercent) },
@@ -23,6 +22,21 @@ export default function StudentDashboard() {
     { label: '% Finalización', value: fmtPct(kpis?.completionRate) },
   ];
 
+  const handleStartTest = async () => {
+    try {
+      const response = await axios.post(route('student.test.create'), {
+        subject_id: quick?.continueTest?.subject_id,
+        level_id: quick?.continueTest?.level_id,
+      });
+      const test = response.data.test.test;
+      if (test?.id) {
+        console.log(test);
+        router.get(`/student/test/${test.id}/${quick?.continueTest?.subject_id}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <StudentLayout>
@@ -130,9 +144,7 @@ export default function StudentDashboard() {
                           <Button
                             variant="contained"
                             size="large"
-                            onClick={() =>
-                              window.location.href = route('student.test.show', quick.continueTest.test_id)
-                            }
+                            onClick={handleStartTest}
                           >
                             Continuar último test ({quick?.continueTest?.subject ?? '—'})
                           </Button>

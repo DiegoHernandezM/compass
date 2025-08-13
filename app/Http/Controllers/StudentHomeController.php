@@ -86,6 +86,7 @@ class StudentHomeController extends Controller
             'test_id'    => $continueTest->id,
             'subject_id' => $continueTest->subject_id,
             'subject'    => optional($continueTest->subject)->name,
+            'level_id'   => $continueTest->question_level_id,
         ] : null;
 
         // Agregación por materia (para "Top materias")

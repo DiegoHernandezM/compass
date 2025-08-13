@@ -195,7 +195,7 @@ export default function Memory({ subject, test }) {
           onClick={() => handleIconClick(iconName)}
           sx={{
             backgroundColor: 'rgba(32, 55, 100, 0.85)', // Azul #203764 sutil con opacidad
-            border: '3px solid #ECD358', // Marco dorado
+            border: `5px solid ${borderColor}`,
             borderRadius: 2,
             p: 2,
             cursor: phase === 'select' ? 'pointer' : 'default',
