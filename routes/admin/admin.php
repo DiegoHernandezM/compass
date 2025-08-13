@@ -7,9 +7,19 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\QuestionTypeController;
 use App\Http\Controllers\PersonalReportController;
+use App\Http\Controllers\AdminDashboardController;
 
 // Dashboard Routes for Admin
-Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
+Route::get('/dashboard', function() {
+    $controller = new AdminDashboardController();
+    $data = $controller->index();
+    return Inertia::render('Dashboard', [
+        'kpis'           => $data['kpis'],
+        'incomeSeries'   => $data['incomeSeries'],          
+        'testsBySubject' => $data['testsBySubject'],  
+        'topStudents'    => $data['topStudents']
+    ]);
+})->name('dashboard');
 
 // Langindg Page Routes
 Route::get('/admin/landing', [LandingContentController::class, 'edit'])->name('landing.edit');
