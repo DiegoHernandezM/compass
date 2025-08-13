@@ -79,11 +79,9 @@ export default function AuthenticatedLayout({ children }) {
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
               <MenuItem disabled>{user?.name}</MenuItem>
               <MenuItem component={Link} href={route('profile.edit')}>Perfil</MenuItem>
-              <MenuItem>
-                <Link href={route('logout')} method="post" as="button">
-                  Salir
-                </Link>
-              </MenuItem>
+              <Link href={route('logout')} method="post" as="button">
+                <MenuItem>Salir</MenuItem>
+              </Link>
             </Menu>
           </div>
         </Toolbar>
