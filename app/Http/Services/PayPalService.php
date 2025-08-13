@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use App\Mail\StudentWelcomeMail;
 use Illuminate\Support\Facades\Mail;
 
 class PayPalService
@@ -59,7 +60,14 @@ class PayPalService
                     'user_id' => $user->id,
                 ]);
                 if ($student) {
-                    //Mail::to($user->email)->send(new WelcomeStudentMail($user, $password));
+                    Mail::to($user->email)->send(
+                        new StudentWelcomeMail(
+                            $student->name,
+                            $user->email,
+                            $password,
+                            $paypal->expires_at
+                        )
+                    );
                 }
             }
         }
