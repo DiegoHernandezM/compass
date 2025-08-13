@@ -113,10 +113,17 @@ export default function StudentLayout({ children }) {
         {children}
       </Box>
       <Paper
-        sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, borderTop: '2px solid #e0e0e0' }}
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          borderTop: '2px solid #e0e0e0',
+          zIndex: (theme) => theme.zIndex.drawer + 1000 
+        }}
         elevation={3}
       >
-        <Box sx={{ overflowX: 'auto' }}>
+        <Box sx={{ overflowX: 'auto'}}>
           <BottomNavigation
             disabled={subscriptionExpired}
             showLabels
@@ -125,6 +132,7 @@ export default function StudentLayout({ children }) {
               setValue(newValue);
             }}
             sx={{
+              zIndex: (theme) => theme.zIndex.drawer + 1000,
               width: 'max-content',
               minWidth: '100%',
               display: 'flex',
