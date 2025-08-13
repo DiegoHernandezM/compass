@@ -24,7 +24,6 @@ class TestController extends Controller
                 'current_question' => ['required','array'],
                 'user_answer'      => ['nullable','string'],
             ]);
-            
             $this->sTest->saveStudentAnswer($data);
             return response()->noContent();
         } catch (\Exception $e) {

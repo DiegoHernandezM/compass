@@ -4,7 +4,6 @@ namespace App\Http\Services;
 
 use Illuminate\Support\Facades\DB;
 use \App\Models\Test;
-use App\Models\TestQuestion;
 
 class TestService
 {
