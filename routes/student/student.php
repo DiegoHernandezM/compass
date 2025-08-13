@@ -4,6 +4,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TestQuestionController;
 use App\Http\Controllers\TestController;
+use App\Http\Controllers\StudentStatsController;
 
 Route::get('/student/profile', [StudentController::class, 'getInfoStudent'])->name('student.profile');
 Route::get('/student/subjects', [SubjectController::class, 'getSubjects'])->name('student.subject.index');
@@ -14,7 +15,8 @@ Route::put('/student/password/update', [StudentController::class, 'updateStudent
 
 Route::post('/student/showProgressTest', [TestQuestionController::class, 'showProgress'])->name('student.test.showProgress');
 Route::get('/student/mock-test', fn () => dd('ok'));
-Route::get('/student/progress', fn () => dd('ok'));
+
+Route::get('/student/progress', [StudentStatsController::class,'index'])->name('student.results');
 
 
 // Test answers
