@@ -4,7 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <link rel="manifest" href="/manifest.webmanifest">
+        <link rel="manifest" href="/build/manifest.webmanifest">
+        <!-- Sugerido por el warning de Chrome -->
+        <meta name="mobile-web-app-capable" content="yes">
         <meta name="theme-color" content="#0ea5e9">
         <link rel="apple-touch-icon" href="/assets/logos/logo-ais192x192.png">
         <meta name="apple-mobile-web-app-capable" content="yes">
