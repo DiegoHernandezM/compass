@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Drawer,
   Box,
@@ -8,13 +9,24 @@ import {
   IconButton,
   Select,
   MenuItem,
-  InputLabel
+  InputLabel,
+  InputAdornment,
+  FormControl,
+  FormHelperText
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { Inertia } from '@inertiajs/inertia';
 import { useTheme } from '@mui/material/styles';
 
 export default function StudentForm({ open, onClose, student = null }) {
+  const randomString = Math.random().toString(36).substring(2, 10);
+  const [showPassword, setShowPassword] = useState(false);
+  const [cities, setCities] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [loadingZip, setLoadingZip] = useState(false);
+  const [zipError, setZipError] = useState('');
+
   const today = new Date().toISOString().split("T")[0];
   const theme = useTheme();
   const [form, setForm] = useState({
@@ -52,7 +64,7 @@ export default function StudentForm({ open, onClose, student = null }) {
       setForm({
         name: '',
         email: '',
-        password: '',
+        password: randomString,
         birthdate: '',
         phone: '',
         address: '',
@@ -65,8 +77,60 @@ export default function StudentForm({ open, onClose, student = null }) {
     }
   }, [student]);
 
+   // Debounce simple: espera 500ms tras teclear para consultar
+  useEffect(() => {
+    if (!form.zip_code || form.zip_code.length < 4) {
+      setCities([]);
+      setCountries([]);
+      setZipError('');
+      return;
+    }
+
+    const t = setTimeout(() => {
+      lookupZip(form.zip_code, 'mx'); // ajusta el país si lo necesitas
+    }, 500);
+
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.zip_code]);
+
+  const lookupZip = async (zip, country = 'mx') => {
+    setLoadingZip(true);
+    setZipError('');
+    try {
+      const { data } = await axios.get(route('zip.lookup'), {
+        params: { zip, country }
+      });
+
+      const cityList = data.cities || [];
+      const countryName = data.country || '';
+
+      setCities(cityList);
+      setCountries(countryName ? [countryName] : []);
+
+      setForm(prev => ({
+        ...prev,
+        city: cityList[0] || '',
+        country: countryName || '',
+      }));
+    } catch (e) {
+      setCities([]);
+      setCountries([]);
+      setForm(prev => ({ ...prev, city: '', country: '' }));
+      setZipError('No se encontró el código postal.');
+      console.error(e);
+    } finally {
+      setLoadingZip(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'zip_code') {
+      const digits = value.replace(/\D/g, '');
+      setForm(prev => ({ ...prev, zip_code: digits }));
+      return;
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -122,11 +186,23 @@ export default function StudentForm({ open, onClose, student = null }) {
             fullWidth
             label="Contraseña"
             name="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={form.password}
             onChange={handleChange}
             margin="normal"
             helperText={student ? 'Deja en blanco si no deseas cambiar la contraseña' : ''}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
           <TextField
             fullWidth
@@ -174,23 +250,48 @@ export default function StudentForm({ open, onClose, student = null }) {
             value={form.zip_code}
             onChange={handleChange}
             margin="normal"
+            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+            helperText={zipError || (loadingZip ? 'Buscando…' : '')}
+            error={Boolean(zipError)}
           />
-          <TextField
-            fullWidth
-            label="Ciudad"
-            name="city"
-            value={form.city}
-            onChange={handleChange}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Pais"
-            name="country"
-            value={form.country}
-            onChange={handleChange}
-            margin="normal"
-          />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Ciudad</InputLabel>
+            <Select
+              name="city"
+              value={form.city}
+              onChange={handleChange}
+              label="Ciudad"
+              disabled={cities.length === 0}
+            >
+              {cities.length > 0 ? (
+                cities.map((c, i) => (
+                  <MenuItem key={i} value={c}>{c}</MenuItem>
+                ))
+              ) : (
+                <MenuItem value="">Sin datos</MenuItem>
+              )}
+            </Select>
+            <FormHelperText>Selecciona tu ciudad</FormHelperText>
+          </FormControl>
+
+          <FormControl fullWidth margin="normal">
+            <InputLabel>País</InputLabel>
+            <Select
+              name="country"
+              value={form.country}
+              onChange={handleChange}
+              label="País"
+              disabled={countries.length === 0}
+            >
+              {countries.length > 0 ? (
+                countries.map((c, i) => (
+                  <MenuItem key={i} value={c}>{c}</MenuItem>
+                ))
+              ) : (
+                <MenuItem value="">Sin datos</MenuItem>
+              )}
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
             label="Escuela"

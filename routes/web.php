@@ -4,6 +4,7 @@ use App\Http\Middleware\CheckSubscription;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LandingContentController;
 use App\Http\Controllers\StudentHomeController;
+use App\Http\Controllers\ZipLookupController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -55,6 +56,9 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 });
 
 //End Student Routes
+
+Route::get('/zip-lookup', [ZipLookupController::class, 'lookup'])->name('zip.lookup');
+
 
 require base_path('routes/paypal/paypal.php');
 
