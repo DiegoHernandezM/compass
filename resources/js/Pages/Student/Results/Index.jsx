@@ -58,7 +58,7 @@ export default function ResultsDashboard({ stats }) {
             {label:'% Finalización', value:`${completionRate}%`},
             {label:'Tiempo prom.', value:fmtTime(avgDurationSec)},
           ].map((kpi, i) => (
-            <Grid size={{ xs: 2, sm: 2, md: 2 }} sx={{ display: 'flex' }} key={i} sx={{ marginBottom: '10px' }}>
+            <Grid size={{ xs: 2, sm: 2, md: 2 }} sx={{ display: 'flex', marginBottom: '10px' }} key={i}>
               <Card
                 sx={{
                   marginBottom: '10px',
