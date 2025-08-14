@@ -150,10 +150,13 @@ body, html {
   }
 
   .mockup-video {
-    width: 100%;
-    max-width: 500px;
+    width: min(100%, 740px);
+    aspect-ratio: 16 / 9; /* calcula la altura automáticamente */
+    height: auto;
     border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    object-fit: contain;  /* o 'cover' */
+    display: block;
   }
 
   /* Responsive */

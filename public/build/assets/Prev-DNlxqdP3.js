@@ -1,1 +1,0 @@
-import{j as r}from"./app-DXaiALKI.js";/* empty css                    */import e from"./LandingHeaderPrev-DqL7MKr9.js";import i from"./IntroSectionPrev-BLzUyQU1.js";import m from"./FooterPrev-CSrrkWK1.js";function x({content:o}){return r.jsxs("div",{className:"landing-container",children:[r.jsx(e,{content:o}),r.jsx(i,{content:o}),r.jsx(m,{content:o})]})}export{x as default};

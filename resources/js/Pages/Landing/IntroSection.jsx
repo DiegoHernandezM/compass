@@ -29,8 +29,7 @@ const IntroSection = (props) => {
       <div className="hero-image">
         <video
           src={`/storage/${props.content.video_path}`}
-          width={740}
-          height={416}
+          style={{ width: '740px', height: '416px', objectFit: 'contain' }}
           controls
           autoPlay
           muted
