@@ -24,7 +24,7 @@ import PlanePathGame from '@/Pages/Student/Games/PlanePathGame';
 import TestResultDialog from '@/Components/Dialog/TestResultDialog';
 
 export default function MultitaskTest({ test, subject }) {
-  const questions = test.test_questions || [];
+  const questions = test?.test_questions || [];
 
   // --- separar por tipo y agrupar en pares [math, figure] ---
   const mathQuestions   = useMemo(() => questions.filter(q => q.type === 'math'),   [questions]);
@@ -42,21 +42,21 @@ export default function MultitaskTest({ test, subject }) {
   useEffect(() => {
     const map = {};
     for (const q of questions) {
-      map[q.id] = (q?.is_correct !== null) || !!q?.user_answer;
+      map[q.id] = (q?.is_correct !== null) || (q?.user_answer !== null && q?.user_answer !== '');
     }
     serverAnsweredMapRef.current = map;
   }, [questions]);
 
   // --- estados principales ---
   const [currentTrack, setCurrentTrack] = useState(0);
-  const [answers, setAnswers] = useState({});               // id -> valor elegido (solo UI)
-  const [feedback, setFeedback] = useState({});             // id -> 'correct'|'incorrect'
+  const [answers, setAnswers] = useState({});                 // id -> valor elegido (UI)
+  const [feedback, setFeedback] = useState({});               // id -> 'correct'|'incorrect'
   const [localAnsweredMap, setLocalAnsweredMap] = useState({}); // id -> true (optimista)
   const [localCorrectMap, setLocalCorrectMap]   = useState({}); // id -> 0/1 (optimista Correct/Incorrect)
+
   const [gameType, setGameType] = useState(null);           // 'vertical' | 'horizontal'
   const [showDialog, setShowDialog] = useState(true);
   const gameKey = (testId) => `mtk:gameType:${testId}`;
-
 
   // puntuación del juego (0–100) reportada por el juego cuando termina
   const [gamePercent, setGamePercent] = useState(0);
@@ -72,35 +72,19 @@ export default function MultitaskTest({ test, subject }) {
   const isReadOnly = (q) =>
     isServerAnswered(q) || !!localAnsweredMap[q?.id];
 
-  // --- posición inicial: primer par con pendiente ---
-  useEffect(() => {
-    const idx = firstUnansweredTrack(groupedQuestions);
-    if (idx !== null) setCurrentTrack(idx);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupedQuestions.length]);
-
-  useEffect(() => {
-    if (!test?.id) return;
-    const saved = localStorage.getItem(gameKey(test.id));
-    if (saved === 'vertical' || saved === 'horizontal') {
-      setGameType(saved);
-      setShowDialog(false);
-    } else {
-      setGameType(null);
-      setShowDialog(true);
-    }
-  }, [test?.id]);
-
-  const startGame = () => {
-    if (!gameType) return;
-    localStorage.setItem(gameKey(test.id), gameType);
-    setShowDialog(false);
+  // --- helpers de pares ---
+  const pairDoneWith = (idx, answeredMap) => {
+    const [m, f] = groupedQuestions[idx] || [];
+    const done = (q) => !q || isServerAnswered(q) || !!answeredMap[q.id];
+    return done(m) && done(f);
   };
-  
-  const resetGameChoice = () => {
-    localStorage.removeItem(gameKey(test.id));
-    setGameType(null);
-    setShowDialog(true);
+
+  const allPairsDoneWith = (answeredMap) => {
+    if (!groupedQuestions.length) return false;
+    for (let i = 0; i < groupedQuestions.length; i++) {
+      if (!pairDoneWith(i, answeredMap)) return false;
+    }
+    return true;
   };
 
   function firstUnansweredTrack(pairs) {
@@ -114,11 +98,7 @@ export default function MultitaskTest({ test, subject }) {
   }
 
   function pairIsComplete(i) {
-    const [m, f] = groupedQuestions[i] || [];
-    if (!m || !f) return true;
-    const mAns = isServerAnswered(m) || !!localAnsweredMap[m.id];
-    const fAns = isServerAnswered(f) || !!localAnsweredMap[f.id];
-    return mAns && fAns;
+    return pairDoneWith(i, localAnsweredMap);
   }
 
   function goToNextUnansweredPair() {
@@ -139,6 +119,38 @@ export default function MultitaskTest({ test, subject }) {
     // 3) todas completas → finalizar
     handleFinish();
   }
+
+  // --- posición inicial: primer par con pendiente ---
+  useEffect(() => {
+    const idx = firstUnansweredTrack(groupedQuestions);
+    if (idx !== null) setCurrentTrack(idx);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupedQuestions.length]);
+
+  // persistencia de elección de juego
+  useEffect(() => {
+    if (!test?.id) return;
+    const saved = localStorage.getItem(gameKey(test.id));
+    if (saved === 'vertical' || saved === 'horizontal') {
+      setGameType(saved);
+      setShowDialog(false);
+    } else {
+      setGameType(null);
+      setShowDialog(true);
+    }
+  }, [test?.id]);
+
+  const startGame = () => {
+    if (!gameType) return;
+    localStorage.setItem(gameKey(test.id), gameType);
+    setShowDialog(false);
+  };
+
+  const resetGameChoice = () => {
+    localStorage.removeItem(gameKey(test.id));
+    setGameType(null);
+    setShowDialog(true);
+  };
 
   // --- envío al backend con dedupe + timeout ---
   const sentAnswersRef = useRef(new Set());
@@ -163,40 +175,63 @@ export default function MultitaskTest({ test, subject }) {
     }).finally(() => clearTimeout(timer));
   };
 
-  // --- manejo de respuesta por botón ---
+  // --- manejo de respuesta por botón (sin race) ---
+  const finishedRef = useRef(false); // evita doble finish
+
   const handleAnswer = (q, selectedValue) => {
-    if (!q) return;
-    if (isReadOnly(q)) return;
+    if (!q || isReadOnly(q)) return;
 
     const isCorrect = String(selectedValue).toUpperCase() === String(q.correct_answer).toUpperCase();
 
-    // feedback UI
+    // feedback UI inmediato
     setAnswers(prev => ({ ...prev, [q.id]: selectedValue }));
     setFeedback(prev => ({ ...prev, [q.id]: isCorrect ? 'correct' : 'incorrect' }));
-    setLocalAnsweredMap(prev => ({ ...prev, [q.id]: true }));
-    setLocalCorrectMap(prev => ({ ...prev, [q.id]: isCorrect ? 1 : 0 }));
 
-    // enviar al backend
-    const payload = {
-      test_id: test?.id,
-      subject_id: subject?.id ?? null,
-      current_question: q,
-      is_correct: isCorrect ? 1 : 0,
-      user_answer: String(selectedValue),
-    };
-    sendAnswer(payload).then(() => {
-      // marcar en cache de "servidor" como respondida (para lógicas que dependen del mapRef)
-      serverAnsweredMapRef.current[q.id] = true;
+    // construye nextAnswered para decidir avance sin race
+    setLocalAnsweredMap(prev => {
+      const nextAnswered = { ...prev, [q.id]: true };
+
+      // refleja correct local
+      setLocalCorrectMap(prevC => ({ ...prevC, [q.id]: isCorrect ? 1 : 0 }));
+
+      // manda al backend
+      const payload = {
+        test_id: test?.id,
+        subject_id: subject?.id ?? null,
+        current_question: q,
+        is_correct: isCorrect ? 1 : 0,
+        user_answer: String(selectedValue),
+      };
+      sendAnswer(payload).then(() => {
+        serverAnsweredMapRef.current[q.id] = true;
+      });
+
+      // si con este nextAnswered el par actual queda completo…
+      if (pairDoneWith(currentTrack, nextAnswered)) {
+        // …y si todos están completos → finish
+        if (allPairsDoneWith(nextAnswered)) {
+          if (!finishedRef.current) {
+            finishedRef.current = true;
+            handleFinish();
+          }
+        } else {
+          // si no, avanza al siguiente par incompleto
+          goToNextUnansweredPair();
+        }
+      }
+
+      return nextAnswered;
     });
-
-    // si ambas del par ya están respondidas -> avanzar
-    setTimeout(() => {
-      const [m, f] = groupedQuestions[currentTrack] || [];
-      const mDone = m ? (isServerAnswered(m) || !!localAnsweredMap[m.id] || (q.id === m.id)) : true;
-      const fDone = f ? (isServerAnswered(f) || !!localAnsweredMap[f.id] || (q.id === f.id)) : true;
-      if (mDone && fDone) goToNextUnansweredPair();
-    }, 150); // pequeñísimo delay para que el estado se asiente
   };
+
+  // Red de seguridad: si por cualquier razón ya están todos completos, terminar
+  useEffect(() => {
+    if (!finishedRef.current && allPairsDoneWith(localAnsweredMap)) {
+      finishedRef.current = true;
+      handleFinish();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localAnsweredMap, groupedQuestions]);
 
   // --- progreso basado en pares completos ---
   const completedPairs = useMemo(() => {
@@ -205,7 +240,7 @@ export default function MultitaskTest({ test, subject }) {
       if (pairIsComplete(i)) c += 1;
     }
     return c;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack, localAnsweredMap, questions]);
 
   const progressPercent = groupedQuestions.length
@@ -216,7 +251,6 @@ export default function MultitaskTest({ test, subject }) {
   function handleFinish() {
     const totalPairs = groupedQuestions.length || 1;
 
-    // correctas por tipo usando server o local
     const correctMath = mathQuestions.reduce((acc, q) => {
       const v = (q.is_correct === 1) ? 1 : (localCorrectMap[q.id] === 1 ? 1 : 0);
       return acc + v;
@@ -243,20 +277,21 @@ export default function MultitaskTest({ test, subject }) {
   const isCorrect = (id) => feedback[id] === 'correct';
   const isIncorrect = (id) => feedback[id] === 'incorrect';
 
-  // --- estilos de botón con feedback ---
+  // --- estilos de botón con feedback y bordes ---
   const btnStyle = (q, value) => {
     const selected = answers[q.id];
     const base = {
       minWidth: 120,
       backgroundColor: '#e0e0e0',
       color: '#000',
+      border: '2px solid transparent',
     };
     if (isReadOnly(q)) {
       return { ...base, opacity: 0.7, pointerEvents: 'none' };
     }
     if (selected === value) {
-      if (isCorrect(q.id))   return { ...base, backgroundColor: '#dcfce7' };
-      if (isIncorrect(q.id)) return { ...base, backgroundColor: '#fee2e2' };
+      if (isCorrect(q.id))   return { ...base, backgroundColor: '#dcfce7', border: '2px solid #16a34a' }; // verde
+      if (isIncorrect(q.id)) return { ...base, backgroundColor: '#fee2e2', border: '2px solid #dc2626' }; // rojo
     }
     return base;
   };
@@ -305,6 +340,8 @@ export default function MultitaskTest({ test, subject }) {
               Selecciona un juego para comenzar.
             </Typography>
           )}
+          {/* Botón opcional para resetear elección */}
+          {/* <Button size="small" sx={{ mt: 2 }} onClick={resetGameChoice}>Cambiar juego</Button> */}
         </Paper>
 
         {/* Bloque de preguntas */}
@@ -322,10 +359,10 @@ export default function MultitaskTest({ test, subject }) {
           {/* Matemáticas */}
           {currentMath && (
             <>
-              <Typography variant="h3" mb={2} textAlign="center" sx={{ marginTop:10 }}>
+              <Typography variant="h3" mb={2} textAlign="center" sx={{ mt: 2 }}>
                 {currentMath.question_text}
               </Typography>
-              <Stack direction="row" spacing={2} mb={5} flexWrap="wrap" justifyContent="center" sx={{ marginBottom:10 }}>
+              <Stack direction="row" spacing={2} mb={5} flexWrap="wrap" justifyContent="center">
                 {Object.entries(JSON.parse(currentMath.options || '{}'))
                   .filter(([_, v]) => v != null && v !== '')
                   .slice(0, 2) // solo 2 botones
