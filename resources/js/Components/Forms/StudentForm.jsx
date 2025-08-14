@@ -26,6 +26,7 @@ export default function StudentForm({ open, onClose, student = null }) {
   const [countries, setCountries] = useState([]);
   const [loadingZip, setLoadingZip] = useState(false);
   const [zipError, setZipError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
 
   const today = new Date().toISOString().split("T")[0];
   const theme = useTheme();
@@ -131,6 +132,15 @@ export default function StudentForm({ open, onClose, student = null }) {
       setForm(prev => ({ ...prev, zip_code: digits }));
       return;
     }
+    if (name === 'phone') {
+      const digits = value.replace(/\D/g, '');
+      setForm((prev) => ({ ...prev, phone: digits }));
+      if (digits.length > 0 && digits.length !== 10) {
+        setPhoneError('El teléfono debe tener 10 dígitos.');
+      } else {
+        setPhoneError('');
+      }
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -234,6 +244,13 @@ export default function StudentForm({ open, onClose, student = null }) {
             value={form.phone}
             onChange={handleChange}
             margin="normal"
+            inputProps={{
+              inputMode: 'numeric',
+              pattern: '[0-9]*',
+              maxLength: 10,
+            }}
+            error={Boolean(phoneError)}
+            helperText={phoneError || 'Ingresa un número de 10 dígitos'}
           />
           <TextField
             fullWidth

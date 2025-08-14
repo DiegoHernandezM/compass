@@ -25,7 +25,7 @@ class PayPalUserController
                     $request->session()->regenerate();
                 }
             }
-            // TODO::aqui redirigir a login
+            
             return response()->json(['success' => true, 'message' => 'Pago procesado exitosamente']);
         } catch(\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);

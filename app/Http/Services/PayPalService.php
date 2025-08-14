@@ -65,7 +65,7 @@ class PayPalService
                             $student->name,
                             $user->email,
                             $password,
-                            $paypal->expires_at
+                            $savedPayPalInfo->expires_at
                         )
                     );
                 }
