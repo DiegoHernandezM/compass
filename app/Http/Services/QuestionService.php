@@ -17,6 +17,10 @@ use App\Models\QuestionLevel;
 use App\Models\MemoryTest;
 use App\Models\MemoryIcon;
 use App\Models\QuestionSubject;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing as FileDrawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Illuminate\Support\Str;
 
 class QuestionService
 {
@@ -297,48 +301,55 @@ class QuestionService
     private function extractImagesLogical($file)
     {
         $spreadsheet = IOFactory::load($file);
-        $sheet = $spreadsheet->getActiveSheet();
-        $drawings = $sheet->getDrawingCollection();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $drawings    = $sheet->getDrawingCollection();
 
-        $imagesByKey = []; // p.ej. ['question_3' => ['bytes'=>..., 'ext'=>'png', 'hash'=>...], ...]
+        $imagesByRow = [];
 
         foreach ($drawings as $drawing) {
-            $coordinates = $drawing->getCoordinates(); // Ej: B3
-            $column = preg_replace('/[0-9]/', '', $coordinates); // B
-            $row    = preg_replace('/[^0-9]/', '', $coordinates); // 3
+            // --- Coordenadas robustas (soporta "A2" y rangos "A2:A3")
+            $coord = $drawing->getCoordinates();
+            if (strpos($coord, ':') !== false) {
+                [$coord] = explode(':', $coord, 2); // esquina sup-izq
+            }
+            [$col, $row] = Coordinate::coordinateFromString($coord);
+            $col = strtoupper(trim($col));
+            $row = (int) $row;
 
+            // --- Obtener bytes y extensión
             $bytes = null;
-            $ext   = 'png'; // default
+            $ext   = 'png';
 
             if ($drawing instanceof FileDrawing) {
-                $path = $drawing->getPath();
-                $bytes = file_get_contents($path);
-                $ext   = strtolower(pathinfo($path, PATHINFO_EXTENSION)) ?: 'png';
+                // getPath() puede venir como zip://... → igual sirve
+                $path  = $drawing->getPath();
+                $bytes = @file_get_contents($path);
+                $ext   = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? $path, PATHINFO_EXTENSION)) ?: 'png';
             } elseif ($drawing instanceof MemoryDrawing) {
-                // Renderizar a bytes (PNG/JPEG dependiendo del mime)
                 ob_start();
-                $resource = $drawing->getImageResource();
-                $mime     = $drawing->getMimeType(); // image/png|image/jpeg
+                $res  = $drawing->getImageResource();
+                $mime = $drawing->getMimeType(); // image/png|image/jpeg
                 if (str_contains($mime, 'jpeg')) {
-                    imagejpeg($resource);
+                    imagejpeg($res);
                     $ext = 'jpg';
                 } else {
-                    imagepng($resource);
+                    imagepng($res);
                     $ext = 'png';
                 }
                 $bytes = ob_get_clean();
             }
 
             if (!$bytes) {
-                continue;
+                continue; // no hay imagen real
             }
 
-            // Si tú normalizas (resize/compresión) hazlo aquí y luego calcula el hash:
-            // $bytes = $this->normalize($bytes, $ext);
+            // --- (Opcional) Normalización previa a hash (resize/compresión) aquí
 
             $hash = hash('sha256', $bytes);
+            $tmp  = $this->makeTmpFromBytes($bytes, $ext); // ruta temporal real
 
-            $columnKey = match (strtoupper($column)) {
+            // --- Mapear columna a key
+            $key = match ($col) {
                 'A' => "question_{$row}",
                 'B' => "a_{$row}",
                 'C' => "b_{$row}",
@@ -346,16 +357,17 @@ class QuestionService
                 'E' => "d_{$row}",
                 default => null,
             };
-
-            if ($columnKey) {
-                $imagesByKey[$columnKey] = [
-                    'bytes' => $bytes,
-                    'ext'   => $ext,
-                    'hash'  => $hash,
-                ];
+            if (!$key) {
+                continue;
             }
-        }
 
+            $imagesByKey[$key] = [
+                'ext'      => $ext,
+                'hash'     => $hash,
+                'tmp_path' => $tmp,
+                // 'bytes'  => $bytes, // si lo quieres para otra cosa
+            ];
+        }
         return $imagesByKey;
     }
 
@@ -479,9 +491,17 @@ class QuestionService
     private function importLogical($type, $file, $level)
     {
         
-        $imagesByRow = $this->extractImagesLogical($file);
-        $importer = new LogicalReasoningImport($type->id, $level->id, $imagesByRow, 'logical/questions');
+        $imagesByRow = $this->extractImagesLogical($file); // << ya NO sube a S3 aquí
+        $importer    = new LogicalReasoningImport(
+            $type->id,
+            $level->id,
+            $imagesByRow,
+            'logical/questions' // carpeta en S3
+        );
+
         Excel::import($importer, $file);
+
+        // Limpieza opcional: borra tmp files si los conservas fuera del import
         return true;
     }
 
@@ -503,6 +523,18 @@ class QuestionService
             Storage::disk('s3')->put($key, $bytes, ['visibility' => 'public']);
         }
         return $key; // guarda esto en DB
+    }
+
+    private function makeTmpFromBytes(string $bytes, string $ext = 'png'): string
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'img_');
+        file_put_contents($tmp, $bytes);
+
+        // renombra para conservar extensión (ayuda a detectar mimetype)
+        $tmpWithExt = $tmp.'.'.ltrim($ext, '.');
+        @rename($tmp, $tmpWithExt);
+
+        return $tmpWithExt;
     }
 
 }
