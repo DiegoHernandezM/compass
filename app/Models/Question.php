@@ -22,7 +22,13 @@ class Question extends Model
         'feedback_text',
         'feedback_image',
         'question_type_id',
-        'question_level_id'
+        'question_level_id',
+        'signature',
+        'q_hash',
+        'a_hash',
+        'b_hash',
+        'c_hash',
+        'd_hash'
     ];
 
     public function getQuestionImageAttribute($value)

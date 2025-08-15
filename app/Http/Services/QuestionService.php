@@ -294,6 +294,72 @@ class QuestionService
         return $imagesByKey;
     }
 
+    private function extractImagesLogical($file)
+    {
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+        $drawings = $sheet->getDrawingCollection();
+
+        $imagesByKey = []; // p.ej. ['question_3' => ['bytes'=>..., 'ext'=>'png', 'hash'=>...], ...]
+
+        foreach ($drawings as $drawing) {
+            $coordinates = $drawing->getCoordinates(); // Ej: B3
+            $column = preg_replace('/[0-9]/', '', $coordinates); // B
+            $row    = preg_replace('/[^0-9]/', '', $coordinates); // 3
+
+            $bytes = null;
+            $ext   = 'png'; // default
+
+            if ($drawing instanceof FileDrawing) {
+                $path = $drawing->getPath();
+                $bytes = file_get_contents($path);
+                $ext   = strtolower(pathinfo($path, PATHINFO_EXTENSION)) ?: 'png';
+            } elseif ($drawing instanceof MemoryDrawing) {
+                // Renderizar a bytes (PNG/JPEG dependiendo del mime)
+                ob_start();
+                $resource = $drawing->getImageResource();
+                $mime     = $drawing->getMimeType(); // image/png|image/jpeg
+                if (str_contains($mime, 'jpeg')) {
+                    imagejpeg($resource);
+                    $ext = 'jpg';
+                } else {
+                    imagepng($resource);
+                    $ext = 'png';
+                }
+                $bytes = ob_get_clean();
+            }
+
+            if (!$bytes) {
+                continue;
+            }
+
+            // Si tú normalizas (resize/compresión) hazlo aquí y luego calcula el hash:
+            // $bytes = $this->normalize($bytes, $ext);
+
+            $hash = hash('sha256', $bytes);
+
+            $columnKey = match (strtoupper($column)) {
+                'A' => "question_{$row}",
+                'B' => "a_{$row}",
+                'C' => "b_{$row}",
+                'D' => "c_{$row}",
+                'E' => "d_{$row}",
+                default => null,
+            };
+
+            if ($columnKey) {
+                $imagesByKey[$columnKey] = [
+                    'bytes' => $bytes,
+                    'ext'   => $ext,
+                    'hash'  => $hash,
+                ];
+            }
+        }
+
+        return $imagesByKey;
+    }
+
+
     private function extractImagesWithMap(string $file, string $baseFolder, array $colKeyMap): array
     {
         $spreadsheet = IOFactory::load($file);
@@ -412,9 +478,10 @@ class QuestionService
 
     private function importLogical($type, $file, $level)
     {
-        $imagesByRow = $this->extractImages($file, 'logical/questions');
-        $importer = new LogicalReasoningImport($type->id, $level->id, $imagesByRow);
-        Excel::import($importer, $file);
+        
+        $imagesByRow = $this->extractImagesLogical($file);
+        $importer = new LogicalReasoningImport($type->id, $level->id, $imagesByRow, 'logical/questions');
+        \Maatwebsite\Excel\Facades\Excel::import($importer, $file);
         return true;
     }
 
@@ -426,6 +493,16 @@ class QuestionService
             13 => 5,
             default => 3,
         };
+    }
+
+    private function putToS3FromBytes(string $baseFolder, string $hash, string $ext, string $bytes): string
+    {
+        // Nombre estable basado en hash (evita duplicados en S3):
+        $key = trim($baseFolder, '/').'/'.$hash.'.'.$ext;
+        if (!Storage::disk('s3')->exists($key)) {
+            Storage::disk('s3')->put($key, $bytes, ['visibility' => 'public']);
+        }
+        return $key; // guarda esto en DB
     }
 
 }
