@@ -481,7 +481,7 @@ class QuestionService
         
         $imagesByRow = $this->extractImagesLogical($file);
         $importer = new LogicalReasoningImport($type->id, $level->id, $imagesByRow, 'logical/questions');
-        \Maatwebsite\Excel\Facades\Excel::import($importer, $file);
+        Excel::import($importer, $file);
         return true;
     }
 
