@@ -49,7 +49,15 @@ export default function ResultsDashboard({ stats }) {
       <Head title="Resultados - Estudiante" />
       <Box sx={{ p: 2, maxWidth: 1200, mx: 'auto' }}>
         {/* KPIs */}
-        <Grid container spacing={{ xs: 2, md: 2 }} columns={{ xs: 1, sm: 8, md: 12 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 2,                // espacio entre cards (equiv. a spacing={2})
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            width: '100%',
+            mb: 2,
+          }}
+        >
           {[
             {label:'Promedio', value:`${avgPercent}%`},
             {label:'Mejor', value:`${bestPercent}%`},
@@ -58,7 +66,7 @@ export default function ResultsDashboard({ stats }) {
             {label:'% Finalización', value:`${completionRate}%`},
             {label:'Tiempo prom.', value:fmtTime(avgDurationSec)},
           ].map((kpi, i) => (
-            <Grid size={{ xs: 2, sm: 2, md: 2 }} sx={{ display: 'flex', marginBottom: '10px' }} key={i}>
+            
               <Card
                 sx={{
                   marginBottom: '10px',
@@ -126,10 +134,9 @@ export default function ResultsDashboard({ stats }) {
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
+            
           ))}
-        </Grid>
-
+        </Box>
         {/* Evolución */}
         <Card sx={{ mb: 2 }}>
           <CardContent>

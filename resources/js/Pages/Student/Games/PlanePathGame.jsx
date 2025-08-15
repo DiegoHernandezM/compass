@@ -3,7 +3,7 @@ import planeImg from '@/assets/images/plane.png';
 
 export default function PlanePathGame({
   onFinish,          // (pct:number) => void
-  durationSec = 25,  // duración del juego en segundos
+  durationSec = 300,  // duración del juego en segundos
   tickMs = 140,      // intervalo del loop
   speed = 5,         // avance horizontal del “camino” por tick
 }) {
@@ -209,7 +209,6 @@ export default function PlanePathGame({
       <div className="mt-4 text-sm">
         <p>Score: {score}</p>
         <p>Ticks: {totalTicks} / {MAX_TICKS}</p>
-        <p>Tiempo restante: {Math.max(0, Math.ceil((MAX_TICKS - totalTicks) * tickMs / 1000))}s</p>
       </div>
     </div>
   );

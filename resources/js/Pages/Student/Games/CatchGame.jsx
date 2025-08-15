@@ -7,7 +7,7 @@ import axios from 'axios';
  * - durationSec?: number                   // duración del juego en segundos (default 30)
  * - autoSendResult?: boolean               // si deseas enviar al backend al terminar (default false)
  */
-export default function CatchGame({ onFinish, durationSec = 30, autoSendResult = false }) {
+export default function CatchGame({ onFinish, durationSec = 300, autoSendResult = false }) {
   const W = 300;           // ancho canvas
   const H = 300;           // alto canvas
   const bucketW = 60;
@@ -183,6 +183,7 @@ export default function CatchGame({ onFinish, durationSec = 30, autoSendResult =
         >
           Der ▶
         </button>
+        {/* 
         <button
           onClick={finishGame}
           className="px-3 py-2 bg-blue-600 text-white rounded shadow"
@@ -190,10 +191,10 @@ export default function CatchGame({ onFinish, durationSec = 30, autoSendResult =
         >
           Terminar
         </button>
+        */}
       </div>
 
       <div className="mt-3 text-sm text-gray-700 text-center">
-        <p>Tiempo: {elapsed}s / {durationSec}s</p>
         <p>Atrapadas: {score} &nbsp;|&nbsp; Falladas: {missed} &nbsp;|&nbsp; Total: {total}</p>
         <p>Porcentaje actual: {Math.round((score / Math.max(1, total)) * 100)}%</p>
       </div>
