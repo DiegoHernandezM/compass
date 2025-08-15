@@ -417,13 +417,13 @@ export default function NormalTest({ test, subject, type }) {
               </Button>
             )}
           </Stack>
-          {type !== 'RAZONAMIENTO LOGICO' && correctAnswer != null ? (
+          {feedback || type !== 'RAZONAMIENTO LOGICO' ? (
             <Fade
               in={showFeedback}
               timeout={{ enter: 300, exit: 1000 }} // salida más suave
               onExited={() => {
-                setFeedback(null);
-                setCorrectAnswer(null);
+                //setFeedback(null);
+                //setCorrectAnswer(null);
                 if (openFeedbackDialog || holdForDialog) return;
               }}
             >
@@ -452,7 +452,6 @@ export default function NormalTest({ test, subject, type }) {
               </Box>
             </Fade>
           ): null}
-          
           {readOnly && type !== 'RAZONAMIENTO LOGICO' ? (
             <Typography variant="h5" sx={{ mb: 2 }}>
               Correcta: <strong>{correctKey}</strong>
