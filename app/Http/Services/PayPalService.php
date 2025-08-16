@@ -80,17 +80,18 @@ class PayPalService
         $createTime = $request->order['payments']['captures'][0]['create_time'] ?? null;
 
         if ($referenceId && $createTime) {
-            $payment = $this->mPayPal->where('user_id', $referenceId)->first();
-
-            if ($payment) {
-                $carbonDate = Carbon::parse($createTime);
-                $payment->expires_at = $carbonDate->addYear()->format('Y-m-d H:i:s');
-                $payment->save();
-
-                return true;
-            }
+            $carbonDate = Carbon::parse($createTime);
+            $this->mPayPal->create([
+                'user_id' => (int)$request->order['reference_id'],
+                'address' => json_encode($request->order['shipping']['address']),
+                'amount' => $request->order['amount']['value'],
+                'payment_id' => $request->order['payments']['captures'][0]['id'],
+                'status' => $request->order['payments']['captures'][0]['status'],
+                'create_time' => $carbonDate->format('Y-m-d H:i:s'),
+                'expires_at' => $carbonDate->addYear()->format('Y-m-d H:i:s')
+            ]);
+            return true;
         }
-
         return false;
     }
 }
