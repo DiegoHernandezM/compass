@@ -26,6 +26,7 @@ class AsignByUnit implements FromArray, WithTitle, WithStyles, WithColumnWidths,
         // Agrupa por ingeniero (assignee). Considera "abierto" cuando closed_at es NULL.
         $records = PersonalReport::selectRaw('COALESCE(NULLIF(TRIM(unit), ""), "Sin asignar") as unit, COUNT(*) as total')
             ->whereNull('closed_at')
+            ->where('active', 1)
             ->groupBy('unit')
             ->orderByDesc('total')
             ->get();

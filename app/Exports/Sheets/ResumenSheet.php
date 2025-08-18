@@ -31,10 +31,10 @@ class ResumenSheet implements WithTitle, WithEvents
 
                 $totalOpen = (clone $openQuery)->count();
 
-                $oneWeek     = (clone $openQuery)->where('opened_at', '>=', $now->copy()->subDays(7))->count();
-                $twoWeeks    = (clone $openQuery)->whereBetween('opened_at', [$now->copy()->subDays(14), $now->copy()->subDays(8)])->count();
-                $threeWeeks  = (clone $openQuery)->whereBetween('opened_at', [$now->copy()->subDays(21), $now->copy()->subDays(15)])->count();
-                $oneMonth    = (clone $openQuery)->whereBetween('opened_at', [$now->copy()->subDays(31), $now->copy()->subDays(22)])->count();
+                $oneWeek     = (clone $openQuery)->where('opened_at', '>=', $now->copy()->subDays(7))->where('active' , 1)->count();
+                $twoWeeks    = (clone $openQuery)->whereBetween('opened_at', [$now->copy()->subDays(14), $now->copy()->subDays(8)])->where('active' , 1)->count();
+                $threeWeeks  = (clone $openQuery)->whereBetween('opened_at', [$now->copy()->subDays(21), $now->copy()->subDays(15)])->where('active' , 1)->count();
+                $oneMonth    = (clone $openQuery)->whereBetween('opened_at', [$now->copy()->subDays(31), $now->copy()->subDays(22)])->where('active' , 1)->count();
                 $gtOneMonth  = (clone $openQuery)->where('opened_at', '<', $now->copy()->subDays(31))->count();
 
                 // Top cliente con más tickets abiertos

@@ -26,6 +26,7 @@ class AsignadosPorIngenieroSheet implements FromArray, WithTitle, WithStyles, Wi
         // Agrupa por ingeniero (assignee). Considera "abierto" cuando closed_at es NULL.
         $records = PersonalReport::selectRaw('COALESCE(NULLIF(TRIM(assignee), ""), "Sin asignar") as assignee, COUNT(*) as total')
             ->whereNull('closed_at')
+            ->where('active', 1)
             ->groupBy('assignee')
             ->orderByDesc('total')
             ->get();
