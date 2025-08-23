@@ -91,8 +91,17 @@ export default function Questions() {
     setImportOpen(true);
   };
 
-  const handleExport = (subjectId) => {
-    Inertia.get(route('question.export', subjectId));
+  const handleExport = (typeId, levelId) => {
+    setLoading(true);
+
+    Inertia.get(
+      route('question.export', { typeId, levelId }),
+      {},
+      {
+        onFinish: () => setLoading(false), 
+        onError: () => setLoading(false), 
+      }
+    );
   };
 
   const handleEditType = (type) => {

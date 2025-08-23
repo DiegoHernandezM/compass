@@ -107,10 +107,10 @@ class QuestionController extends Controller
         }
     }
 
-    public function exportExcel($subjectId)
+    public function exportExcel($typeId, $levelId)
     {
         try {
-            return Excel::download(new QuestionsExport($subjectId), 'preguntas_materia_imagenes.xlsx');
+            return Excel::download(new QuestionsExport($typeId, $levelId), 'preguntas_materia_imagenes.xlsx');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al exportar las preguntas. ' .$e->getMessage());
         }
