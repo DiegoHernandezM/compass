@@ -103,7 +103,6 @@ class QuestionController extends Controller
             $questions = $this->service->importTypeQuestions($typeId, $levelId, $file);
             return redirect()->back()->with('success', 'Preguntas importadas con éxito.');
         } catch (\Exception $e) {
-            dd($e->getMessage());
             return redirect()->back()->with('error', 'Error al importar las preguntas. ' .$e->getMessage());
         }
     }

@@ -372,6 +372,7 @@ class QuestionService
     }
 
 
+    /*
     private function extractImagesWithMap(string $file, string $baseFolder, array $colKeyMap): array
     {
         $spreadsheet = IOFactory::load($file);
@@ -409,6 +410,73 @@ class QuestionService
 
             $key = "{$baseKey}_{$row}";
             $imagesByKey[$key] = $s3Path; // <-- aquí ya es solo la key, sin URL pública
+        }
+
+        return $imagesByKey;
+    }
+    */
+
+    private function extractSpatialImages(string $file, int $headerRow = 1)
+    {
+        $spreadsheet = IOFactory::load($file);
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Mapa Columna → header (normalizado)
+        $colHeader = [];
+        $highestCol = $sheet->getHighestColumn();
+        for ($col = 'A'; ; $col = ++$col) {
+            $val = (string) $sheet->getCell($col.$headerRow)->getValue();
+            if ($val !== '') $colHeader[$col] = strtolower(trim($val));
+            if ($col === $highestCol) break;
+        }
+
+        $imagesByKey = [];
+
+        foreach ($sheet->getDrawingCollection() as $drawing) {
+            $coord = $drawing->getCoordinates();
+            if (str_contains($coord, ':')) {
+                [$coord] = explode(':', $coord, 2); // esquina sup-izq
+            }
+            [$col, $row] = Coordinate::coordinateFromString($coord);
+            $col = strtoupper(trim($col));
+            $row = (int)$row;
+
+            if ($row <= $headerRow) continue; // solo filas de datos
+
+            $header = $colHeader[$col] ?? null;
+            if (!in_array($header, ['question_image','feedback_image'], true)) continue;
+
+            // bytes + ext
+            $bytes = null; $ext = 'png';
+            if ($drawing instanceof FileDrawing) {
+                $path  = $drawing->getPath(); // puede ser zip://...
+                $bytes = @file_get_contents($path);
+                $ext   = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? $path, PATHINFO_EXTENSION)) ?: 'png';
+            } elseif ($drawing instanceof MemoryDrawing) {
+                ob_start();
+                $res  = $drawing->getImageResource();
+                $mime = $drawing->getMimeType();
+                if (str_contains($mime, 'jpeg')) { imagejpeg($res); $ext = 'jpg'; }
+                else { imagepng($res); $ext = 'png'; }
+                $bytes = ob_get_clean();
+            }
+            if (!$bytes) continue;
+
+            // (Si normalizas imágenes, hazlo aquí y luego hashea)
+            $hash = hash('sha256', $bytes);
+
+            // crea tmp file con extensión (ayuda a S3 a detectar MIME)
+            $tmp = tempnam(sys_get_temp_dir(), 'img_');
+            file_put_contents($tmp, $bytes);
+            $tmpWithExt = $tmp.'.'.$ext;
+            @rename($tmp, $tmpWithExt);
+
+            $key = "{$header}_{$row}"; // "question_image_2" o "feedback_image_2"
+            $imagesByKey[$key] = [
+                'ext'      => $ext,
+                'hash'     => $hash,
+                'tmp_path' => $tmpWithExt,
+            ];
         }
 
         return $imagesByKey;
@@ -470,18 +538,15 @@ class QuestionService
 
     private function importSpatial($type, $file, $level)
     {
-        $map = [
-            'A' => 'question_image',
-            'B' => 'answer_a',
-            'C' => 'answer_b',
-            'D' => 'answer_c',
-            'E' => 'answer_d',
-            'H' => 'feedback_image',
-        ];
+        $imagesByRow = $this->extractSpatialImages($file, headerRow: 1);
 
-        $imagesByRow = $this->extractImagesWithMap($file, 'spatial/questions', $map);
-
-        $importer = new SpatialQuestionsImport($type->id, $level->id, $imagesByRow);
+        $importer = new SpatialQuestionsImport(
+            $type->id,
+            $level->id,
+            $imagesByRow,
+            'spatial/questions',
+            'spatial/feedback'
+        );
         Excel::import($importer, $file);
 
         return true;
@@ -515,6 +580,7 @@ class QuestionService
         };
     }
 
+    /*
     private function putToS3FromBytes(string $baseFolder, string $hash, string $ext, string $bytes): string
     {
         // Nombre estable basado en hash (evita duplicados en S3):
@@ -524,6 +590,7 @@ class QuestionService
         }
         return $key; // guarda esto en DB
     }
+    */
 
     private function makeTmpFromBytes(string $bytes, string $ext = 'png'): string
     {
