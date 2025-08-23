@@ -206,7 +206,7 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
       headerName: 'Acciones',
       flex: 0.5,
       sortable: true,
-      renderCell: (params) => (
+      renderCell: (params) =>  !params.row.q_hash || params.row.q_hash === "" ? (
         <Stack direction="row" spacing={1}>
           <Tooltip title="Editar" arrow>
             <IconButton onClick={() => handleEditQuestion(params.row, type?.name)} color="primary">
@@ -214,7 +214,7 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
             </IconButton>
           </Tooltip>
         </Stack>
-      ),
+      ) : null,
     },
   ];
   return (

@@ -149,6 +149,7 @@ export default function Questions() {
 
   const handleSowQuestions = async (level) => {
     try {
+      setLoading(true);
       const response = await axios.get(route('question.show', {
         typeId: selectedType?.id,
         levelId: level?.id,
@@ -156,6 +157,7 @@ export default function Questions() {
       if (response.data.questions) {
         setQuestions(response.data.questions);
         setOpenQuestionsDialog(true);
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error al obtener preguntas:', error);
