@@ -151,12 +151,13 @@ body, html {
 
   .mockup-video {
     width: min(100%, 740px);
-    aspect-ratio: 16 / 9; /* calcula la altura automáticamente */
+    aspect-ratio: 16 / 9;
     height: auto;
     border-radius: 1rem;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    object-fit: contain;  /* o 'cover' */
+    object-fit: contain;  
     display: block;
+    margin: 0 auto; /* lo centra */
   }
 
   /* Responsive */
@@ -179,3 +180,10 @@ body, html {
       margin-left: 3rem;
     }
   }
+
+  @media (max-width: 768px) {
+  .mockup-video {
+    margin-top: 80px; /* ajusta según la altura de tu header */
+    width: 95%;       /* ocupa casi todo el ancho disponible */
+  }
+}
