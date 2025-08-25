@@ -27,7 +27,7 @@ class ResumenSheet implements WithTitle, WithEvents
                 // ===== KPIs base (tickets abiertos)
                 $now = Carbon::now();
 
-                $openQuery = PersonalReport::query()->whereNull('closed_at');
+                $openQuery = PersonalReport::query()->where('active', 1)->whereNull('closed_at');
 
                 $totalOpen = (clone $openQuery)->count();
 
