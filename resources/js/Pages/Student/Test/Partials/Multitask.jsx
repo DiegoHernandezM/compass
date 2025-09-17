@@ -49,30 +49,32 @@ export default function MultitaskTest({ test, subject }) {
 
   // --- estados principales ---
   const [currentTrack, setCurrentTrack] = useState(0);
-  const [answers, setAnswers] = useState({});                 // id -> valor elegido (UI)
-  const [feedback, setFeedback] = useState({});               // id -> 'correct'|'incorrect'
-  const [localAnsweredMap, setLocalAnsweredMap] = useState({}); // id -> true (optimista)
-  const [localCorrectMap, setLocalCorrectMap]   = useState({}); // id -> 0/1 (optimista Correct/Incorrect)
+  const [answers, setAnswers] = useState({});
+  const [feedback, setFeedback] = useState({});
+  const [localAnsweredMap, setLocalAnsweredMap] = useState({});
+  const [localCorrectMap, setLocalCorrectMap]   = useState({});
 
-  const [gameType, setGameType] = useState(null);           // 'vertical' | 'horizontal'
+  // ⬇️ Nuevo: separación selección vs activación
+  const [selectedGameType, setSelectedGameType] = useState(null); // 'vertical' | 'horizontal' | null
+  const [activeGameType, setActiveGameType]     = useState(null); // ← este monta el juego
+
   const [showDialog, setShowDialog] = useState(true);
   const gameKey = (testId) => `mtk:gameType:${testId}`;
 
-  // puntuación del juego (0–100) reportada por el juego cuando termina
+  // puntuación del juego (0–100)
   const [gamePercent, setGamePercent] = useState(0);
 
   // resultado final (para TestResultDialog)
   const [openResult, setOpenResult] = useState(false);
   const [resultStats, setResultStats] = useState({ correct: 0, total: 100 });
 
-  // --- helpers por pregunta ----
+  // helpers
   const isServerAnswered = (q) =>
     q?.is_correct !== null || (q?.user_answer !== null && q?.user_answer !== '');
 
   const isReadOnly = (q) =>
     isServerAnswered(q) || !!localAnsweredMap[q?.id];
 
-  // --- helpers de pares ---
   const pairDoneWith = (idx, answeredMap) => {
     const [m, f] = groupedQuestions[idx] || [];
     const done = (q) => !q || isServerAnswered(q) || !!answeredMap[q.id];
@@ -102,57 +104,50 @@ export default function MultitaskTest({ test, subject }) {
   }
 
   function goToNextUnansweredPair() {
-    // 1) buscar hacia adelante
     for (let i = currentTrack + 1; i < groupedQuestions.length; i++) {
-      if (!pairIsComplete(i)) {
-        setCurrentTrack(i);
-        return;
-      }
+      if (!pairIsComplete(i)) { setCurrentTrack(i); return; }
     }
-    // 2) desde el inicio, por si el usuario contestó pares fuera de orden
     for (let i = 0; i < groupedQuestions.length; i++) {
-      if (!pairIsComplete(i)) {
-        setCurrentTrack(i);
-        return;
-      }
+      if (!pairIsComplete(i)) { setCurrentTrack(i); return; }
     }
-    // 3) todas completas → finalizar
     handleFinish();
   }
 
-  // --- posición inicial: primer par con pendiente ---
+  // posición inicial
   useEffect(() => {
     const idx = firstUnansweredTrack(groupedQuestions);
     if (idx !== null) setCurrentTrack(idx);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupedQuestions.length]);
 
-  // persistencia de elección de juego
+  // Persistencia: solo preselecciona, NO activa
   useEffect(() => {
     if (!test?.id) return;
     const saved = localStorage.getItem(gameKey(test.id));
     if (saved === 'vertical' || saved === 'horizontal') {
-      setGameType(saved);
-      setShowDialog(false);
+      setSelectedGameType(saved);
     } else {
-      setGameType(null);
-      setShowDialog(true);
+      setSelectedGameType(null);
     }
+    setShowDialog(true);        // siempre pide "Comenzar"
+    setActiveGameType(null);    // no auto-iniciar
   }, [test?.id]);
 
   const startGame = () => {
-    if (!gameType) return;
-    localStorage.setItem(gameKey(test.id), gameType);
+    if (!selectedGameType) return;
+    localStorage.setItem(gameKey(test.id), selectedGameType); // opcional: recuerda preferencia
+    setActiveGameType(selectedGameType);  // ← aquí sí iniciamos
     setShowDialog(false);
   };
 
   const resetGameChoice = () => {
     localStorage.removeItem(gameKey(test.id));
-    setGameType(null);
+    setSelectedGameType(null);
+    setActiveGameType(null);
     setShowDialog(true);
   };
 
-  // --- envío al backend con dedupe + timeout ---
+  // envío al backend con dedupe + timeout
   const sentAnswersRef = useRef(new Set());
   const sendAnswer = (payload) => {
     const key = `${payload.test_id}:${payload.current_question?.id}`;
@@ -164,37 +159,27 @@ export default function MultitaskTest({ test, subject }) {
 
     return axios.post(route('answer.save'), payload, {
       signal: controller.signal,
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json',
-      },
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
     }).catch(err => {
       console.error('❌ Error al enviar respuesta', err);
-      // permitir reintento si falló
       sentAnswersRef.current.delete(key);
     }).finally(() => clearTimeout(timer));
   };
 
-  // --- manejo de respuesta por botón (sin race) ---
-  const finishedRef = useRef(false); // evita doble finish
+  const finishedRef = useRef(false);
 
   const handleAnswer = (q, selectedValue) => {
     if (!q || isReadOnly(q)) return;
 
     const isCorrect = String(selectedValue).toUpperCase() === String(q.correct_answer).toUpperCase();
 
-    // feedback UI inmediato
     setAnswers(prev => ({ ...prev, [q.id]: selectedValue }));
     setFeedback(prev => ({ ...prev, [q.id]: isCorrect ? 'correct' : 'incorrect' }));
 
-    // construye nextAnswered para decidir avance sin race
     setLocalAnsweredMap(prev => {
       const nextAnswered = { ...prev, [q.id]: true };
-
-      // refleja correct local
       setLocalCorrectMap(prevC => ({ ...prevC, [q.id]: isCorrect ? 1 : 0 }));
 
-      // manda al backend
       const payload = {
         test_id: test?.id,
         subject_id: subject?.id ?? null,
@@ -202,29 +187,19 @@ export default function MultitaskTest({ test, subject }) {
         is_correct: isCorrect ? 1 : 0,
         user_answer: String(selectedValue),
       };
-      sendAnswer(payload).then(() => {
-        serverAnsweredMapRef.current[q.id] = true;
-      });
+      sendAnswer(payload).then(() => { serverAnsweredMapRef.current[q.id] = true; });
 
-      // si con este nextAnswered el par actual queda completo…
       if (pairDoneWith(currentTrack, nextAnswered)) {
-        // …y si todos están completos → finish
         if (allPairsDoneWith(nextAnswered)) {
-          if (!finishedRef.current) {
-            finishedRef.current = true;
-            handleFinish();
-          }
+          if (!finishedRef.current) { finishedRef.current = true; handleFinish(); }
         } else {
-          // si no, avanza al siguiente par incompleto
           goToNextUnansweredPair();
         }
       }
-
       return nextAnswered;
     });
   };
 
-  // Red de seguridad: si por cualquier razón ya están todos completos, terminar
   useEffect(() => {
     if (!finishedRef.current && allPairsDoneWith(localAnsweredMap)) {
       finishedRef.current = true;
@@ -233,12 +208,9 @@ export default function MultitaskTest({ test, subject }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localAnsweredMap, groupedQuestions]);
 
-  // --- progreso basado en pares completos ---
   const completedPairs = useMemo(() => {
     let c = 0;
-    for (let i = 0; i < groupedQuestions.length; i++) {
-      if (pairIsComplete(i)) c += 1;
-    }
+    for (let i = 0; i < groupedQuestions.length; i++) if (pairIsComplete(i)) c += 1;
     return c;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack, localAnsweredMap, questions]);
@@ -247,7 +219,6 @@ export default function MultitaskTest({ test, subject }) {
     ? (completedPairs / groupedQuestions.length) * 100
     : 0;
 
-  // --- cálculo final ponderado 40/30/30 ---
   function handleFinish() {
     const totalPairs = groupedQuestions.length || 1;
 
@@ -270,92 +241,73 @@ export default function MultitaskTest({ test, subject }) {
     setOpenResult(true);
   }
 
-  // --- preguntas actuales ---
   const currentMath   = groupedQuestions[currentTrack]?.[0];
   const currentFigure = groupedQuestions[currentTrack]?.[1];
 
   const isCorrect = (id) => feedback[id] === 'correct';
   const isIncorrect = (id) => feedback[id] === 'incorrect';
 
-  // --- estilos de botón con feedback y bordes ---
   const btnStyle = (q, value) => {
     const selected = answers[q.id];
-    const base = {
-      minWidth: 120,
-      backgroundColor: '#e0e0e0',
-      color: '#000',
-      border: '2px solid transparent',
-    };
-    if (isReadOnly(q)) {
-      return { ...base, opacity: 0.7, pointerEvents: 'none' };
-    }
+    const base = { minWidth: 120, backgroundColor: '#e0e0e0', color: '#000', border: '2px solid transparent' };
+    if (isReadOnly(q)) return { ...base, opacity: 0.7, pointerEvents: 'none' };
     if (selected === value) {
-      if (isCorrect(q.id))   return { ...base, backgroundColor: '#dcfce7', border: '2px solid #16a34a' }; // verde
-      if (isIncorrect(q.id)) return { ...base, backgroundColor: '#fee2e2', border: '2px solid #dc2626' }; // rojo
+      if (isCorrect(q.id))   return { ...base, backgroundColor: '#dcfce7', border: '2px solid #16a34a' };
+      if (isIncorrect(q.id)) return { ...base, backgroundColor: '#fee2e2', border: '2px solid #dc2626' };
     }
     return base;
+  };
+
+  /* ====== Fila de símbolos (SVG) — igual que tenías ====== */
+  const FigureRow = ({ text, color = '#203764', size = 56 }) => {
+    const tokens = String(text || '').split(/(\|)/).map(t => t.trim()).filter(Boolean);
+    const Bar = () => (<svg width={Math.max(10, size * 0.18)} height={size} viewBox="0 0 12 100"><rect x="4" y="10" width="4" height="80" rx="2" fill={color} /></svg>);
+    const Circle = () => (<svg width={size} height={size} viewBox="0 0 100 100"><circle cx="50" cy="50" r="36" fill={color} /></svg>);
+    const Square = () => (<svg width={size} height={size} viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" rx="6" fill={color} /></svg>);
+    const Triangle = () => (<svg width={size} height={size} viewBox="0 0 100 100"><polygon points="50,12 90,88 10,88" fill={color} /></svg>);
+    const Diamond = () => (<svg width={size} height={size} viewBox="0 0 100 100"><polygon points="50,10 90,50 50,90 10,50" fill={color} /></svg>);
+    const Star = () => (<svg width={size} height={size} viewBox="0 0 100 100"><polygon points="50,8 61,37 92,37 66,55 75,86 50,69 25,86 34,55 8,37 39,37" fill={color} /></svg>);
+    const Hexagon = ({ outline = true }) => (<svg width={size} height={size} viewBox="0 0 100 100"><polygon points="50,10 84,30 84,70 50,90 16,70 16,30" fill={outline ? 'none' : color} stroke={outline ? color : 'none'} strokeWidth={outline ? 8 : 0} strokeLinejoin="round" /></svg>);
+    const renderToken = (t, i) => {
+      switch (t) {
+        case '|': return <Bar key={`bar-${i}`} />;
+        case '▲': return <Triangle key={`tri-${i}`} />;
+        case '■': return <Square key={`sq-${i}`} />;
+        case '◆': return <Diamond key={`dm-${i}`} />;
+        case '★': return <Star key={`st-${i}`} />;
+        case '⬡': return <Hexagon key={`hx-${i}`} outline />;
+        case '●':
+        case '⬤': return <Circle key={`ci-${i}`} />;
+        default:  return <Box key={`tx-${i}`} sx={{ fontSize: `${size * 0.6}px`, color, lineHeight: 1 }}>{t}</Box>;
+      }
+    };
+    return <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, flexWrap: 'wrap', my: 1 }}>{tokens.map(renderToken)}</Box>;
   };
 
   return (
     <>
       <Card sx={{ mb: 4, borderRadius: 3, boxShadow: 3 }}>
-        <CardContent
-          sx={{
-            backgroundColor: `${subject?.color ?? '#1976d2'}80`,
-            borderTopLeftRadius: '12px',
-            borderTopRightRadius: '12px',
-          }}
-        >
+        <CardContent sx={{ backgroundColor: `${subject?.color ?? '#1976d2'}80`, borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}>
           <Typography variant="h6">{subject?.name ?? 'Multitasking'}</Typography>
           <LinearProgress variant="determinate" value={progressPercent} />
         </CardContent>
       </Card>
 
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="stretch"
-        gap={2}
-        flexWrap="wrap"
-        px={2}
-        minHeight="60vh"
-      >
+      <Box display="flex" justifyContent="center" alignItems="stretch" gap={2} flexWrap="wrap" px={2} minHeight="60vh">
         {/* Juego */}
-        <Paper
-          sx={{
-            p: 3,
-            width: 500,
-            borderRadius: 3,
-            backgroundColor: '#fff',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            minHeight: 420,
-          }}
-        >
-          {gameType === 'vertical'   && <CatchGame     onFinish={pct => setGamePercent(pct ?? 0)} />}
-          {gameType === 'horizontal' && <PlanePathGame onFinish={pct => setGamePercent(pct ?? 0)} />}
-          {!gameType && (
+        <Paper sx={{ p: 3, width: 500, borderRadius: 3, backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: 420 }}>
+          {activeGameType === 'vertical'   && <CatchGame     onFinish={pct => setGamePercent(pct ?? 0)} />}
+          {activeGameType === 'horizontal' && <PlanePathGame onFinish={pct => setGamePercent(pct ?? 0)} />}
+          {!activeGameType && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Selecciona un juego para comenzar.
+              Selecciona un juego y presiona <strong>Comenzar</strong>.
             </Typography>
           )}
-          {/* Botón opcional para resetear elección */}
           {/* <Button size="small" sx={{ mt: 2 }} onClick={resetGameChoice}>Cambiar juego</Button> */}
         </Paper>
 
         {/* Bloque de preguntas */}
-        <Paper
-          sx={{
-            p: 3,
-            width: 500,
-            borderRadius: 3,
-            backgroundColor: '#fff',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
+        <Paper sx={{ p: 3, width: 500, borderRadius: 3, backgroundColor: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {/* Matemáticas */}
           {currentMath && (
             <>
@@ -365,14 +317,9 @@ export default function MultitaskTest({ test, subject }) {
               <Stack direction="row" spacing={2} mb={5} flexWrap="wrap" justifyContent="center">
                 {Object.entries(JSON.parse(currentMath.options || '{}'))
                   .filter(([_, v]) => v != null && v !== '')
-                  .slice(0, 2) // solo 2 botones
+                  .slice(0, 2)
                   .map(([key, value]) => (
-                    <Button
-                      key={key}
-                      variant="contained"
-                      sx={btnStyle(currentMath, value)}
-                      onClick={() => handleAnswer(currentMath, value)}
-                    >
+                    <Button key={key} variant="contained" sx={btnStyle(currentMath, value)} onClick={() => handleAnswer(currentMath, value)}>
                       {value}
                     </Button>
                   ))}
@@ -383,19 +330,12 @@ export default function MultitaskTest({ test, subject }) {
           {/* Figuras */}
           {currentFigure && (
             <>
-              <Typography variant="h2" mb={2} textAlign="center" sx={{ color: '#203764' }}>
-                {currentFigure.question_text}
-              </Typography>
+              <FigureRow text={currentFigure.question_text} color="#203764" />
               <Stack direction="row" spacing={2} mb={2} flexWrap="wrap" justifyContent="center">
                 {Object.entries(JSON.parse(currentFigure.options || '{}'))
                   .filter(([_, v]) => v != null && v !== '')
                   .map(([key, value]) => (
-                    <Button
-                      key={key}
-                      variant="contained"
-                      sx={btnStyle(currentFigure, value)}
-                      onClick={() => handleAnswer(currentFigure, value)}
-                    >
+                    <Button key={key} variant="contained" sx={btnStyle(currentFigure, value)} onClick={() => handleAnswer(currentFigure, value)}>
                       {value}
                     </Button>
                   ))}
@@ -403,7 +343,6 @@ export default function MultitaskTest({ test, subject }) {
             </>
           )}
 
-          {/* Indicador del par actual */}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             Bloque {currentTrack + 1} de {groupedQuestions.length}
           </Typography>
@@ -414,24 +353,24 @@ export default function MultitaskTest({ test, subject }) {
       <Dialog open={showDialog}>
         <DialogTitle>¿Qué tipo de juego prefieres?</DialogTitle>
         <DialogContent>
-          <RadioGroup value={gameType} onChange={(e) => setGameType(e.target.value)}>
+          <RadioGroup value={selectedGameType} onChange={(e) => setSelectedGameType(e.target.value)}>
             <FormControlLabel value="vertical" control={<Radio />} label="Vertical (Balde)" />
             <FormControlLabel value="horizontal" control={<Radio />} label="Horizontal (Avión)" />
           </RadioGroup>
         </DialogContent>
         <DialogActions>
-          <Button onClick={startGame} disabled={!gameType} variant="contained">
+          <Button onClick={startGame} disabled={!selectedGameType} variant="contained">
             Comenzar
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Resultado final ponderado */}
+      {/* Resultado */}
       <TestResultDialog
         open={openResult}
         onClose={() => setOpenResult(false)}
-        correct={resultStats.correct}   // porcentaje final ponderado
-        total={resultStats.total}       // 100
+        correct={resultStats.correct}
+        total={resultStats.total}
         onGoToSubjects={() => Inertia.get(route('student.subject.index'))}
         showReview={false}
       />

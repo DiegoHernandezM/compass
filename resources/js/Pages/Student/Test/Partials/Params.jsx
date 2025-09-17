@@ -24,8 +24,12 @@ export default function Params({ test, subject }) {
   const [parameters, setParameters] = useState({});
   const [hiddenParams, setHiddenParams] = useState([]);
   const [userInputs, setUserInputs] = useState({});
-  const [feedback, setFeedback] = useState(null); // 'correct' | 'incorrect'
-  const [correctValue, setCorrectValue] = useState(null);
+
+  // 'correct' | 'incorrect' | null
+  const [feedback, setFeedback] = useState(null);
+  // [{ key, expected, got, correct }]
+  const [feedbackDiffs, setFeedbackDiffs] = useState([]);
+
   const [timeLeft, setTimeLeft] = useState(0);
   const [maxTime, setMaxTime] = useState(0);
 
@@ -51,7 +55,7 @@ export default function Params({ test, subject }) {
     setLocalCorrectMap(seed);
   }, [test?.id]);
 
-  // ► Al montar: ir a la PRIMERA sin contestar
+  // Ir a la primera sin contestar
   useEffect(() => {
     if (!questions.length) return;
     const idx = questions.findIndex(q => !isServerAnswered(q));
@@ -63,7 +67,7 @@ export default function Params({ test, subject }) {
     setResultStats(computeResultsFrom(localCorrectMap));
   }, [currentIndex, localCorrectMap]);
 
-  // ► Preparar la pregunta actual
+  // Preparar la pregunta actual
   useEffect(() => {
     if (!currentQuestion) return;
 
@@ -71,7 +75,7 @@ export default function Params({ test, subject }) {
     setShowMemoryPanel(true);
     setUserInputs({});
     setFeedback(null);
-    setCorrectValue(null);
+    setFeedbackDiffs([]);
 
     // Parse de parámetros (KEY: value por línea)
     const parsed = {};
@@ -100,7 +104,7 @@ export default function Params({ test, subject }) {
     return () => clearTimeout(timeout);
   }, [currentQuestion, test?.question_level_id]);
 
-  // ► Decremento del reloj (mientras el panel está visible)
+  // Decremento del reloj mientras el panel está visible
   useEffect(() => {
     if (!showMemoryPanel || timeLeft <= 0) return;
     const interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
@@ -111,7 +115,7 @@ export default function Params({ test, subject }) {
     setUserInputs(prev => ({ ...prev, [key.toUpperCase()]: value }));
   };
 
-  // ► Guardado al backend (como en otros tests)
+  // POST al backend
   const sendAnswer = (payload) => {
     const key = `${payload.test_id}:${payload.current_question?.id}`;
     if (sentAnswersRef.current.has(key)) return Promise.resolve();
@@ -128,38 +132,43 @@ export default function Params({ test, subject }) {
       },
     }).catch(err => {
       console.error('❌ Error al enviar respuesta', err);
-      // permitir reintento si falló
       sentAnswersRef.current.delete(key);
     }).finally(() => clearTimeout(timer));
   };
 
   const normalizeValue = (val) => {
-    if (!val) return '';
-    // Intentar convertir a número
+    if (val === null || val === undefined) return '';
     const num = Number(val);
-    if (!isNaN(num)) {
-      return Math.floor(num); // quita decimales
+    if (!Number.isNaN(num) && val !== '') {
+      return Math.floor(num); // quita decimales si vinieron
     }
-    return val.toLowerCase().trim();
+    return String(val).toLowerCase().trim();
   };
 
-
-  // ► Enviar respuesta y mostrar feedback
+  // Enviar respuesta y mostrar feedback (TODOS los campos)
   const handleSubmit = async () => {
     if (!currentQuestion) return;
 
-    // Compara solo los ocultos
-    const incorrectKey = hiddenParams.find(key => {
-      const real = normalizeValue(parameters[key]);
-      const input = normalizeValue(userInputs[key]);
-      return real !== input;
+    // Construye el diff de todos los ocultos
+    const diffs = hiddenParams.map(key => {
+      const expected = parameters[key];
+      const gotRaw   = userInputs[key] ?? '';
+      const ok = normalizeValue(expected) === normalizeValue(gotRaw);
+      return {
+        key,
+        expected,          // como lo verá el alumno
+        got: String(gotRaw),
+        correct: ok
+      };
     });
 
-    const isCorrect = !incorrectKey;
-    setFeedback(isCorrect ? 'correct' : 'incorrect');
-    if (!isCorrect) setCorrectValue(parameters[incorrectKey]);
+    const incorrect = diffs.filter(d => !d.correct);
+    const isCorrect = incorrect.length === 0;
 
-     // actualizar mapa local (optimista) y stats
+    setFeedback(isCorrect ? 'correct' : 'incorrect');
+    setFeedbackDiffs(diffs);
+
+    // actualizar mapa local (optimista)
     setLocalCorrectMap(prev => {
       const next = { ...prev, [currentQuestion.id]: isCorrect ? 1 : 0 };
       setResultStats(computeResultsFrom(next));
@@ -170,19 +179,17 @@ export default function Params({ test, subject }) {
     const answerPayload = {};
     hiddenParams.forEach(k => { answerPayload[k] = userInputs[k] ?? ''; });
 
-    // ► POST al backend
     await sendAnswer({
       test_id: test.id,
       subject_id: subject?.id ?? null,
       current_question: currentQuestion,
       is_correct: isCorrect ? 1 : 0,
-      user_answer: JSON.stringify(answerPayload), // ajusta si tu validación requiere otro formato/tamaño
+      user_answer: JSON.stringify(answerPayload),
     });
   };
 
-  // ► Ir a la siguiente NO contestada
+  // Buscar la siguiente no contestada
   const getAnswerValue = (q) => {
-    // mira primero el mapa local (optimista), si no, el valor del back
     const v = (localCorrectMap[q.id] !== undefined && localCorrectMap[q.id] !== null)
       ? localCorrectMap[q.id]
       : q.is_correct;
@@ -190,32 +197,26 @@ export default function Params({ test, subject }) {
   };
 
   const findNextUnansweredIndex = (fromIdx) => {
-    // busca desde fromIdx+1 hasta el final
     for (let i = fromIdx + 1; i < questions.length; i++) {
       if (getAnswerValue(questions[i]) === null || getAnswerValue(questions[i]) === undefined) {
         return i;
       }
     }
-    // luego desde el inicio hasta fromIdx
     for (let i = 0; i <= fromIdx; i++) {
       if (getAnswerValue(questions[i]) === null || getAnswerValue(questions[i]) === undefined) {
         return i;
       }
     }
-    return -1; // no hay pendientes
+    return -1;
   };
 
-  // Reemplaza tu goToNext por esto:
   const goToNext = () => {
     const nextIdx = findNextUnansweredIndex(currentIndex);
-
     if (nextIdx === -1) {
-      // no quedan preguntas pendientes -> abrir resultados ya
-      setResultStats(computeResultsFrom(localCorrectMap)); // asegurar stats al día
+      setResultStats(computeResultsFrom(localCorrectMap));
       setOpenResult(true);
       return;
     }
-
     setCurrentIndex(nextIdx);
   };
 
@@ -247,7 +248,7 @@ export default function Params({ test, subject }) {
       >
         <CardContent
           sx={{
-            backgroundColor: `${subject?.color}80`,
+            backgroundColor: `${subject?.name ? subject.color : '#1976d2'}80`,
             borderTopLeftRadius: '12px',
             borderTopRightRadius: '12px',
           }}
@@ -277,7 +278,7 @@ export default function Params({ test, subject }) {
               sx={{ mb: 2, height: 10, borderRadius: 5 }}
             />
 
-            <Typography variant="subtitle1" gutterBottom>
+            <Typography variant="subtitle1" gutterBottom sx={{ marginBottom: '25px' }}>
               Pregunta {currentIndex + 1} de {questions.length}
             </Typography>
 
@@ -341,13 +342,28 @@ export default function Params({ test, subject }) {
                         backgroundColor: feedback === 'correct' ? '#dcfce7' : '#fee2e2',
                         color: feedback === 'correct' ? '#15803d' : '#b91c1c',
                         display: 'inline-block',
+                        textAlign: 'left'
                       }}
                     >
-                      <Typography variant="h6">
-                        {feedback === 'correct'
-                          ? '¡Muy bien! Respuesta correcta.'
-                          : `Incorrecto. La respuesta correcta era: ${correctValue}`}
-                      </Typography>
+                      {feedback === 'correct' ? (
+                        <Typography variant="h6">¡Muy bien! Respuesta correcta.</Typography>
+                      ) : (
+                        <>
+                          <Typography variant="h6" sx={{ mb: 1 }}>
+                            Incorrecto. Valores correctos:
+                          </Typography>
+                          <Box component="ul" sx={{ pl: '1.2rem', m: 0 }}>
+                            {feedbackDiffs
+                              .filter(d => !d.correct)
+                              .map(d => (
+                                <li key={d.key}>
+                                  <strong>{d.key}</strong>: {String(d.expected)}
+                                  {d.got !== '' ? <> (tu: {String(d.got)})</> : ' (vacío)'}
+                                </li>
+                              ))}
+                          </Box>
+                        </>
+                      )}
                     </Box>
                   </Fade>
                 ) : (
@@ -368,6 +384,7 @@ export default function Params({ test, subject }) {
           </CardContent>
         </Card>
       </Box>
+
       <TestResultDialog
         open={openResult}
         onClose={() => setOpenResult(false)}

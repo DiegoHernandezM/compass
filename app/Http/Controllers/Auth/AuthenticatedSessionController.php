@@ -30,21 +30,24 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
+
+        // Evita redirecciones a una intended vieja (p.ej. /dashboard de admin)
+        $request->session()->forget('url.intended');
+
         $user = $request->user();
 
         if ($user->hasRole('admin')) {
-            return redirect()->intended(route('dashboard'));
+            return redirect()->route('dashboard');
         }
 
         if ($user->hasRole('student')) {
-            return redirect()->intended(route('student.dashboard'));
+            return redirect()->route('student.dashboard');
         }
 
-        return redirect('/'); // fallback
-
-        //return redirect()->intended(route('dashboard', absolute: false));
+        // sin rol válido: cierra sesión y muestra mensaje
+        Auth::logout();
+        return redirect('/')->withErrors(['auth' => 'Tu cuenta no tiene un rol válido.']);
     }
 
     /**

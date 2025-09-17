@@ -26,33 +26,41 @@ export default function NormalTest({ test, subject, type }) {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const currentQuestion = test.test_questions[currentIndex];
-  const [feedback, setFeedback] = useState(null); // null | 'correct' | 'incorrect'
+  const currentQuestion = test?.test_questions?.[currentIndex];
+  const [feedback, setFeedback] = useState(null); // null | 'correct' | 'incorrect' | 'timeout'
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // NUEVO: máquina de estados y tiempos mínimos
+  const [phase, setPhase] = useState('ANSWERING'); // 'ANSWERING' | 'FEEDBACK'
+  const [feedbackUntil, setFeedbackUntil] = useState(null); // timestamp ms
+  const MIN_FB_CORRECT = 1500;
+  const MIN_FB_WRONG   = 2500;
+
   const [openFeedbackDialog, setOpenFeedbackDialog] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(null);
-  const [maxTime, setMaxTime] = useState(null);
   const [holdForDialog, setHoldForDialog] = useState(false);
 
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [maxTime, setMaxTime] = useState(null);
+
   const sentAnswersRef = useRef(new Set());
-  const locallyAnsweredRef = useRef(new Set()); // <- marca local inmediata (incluye timeout)
+  const locallyAnsweredRef = useRef(new Set());
 
   const [openResult, setOpenResult] = useState(false);
   const [resultStats, setResultStats] = useState({ correct: 0, total: 0 });
 
   const correctKey = String(currentQuestion?.correct_answer || '').toUpperCase();
 
-  // ---------- helpers ----------
-  // Considera respondida en servidor si ya hay user_answer O is_correct no es null (timeout con respuesta null)
+  const [finishAfterFeedback, setFinishAfterFeedback] = useState(false);
+
+
+  // Helpers
   const isServerAnswered = (q) => q?.is_correct !== null || Boolean(q?.user_answer);
 
   const hydrateAnswersFromProps = (questions) => {
     const acc = {};
     questions.forEach(q => {
       if (q.user_answer) acc[q.id] = String(q.user_answer).toLowerCase();
-      // si tu backend marca timeout con user_answer = null pero is_correct != null,
-      // no seteamos valor visible, pero el readOnly lo cubre isServerAnswered(q)
     });
     return acc;
   };
@@ -69,32 +77,34 @@ export default function NormalTest({ test, subject, type }) {
     return null;
   };
 
-  // readOnly si ya contestó en servidor o si ya la marcamos localmente (por ej. timeout)
   const readOnly = currentQuestion
     ? isServerAnswered(currentQuestion) || locallyAnsweredRef.current.has(currentQuestion.id)
     : false;
 
-  // ---------- init: hidrata y posiciona ----------
+  const timerPaused = phase === 'FEEDBACK';
+
+  // Init: hidrata y posiciona
   useEffect(() => {
     if (!test?.test_questions?.length) return;
     setAnswers(hydrateAnswersFromProps(test.test_questions));
     setCurrentIndex(firstUnansweredIndex(test.test_questions));
+    setPhase('ANSWERING');
+    setFeedback(null);
+    setShowFeedback(false);
+    setFeedbackUntil(null);
   }, [test?.id]);
 
-  // ---------- auto avance tras GIF si no hay dialog ----------
+  // Preload de GIFs de feedback (evita saltos)
   useEffect(() => {
-    if (!showFeedback || openFeedbackDialog) return;
-    const t = setTimeout(() => {
-      goToNextQuestion();
-    }, 2500);
-    return () => clearTimeout(t);
-  }, [showFeedback, openFeedbackDialog]);
+    ['/assets/correct.gif','/assets/incorrect.gif'].forEach(src => {
+      const i = new Image(); i.src = src;
+    });
+  }, []);
 
-  // ---------- temporizador: solo depende del estado del servidor ----------
+  // Temporizador de la pregunta (pausado en feedback)
   useEffect(() => {
     if (!currentQuestion) return;
 
-    // si YA está respondida en backend, apagar timer
     if (isServerAnswered(currentQuestion)) {
       setTimeLeft(null);
       setMaxTime(null);
@@ -106,13 +116,14 @@ export default function NormalTest({ test, subject, type }) {
     setMaxTime(limit);
 
     if (!limit) return;
+    if (timerPaused) return; // pausa durante FEEDBACK
 
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         if (prev === null) return prev;
         if (prev <= 1) {
           clearInterval(interval);
-          // tiempo agotado => marcar incorrecto y enviar (byTimeout = true)
+          // tiempo agotado => marcar incorrecto y enviar como timeout
           handleAnswer(null, true);
           return 0;
         }
@@ -121,45 +132,78 @@ export default function NormalTest({ test, subject, type }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentQuestion]);
+  }, [currentQuestion, timerPaused]);
 
-  // ---------- handlers ----------
+  // Avance controlado: solo cuando pasa el mínimo y no hay diálogo
+  useEffect(() => {
+    if (phase !== 'FEEDBACK' || !feedbackUntil) return;
+    if (openFeedbackDialog) return;
+
+    const ms = Math.max(0, feedbackUntil - Date.now());
+    const t = setTimeout(() => {
+      setShowFeedback(false);
+      setPhase('ANSWERING');
+      setFeedback(null);
+
+      // Si se pidió finalizar tras el feedback (última pregunta)
+      if (finishAfterFeedback) {
+        setFinishAfterFeedback(false);
+        const stats = computeResults();
+        setResultStats(stats);
+        setOpenResult(true);
+        return; // no intentes navegar
+      }
+
+      // Navegación normal
+      const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
+      if (nextIdx !== null) setCurrentIndex(nextIdx);
+      else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
+    }, ms);
+
+    return () => clearTimeout(t);
+  }, [phase, feedbackUntil, openFeedbackDialog, currentIndex, finishAfterFeedback, test?.test_questions]);
+
+  // Handlers
   const handleAnswerChange = (e) => {
-    if (readOnly) return; // bloquea edición
+    if (readOnly || phase === 'FEEDBACK') return;
     setAnswers(prev => ({
       ...prev,
       [currentQuestion.id]: e.target.value.toLowerCase(),
     }));
   };
 
-  
   const handleAnswer = (selectedOption = '', byTimeout = false) => {
-    // si ya está respondida en servidor o marcada localmente, no re-enviar
     if (readOnly) return;
+
     const keyLower = (selectedOption || '').toLowerCase();
     const keyUpper = keyLower.toUpperCase();
     const isCorrect = !byTimeout && keyUpper === currentQuestion.correct_answer;
-    // Marca local como contestada (incluye timeout) para bloquear inmediatamente
+
+    // Bloquear edición inmediata
     locallyAnsweredRef.current.add(currentQuestion.id);
-    // Guarda valor local:
-    // - si timeout, guarda un sentinel para que el Radio se vea vacío pero readOnly
-    // - si normal, guarda la opción
+
+    // Guardar valor local (sentinel en timeout)
     setAnswers(prev => ({
       ...prev,
       [currentQuestion.id]: byTimeout ? '__timeout__' : keyLower,
     }));
 
-    if (!byTimeout) {
-      setFeedback(isCorrect ? 'correct' : 'incorrect');
-      if (!isCorrect) setCorrectAnswer(currentQuestion.correct_answer);
-      if (!isCorrect && (currentQuestion.feedback_text || currentQuestion.feedback_image)) {
-        setOpenFeedbackDialog(true);
-        setHoldForDialog(true);
-      }
-      setShowFeedback(true);
+    // Mostrar feedback SIEMPRE: correcta, incorrecta o timeout
+    setFeedback(byTimeout ? 'timeout' : (isCorrect ? 'correct' : 'incorrect'));
+    if (!isCorrect) setCorrectAnswer(currentQuestion.correct_answer);
+
+    // Abrir dialog de feedback (si aplica) solo en incorrecta (no timeout)
+    if (!isCorrect && !byTimeout && (currentQuestion.feedback_text || currentQuestion.feedback_image)) {
+      setOpenFeedbackDialog(true);
+      setHoldForDialog(true);
     }
 
-    // Enviar al backend (en timeout mandamos user_answer = null, is_correct = 0)
+    setShowFeedback(true);
+    setPhase('FEEDBACK');
+    const minMs = isCorrect ? MIN_FB_CORRECT : MIN_FB_WRONG;
+    setFeedbackUntil(Date.now() + minMs);
+
+    // Enviar al backend (no avanza aquí)
     sendAnswer({
       test_id: test?.id,
       subject_id: subject?.id ?? null,
@@ -167,8 +211,6 @@ export default function NormalTest({ test, subject, type }) {
       is_correct: byTimeout ? 0 : (isCorrect ? 1 : 0),
       user_answer: byTimeout ? null : keyUpper,
     });
-
-    setTimeout(() => setShowFeedback(false), 5000); // si quieres más tiempo de feedback
   };
 
   const sendAnswer = async (payload) => {
@@ -177,7 +219,7 @@ export default function NormalTest({ test, subject, type }) {
     sentAnswersRef.current.add(key);
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort('timeout'), 4000); // 4s
+    const timer = setTimeout(() => controller.abort('timeout'), 4000);
 
     try {
       await axios.post(route('answer.save'), payload, {
@@ -187,8 +229,6 @@ export default function NormalTest({ test, subject, type }) {
           'Accept': 'application/json',
         },
       });
-      // opcional: si quisieras refrescar algo después, hazlo aquí
-      // sin interrumpir feedback/dialog
     } catch (err) {
       if (err.message === 'timeout' || err.code === 'ERR_CANCELED') {
         console.warn('⏳ La petición se canceló por timeout (4s).');
@@ -200,12 +240,10 @@ export default function NormalTest({ test, subject, type }) {
     } finally {
       clearTimeout(timer);
     }
-    const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
-    if (nextIdx !== null) setCurrentIndex(nextIdx);
-    else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
   };
 
   const handleNext = () => {
+    if (phase === 'FEEDBACK') return;
     if (readOnly) {
       const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
       if (nextIdx !== null) setCurrentIndex(nextIdx);
@@ -215,45 +253,45 @@ export default function NormalTest({ test, subject, type }) {
     const selectedOption = answers[currentQuestion.id];
     if (selectedOption && selectedOption !== '__timeout__') {
       handleAnswer(selectedOption);
-      setTimeout(() => {
-        setFeedback(null);
-        setCorrectAnswer(null);
-      }, 3000);
     }
   };
 
   const handlePrevious = () => {
+    if (phase === 'FEEDBACK') return;
     if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
   };
 
   const handleFinish = () => {
+    if (phase === 'FEEDBACK') return;
+
+    const isLast = currentIndex === test.test_questions.length - 1;
     const selectedOption = answers[currentQuestion.id];
-    if (selectedOption && selectedOption !== '__timeout__') {
-      // envía y muestra feedback como ya lo tenías
+
+    // Si estamos en el último y aún no es readOnly y hay selección,
+    // dispara la respuesta y marca que al terminar el feedback se muestre el resultado.
+    if (isLast && !readOnly && selectedOption && selectedOption !== '__timeout__') {
+      setFinishAfterFeedback(true);
       handleAnswer(selectedOption);
+      return; // gating se encarga de abrir el diálogo
     }
-    // calcula y abre el dialog (no bloquea el flujo)
+
+    // Caso ya respondida o sin selección: muestra resultados directo
     const stats = computeResults();
     setResultStats(stats);
     setOpenResult(true);
   };
 
-  // progreso basado en backend (respondidas reales: user_answer o is_correct !== null)
-  const answeredCount = test.test_questions.filter(q => isServerAnswered(q)).length;
-  const progressPercent = (answeredCount / test.test_questions.length) * 100;
 
-  const goToNextQuestion = () => {
-    const nextIdx = nextUnansweredIndex(test.test_questions, currentIndex);
-    if (nextIdx !== null) setCurrentIndex(nextIdx);
-    else if (currentIndex < test.test_questions.length - 1) setCurrentIndex(currentIndex + 1);
-    setFeedback(null);
-    setCorrectAnswer(null);
-    setShowFeedback(false);
-  };
+  const answeredCount = (test?.test_questions || []).filter(q => isServerAnswered(q)).length;
+  const progressPercent = (test?.test_questions?.length
+    ? (answeredCount / test.test_questions.length) * 100
+    : 0
+  );
 
   const handleCloseFeedbackDialog = () => {
     setOpenFeedbackDialog(false);
     setHoldForDialog(false);
+    // Si ya pasó el mínimo, el efecto de gating hará avanzar
   };
 
   const isImage = (v) => {
@@ -265,35 +303,30 @@ export default function NormalTest({ test, subject, type }) {
     return false;
   };
 
-  // valor visible del radio: si timeout, no marcar nada
   const selectedValue =
-    (answers[currentQuestion.id] === '__timeout__'
+    (answers[currentQuestion?.id] === '__timeout__'
       ? ''
-      : (answers[currentQuestion.id] || currentQuestion?.user_answer || '')
+      : (answers[currentQuestion?.id] || currentQuestion?.user_answer || '')
     ).toString().toLowerCase();
 
   const computeResults = () => {
-    const total = test.test_questions.length;
-
-    // Tomamos la elección local (answers) o la del back (user_answer)
-    const correct = test.test_questions.reduce((acc, q) => {
-      // ignora timeouts locales
+    const total = test?.test_questions?.length || 0;
+    const correct = (test?.test_questions || []).reduce((acc, q) => {
       const local = answers[q.id];
       const choice = (local && local !== '__timeout__')
         ? local.toUpperCase()
         : (q.user_answer || null);
-
       if (!choice) return acc;
       return acc + (choice === q.correct_answer ? 1 : 0);
     }, 0);
-
     return { correct, total };
   };
 
   const goToSubjects = () => {
-    // Ajusta la ruta a la que corresponda en tu app
     Inertia.get(route('student.subject.index'));
   };
+
+  if (!currentQuestion) return null;
 
   return (
     <>
@@ -352,7 +385,7 @@ export default function NormalTest({ test, subject, type }) {
             />
           )}
 
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" gutterBottom sx={{ marginBottom: '25px' }}>
             Pregunta {currentIndex + 1} de {test.test_questions.length}
           </Typography>
 
@@ -364,17 +397,14 @@ export default function NormalTest({ test, subject, type }) {
               sx={{ width: '100%', maxWidth: 350, maxHeight: 350, height: 'auto', display: 'block', mx: 'auto', mb: 4 }}
             />
           ) : (
-            <Typography 
-              variant="h6"
-              sx={{marginBottom:'20px'}}
-              gutterBottom>
+            <Typography variant="h6" sx={{ mb: '20px' }} gutterBottom>
               {currentQuestion.question_text}
             </Typography>
           )}
 
           <RadioGroup
             value={selectedValue}
-            onChange={readOnly ? undefined : handleAnswerChange}
+            onChange={readOnly || phase === 'FEEDBACK' ? undefined : handleAnswerChange}
           >
             {Object.entries(JSON.parse(currentQuestion.options))
               .filter(([_, value]) => value != null && value !== '')
@@ -384,9 +414,9 @@ export default function NormalTest({ test, subject, type }) {
                   <FormControlLabel
                     key={key}
                     value={key}
-                    control={<Radio disabled={readOnly} />}
-                    disabled={readOnly}
-                    sx={{ mb: 2, marginTop: '15px', ...(readOnly ? { opacity: 0.8 } : {}) }}
+                    control={<Radio disabled={readOnly || phase === 'FEEDBACK'} />}
+                    disabled={readOnly || phase === 'FEEDBACK'}
+                    sx={{ mb: 2, mt: '15px', ...(readOnly ? { opacity: 0.8 } : {}) }}
                     label={
                       isImage(valStr) ? (
                         <Box
@@ -403,36 +433,35 @@ export default function NormalTest({ test, subject, type }) {
                 );
               })}
           </RadioGroup>
+
           <Stack direction="row" justifyContent="space-between" mt={3}>
-            <Button variant="outlined" onClick={handlePrevious} disabled={currentIndex === 0}>
+            <Button
+              variant="outlined"
+              onClick={handlePrevious}
+              disabled={currentIndex === 0 || phase === 'FEEDBACK'}
+            >
               Anterior
             </Button>
             {currentIndex < test.test_questions.length - 1 ? (
-              <Button variant="contained" onClick={handleNext}>
+              <Button variant="contained" onClick={handleNext} disabled={phase === 'FEEDBACK'}>
                 Siguiente
               </Button>
             ) : (
-              <Button variant="contained" color="success" onClick={handleFinish}>
+              <Button variant="contained" color="success" onClick={handleFinish} disabled={phase === 'FEEDBACK'}>
                 Finalizar
               </Button>
             )}
           </Stack>
-          {feedback || type !== 'RAZONAMIENTO LOGICO' ? (
-            <Fade
-              in={showFeedback}
-              timeout={{ enter: 300, exit: 1000 }} // salida más suave
-              onExited={() => {
-                //setFeedback(null);
-                //setCorrectAnswer(null);
-                if (openFeedbackDialog || holdForDialog) return;
-              }}
-            >
+
+          {feedback ? (
+            <Fade in={showFeedback} timeout={{ enter: 300, exit: 300 }}>
               <Box
                 sx={{
                   mt: 2,
                   p: 2,
                   borderRadius: 2,
-                  backgroundColor: feedback === 'correct' ? '#dcfce7' : '#fee2e2',
+                  backgroundColor:
+                    feedback === 'correct' ? '#dcfce7' : '#fee2e2',
                   color: feedback === 'correct' ? '#15803d' : '#b91c1c',
                   display: 'flex',
                   alignItems: 'center',
@@ -447,17 +476,19 @@ export default function NormalTest({ test, subject, type }) {
                 <Typography variant="h6">
                   {feedback === 'correct'
                     ? '¡Muy bien! Respuesta correcta.'
-                    : `Incorrecto. La respuesta correcta era: ${correctAnswer}`}
+                    : feedback === 'timeout'
+                      ? `Tiempo agotado. La respuesta correcta era: ${correctAnswer}`
+                      : `Incorrecto. La respuesta correcta era: ${correctAnswer}`}
                 </Typography>
               </Box>
             </Fade>
-          ): null}
-          {readOnly && type !== 'RAZONAMIENTO LOGICO' ? (
+          ) : null}
+
+          {readOnly ? (
             <Typography variant="h5" sx={{ mb: 2 }}>
               Correcta: <strong>{correctKey}</strong>
             </Typography>
           ) : null}
-          
         </Paper>
       </Box>
 
@@ -474,7 +505,7 @@ export default function NormalTest({ test, subject, type }) {
         correct={resultStats.correct}
         total={resultStats.total}
         onGoToSubjects={goToSubjects}
-        showReview={type !== 'RAZONAMIENTO LOGICO' ? true : false}
+        showReview={true}
       />
     </>
   );
