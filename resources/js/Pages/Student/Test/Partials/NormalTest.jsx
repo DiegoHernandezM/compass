@@ -30,6 +30,7 @@ export default function NormalTest({ test, subject, type }) {
   const [feedback, setFeedback] = useState(null); // null | 'correct' | 'incorrect' | 'timeout'
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [feedReview, setFeedReview] = useState(false);
 
   // NUEVO: máquina de estados y tiempos mínimos
   const [phase, setPhase] = useState('ANSWERING'); // 'ANSWERING' | 'FEEDBACK'
@@ -484,7 +485,7 @@ export default function NormalTest({ test, subject, type }) {
             </Fade>
           ) : null}
 
-          {readOnly ? (
+          {feedReview ? (
             <Typography variant="h5" sx={{ mb: 2 }}>
               Correcta: <strong>{correctKey}</strong>
             </Typography>
@@ -506,6 +507,7 @@ export default function NormalTest({ test, subject, type }) {
         total={resultStats.total}
         onGoToSubjects={goToSubjects}
         showReview={true}
+        setReview={() => setFeedReview(true)}
       />
     </>
   );

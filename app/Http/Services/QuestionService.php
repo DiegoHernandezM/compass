@@ -135,9 +135,20 @@ class QuestionService
             'question_count',
             'has_time_limit',
             'time_limit',
-            'game'
+            'game',
+            'reset'
         ]);
+
+        $shouldReset = filter_var($data['reset'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $type = $this->mTypes->find($data['question_type_id']);
+
+        if($shouldReset || $type->name === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
+            $this->mQuestionSubject
+                ->where('question_type_id', $data['question_type_id'])
+                ->where('question_level_id', $data['question_level_id'])
+                ->delete();
+        }
+
         $subject = $this->mSubject->find($data['subject_id']);
         $subject->question_type = $type->name;
         $subject->save();

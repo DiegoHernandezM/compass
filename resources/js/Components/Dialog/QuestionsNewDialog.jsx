@@ -29,6 +29,7 @@ export default function QuestionsNewDialog({ open, onClose, type, subjects, onSa
   const [limitTime, setLimitTime] = useState('');
   const bypassLevels = type?.bypass_levels_and_questions === 1;
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [resetQuestions, setResetQuestions] = useState(false);
 
   useEffect(() => {
     const checkTestExists = async () => {
@@ -57,11 +58,13 @@ export default function QuestionsNewDialog({ open, onClose, type, subjects, onSa
       formData.append('question_level_id', levelId);
       formData.append('question_count', questionCount);
       formData.append('has_time_limit', hasTimeLimit ? '1' : '0');
+      formData.append('reset', resetQuestions);
       if (hasTimeLimit) {
         formData.append('time_limit', limitTime);
       }
       onSave(formData);
       // Reset
+      setResetQuestions(false);
       setSubjectId('');
       setLevelId('');
       setQuestionCount('');
@@ -205,7 +208,7 @@ export default function QuestionsNewDialog({ open, onClose, type, subjects, onSa
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setShowConfirmation(false)}>Cancelar</Button>
-            <Button onClick={() => { setShowConfirmation(false); /* continuar lógica */ }} autoFocus>
+            <Button onClick={() => { setResetQuestions(true); setShowConfirmation(false); }} autoFocus>
               Continuar
             </Button>
           </DialogActions>

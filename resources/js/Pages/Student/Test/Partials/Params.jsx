@@ -358,7 +358,6 @@ export default function Params({ test, subject }) {
                               .map(d => (
                                 <li key={d.key}>
                                   <strong>{d.key}</strong>: {String(d.expected)}
-                                  {d.got !== '' ? <> (tu: {String(d.got)})</> : ' (vacío)'}
                                 </li>
                               ))}
                           </Box>

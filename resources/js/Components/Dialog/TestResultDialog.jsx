@@ -10,7 +10,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function TestResultDialog({ open, onClose, correct = 0, total = 0, onGoToSubjects, showReview }) {
+export default function TestResultDialog({ open, setReview, onClose, correct = 0, total = 0, onGoToSubjects, showReview }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -206,7 +206,7 @@ export default function TestResultDialog({ open, onClose, correct = 0, total = 0
           }}
         >
           {showReview ? (
-            <Button variant="contained" onClick={onClose} fullWidth>
+            <Button variant="contained" onClick={() => { setReview(); onClose();}} fullWidth>
               Revisar
             </Button>
           ): null}
