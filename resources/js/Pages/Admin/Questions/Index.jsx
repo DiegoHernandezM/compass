@@ -129,7 +129,7 @@ export default function Questions() {
               <AddIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Asignar a Materias" arrow>
+          <Tooltip title="Editar tipo" arrow>
             <IconButton onClick={() => handleEditType(params.row)} color="primary">
               <EditIcon />
             </IconButton>
