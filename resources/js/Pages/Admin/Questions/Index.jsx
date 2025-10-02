@@ -249,6 +249,7 @@ export default function Questions() {
         questions={questions}
         type={selectedType}
         handleEditQuestion={handleEditQuestion}
+        handleDeleteQuestion={handleDelete}
       />
       <ImportQuestionDialog
         open={importOpen}

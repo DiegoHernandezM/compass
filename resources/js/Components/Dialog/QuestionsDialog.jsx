@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import * as Icons from '@mui/icons-material';
 
@@ -20,7 +21,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function QuestionsDialog({ open, close, questions, type, handleEditQuestion }) {
+export default function QuestionsDialog({ open, close, questions, type, handleEditQuestion, handleDeleteQuestion }) {
   const isImage = (v) => {
     if (typeof v !== 'string') return false;
     const val = v.trim().toLowerCase();
@@ -208,9 +209,23 @@ export default function QuestionsDialog({ open, close, questions, type, handleEd
       sortable: true,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
+          {/* Botón editar */}
           <Tooltip title="Editar" arrow>
-            <IconButton onClick={() => handleEditQuestion(params.row, type?.name)} color="primary">
+            <IconButton 
+              onClick={() => handleEditQuestion(params.row, type?.name)} 
+              color="primary"
+            >
               <EditIcon />
+            </IconButton>
+          </Tooltip>
+
+          {/* Botón eliminar */}
+          <Tooltip title="Eliminar" arrow>
+            <IconButton 
+              onClick={() => handleDeleteQuestion(params.row.id)} 
+              color="error"
+            >
+              <DeleteIcon />
             </IconButton>
           </Tooltip>
         </Stack>
