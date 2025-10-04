@@ -15,6 +15,9 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { Inertia } from '@inertiajs/inertia';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 const isUrl = (v) => {
   if (typeof v !== 'string') return false;
@@ -26,6 +29,7 @@ const isUrl = (v) => {
 };
 
 export default function QuestionForm({ open, onClose, question = null }) {
+  const [loading, setLoading] = useState(false);
   // --- Flags por campo basados en si el valor actual ES URL ---
   const aIsImage = useMemo(() => isUrl(question?.answer_a), [question]);
   const bIsImage = useMemo(() => isUrl(question?.answer_b), [question]);
@@ -50,10 +54,10 @@ export default function QuestionForm({ open, onClose, question = null }) {
 
   const [preview, setPreview] = useState({
     question_image: null,
-    answer_a: null,
-    answer_b: null,
-    answer_c: null,
-    answer_d: null,
+    answer_a_file: null,
+    answer_b_file: null,
+    answer_c_file: null,
+    answer_d_file: null,
     feedback_image: null,
   });
 
@@ -101,33 +105,50 @@ export default function QuestionForm({ open, onClose, question = null }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = { ...form };
+    console.log(payload)
     Inertia.post(
       route('question.update', question.id),
       { ...payload, _method: 'PUT' },
-      { forceFormData: true }
+      {
+        forceFormData: true,
+        preserveScroll: true,
+        onStart: () => setLoading(true),
+        onError:  () => setLoading(false),   // deja el drawer abierto si hay errores
+        onSuccess: () => {
+          setLoading(false);
+          onClose();                         // cierra SOLO si todo salió bien
+        },
+        onFinish: () => {},                  // no cerramos aquí para no cerrar en error
+      }
     );
-    onClose();
   };
 
-  const ImageField = ({ label, name, existingUrl }) => (
-    <Box mt={2}>
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>{label} (Imagen)</Typography>
-      {(preview[name] || existingUrl) && (
-        <Box sx={{ mb: 1, border: '1px solid', borderColor: 'divider', p: 1, borderRadius: 1 }}>
-          <img
-            src={preview[name] || existingUrl}
-            alt={`${label} actual`}
-            style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', display: 'block', margin: '0 auto' }}
-          />
-          <FormHelperText sx={{ textAlign: 'center' }}>Vista previa</FormHelperText>
-        </Box>
-      )}
-      <Button variant="outlined" component="label" fullWidth>
-        {(preview[name] || existingUrl) ? 'Reemplazar imagen' : 'Subir imagen'}
-        <input type="file" name={name} accept="image/*" hidden onChange={handleChange} />
-      </Button>
-    </Box>
-  );
+
+  // 1) Reemplaza tu ImageField por este:
+  const ImageField = ({ label, valueName, fileName, existingUrl }) => {
+    const previewUrl = preview[fileName] || existingUrl;
+    return (
+      <Box mt={2}>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>{label} (Imagen)</Typography>
+        {previewUrl && (
+          <Box sx={{ mb: 1, border: '1px solid', borderColor: 'divider', p: 1, borderRadius: 1 }}>
+            <img
+              src={previewUrl}
+              alt={`${label} actual`}
+              style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', display: 'block', margin: '0 auto' }}
+            />
+            <FormHelperText sx={{ textAlign: 'center' }}>Vista previa</FormHelperText>
+          </Box>
+        )}
+        <Button variant="outlined" component="label" fullWidth>
+          {previewUrl ? 'Reemplazar imagen' : 'Subir imagen'}
+          <input type="file" name={fileName} accept="image/*" hidden onChange={handleChange} />
+        </Button>
+      </Box>
+    );
+  };
+
+
 
   const TextFieldSimple = ({ label, name, required = true }) => (
     <TextField
@@ -137,7 +158,6 @@ export default function QuestionForm({ open, onClose, question = null }) {
       value={form[name] || ''}
       onChange={handleChange}
       margin="normal"
-      required={required}
       style={{ marginTop: "10px" }}
     />
   );
@@ -145,7 +165,15 @@ export default function QuestionForm({ open, onClose, question = null }) {
   // Render según URL o texto
   const renderAnswer = (keyLabel, keyName, isImage, existingUrl) => {
     return isImage
-      ? <ImageField key={keyName} label={keyLabel} name={keyName} existingUrl={existingUrl} />
+      ? (
+        <ImageField
+          key={keyName}
+          label={keyLabel}
+          valueName={keyName}                 // p.ej. 'answer_a'
+          fileName={`${keyName}_file`}        // => 'answer_a_file'
+          existingUrl={existingUrl}
+        />
+      )
       : <TextFieldSimple key={keyName} label={keyLabel} name={keyName} />;
   };
 
@@ -156,6 +184,12 @@ export default function QuestionForm({ open, onClose, question = null }) {
       onClose={onClose}
       sx={{ zIndex: (theme) => theme.zIndex.drawer + 1000 }}
     >
+      <Backdrop
+        open={loading}
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 2000 }}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Box sx={{ width: 440, p: 3 }} role="presentation">
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">
@@ -167,14 +201,15 @@ export default function QuestionForm({ open, onClose, question = null }) {
         <Box component="form" onSubmit={handleSubmit} mt={2}>
           {/* Pregunta */}
           {qIsImage ? (
-            <ImageField
-              label="Pregunta"
-              name="question_image"
-              existingUrl={question?.question_image || null}
-            />
-          ) : (
-            <TextFieldSimple label="Pregunta" name="question" />
-          )}
+              <ImageField
+                label="Pregunta"
+                valueName="question"            // no es crítico, pero lo dejamos semántico
+                fileName="question_image"       // <-- clave: así coincide con preview['question_image']
+                existingUrl={question?.question_image || null}
+              />
+            ) : (
+              <TextFieldSimple label="Pregunta" name="question" />
+            )}
 
           <Stack spacing={1}>
             {renderAnswer('Respuesta A', 'answer_a', aIsImage, aIsImage ? question?.answer_a : null)}
@@ -236,8 +271,22 @@ export default function QuestionForm({ open, onClose, question = null }) {
             </Button>
           </Box>
 
-          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3 }}>
-            Actualizar
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 3 }}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                Guardando...
+              </>
+            ) : (
+              'Actualizar'
+            )}
           </Button>
         </Box>
       </Box>

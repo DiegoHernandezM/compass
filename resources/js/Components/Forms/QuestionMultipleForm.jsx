@@ -13,9 +13,11 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { Inertia } from '@inertiajs/inertia';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 
-export default function QuestionForm({ open, onClose, question = null }) {
-  console.log(question);
+export default function QuestionMultipleForm({ open, onClose, question = null }) {
+  const [loading, setLoading] = useState(false);  
   const [form, setForm] = useState({
     question: '',
     option_a: '',
@@ -43,15 +45,32 @@ export default function QuestionForm({ open, onClose, question = null }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = { ...form };
-    Inertia.post(route('question-multitask.update', question.id), {
-      ...payload,
-      _method: 'PUT',
-    });
-    onClose();
+    console.log(payload)
+    Inertia.post(
+      route('question-multitask.update', question.id),
+      { ...payload, _method: 'PUT' },
+      {
+        forceFormData: true,
+        preserveScroll: true,
+        onStart: () => setLoading(true),
+        onError:  () => setLoading(false),   // deja el drawer abierto si hay errores
+        onSuccess: () => {
+          setLoading(false);
+          onClose();                         // cierra SOLO si todo salió bien
+        },
+        onFinish: () => {},                  // no cerramos aquí para no cerrar en error
+      }
+    );
   };
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1000 }}>
+       <Backdrop
+        open={loading}
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 2000 }}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Box sx={{ width: 400, p: 3 }} role="presentation">
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">
@@ -100,8 +119,22 @@ export default function QuestionForm({ open, onClose, question = null }) {
               </Select>
             )}
           </FormControl>
-          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-            Actualizar
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 3 }}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                Guardando...
+              </>
+            ) : (
+              'Actualizar'
+            )}
           </Button>
         </Box>
       </Box>

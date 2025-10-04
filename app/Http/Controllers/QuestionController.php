@@ -74,10 +74,10 @@ class QuestionController extends Controller
 
     }
 
-    public function updateMultitask(MultitiaskQuestionRequest $request, $id)
+    public function updateMultitask(Request $request, $id)
     {
          try {
-            $this->service->updateMultitiaskQuestion($id, $request->validated());
+            $this->service->updateMultitiaskQuestion($id, $request->all());
             return redirect()->back()->with('success', 'Pregunta actualizada.');
         } catch(\Exception $e) {
             return redirect()->back()->with('error', 'Error al actualizar la pregunta. ' .$e->getMessage());
