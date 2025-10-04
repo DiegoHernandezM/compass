@@ -139,11 +139,19 @@ export default function Questions() {
     },
   ];
 
-  const handleDelete = (id) => {
-    if (confirm('¿Estás seguro de eliminar esta pregunta?')) {
-      Inertia.delete(route('question.destroy', id));
-    }
+ const handleDelete = (id) => {
+    if (!confirm('¿Estás seguro de eliminar esta pregunta?')) return;
+
+    Inertia.delete(route('question.destroy', id), {
+      preserveScroll: true,
+      onStart: () => { setLoading(true); },
+      onError: () => { setLoading(false); },
+      onSuccess: () => { setLoading(false); }
+      // o, si prefieres centralizar el reset:
+      // onFinish: () => { setLoading(false); setDeletingId(null); },
+    });
   };
+
 
   const hancleSaveQuestionSubject = (formData) => {
     setLoading(true);

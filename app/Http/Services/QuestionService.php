@@ -300,11 +300,33 @@ class QuestionService
 
     public function delete($id)
     {
-        $question = $this->model->find($id);
-        if ($question->feedback_image) {
-            Storage::disk('s3')->delete($question->feedback_image);
-        }
-        $question->delete();
+        $question = $this->model->findOrFail($id);
+
+        // 1) Reunimos las posibles keys de S3 ANTES de borrar en BD
+        $keys = $this->collectQuestionS3Keys($question); // array de keys únicos (solo imágenes)
+
+        // 2) Borramos en BD dentro de transacción
+        DB::transaction(function () use ($question) {
+            // Si tienes relación con test_questions
+            $this->mTestQuestion->where('question_id', $question->id)->delete();
+
+            // Si usas SoftDeletes y quieres borrado duro: $question->forceDelete();
+            $question->delete();
+        });
+
+        // 3) Tras el commit, borramos en S3 únicamente si ya no hay referencias
+        DB::afterCommit(function () use ($keys) {
+            foreach ($keys as $key) {
+                if (!$this->isS3KeyInUse($key)) {
+                    try {
+                        Storage::disk('s3')->delete($key);
+                    } catch (\Throwable $e) {
+                        // Log opcional
+                        \Log::warning("No se pudo borrar en S3: {$key}", ['err' => $e->getMessage()]);
+                    }
+                }
+            }
+        });
     }
 
     public function allSaveTest($request)
@@ -771,4 +793,67 @@ class QuestionService
         return (bool)preg_match('#^https?://#i', $s);
     }
 
+    /**
+     * Obtiene todas las posibles keys de S3 (pregunta, respuestas y feedback) de una pregunta.
+     * Devuelve solo archivos de imagen con key “limpia” (no URL) y sin duplicados.
+     */
+    private function collectQuestionS3Keys($q): array
+    {
+        $candidates = [
+            $q->question_image,
+            $q->feedback_image,
+            $q->answer_a,
+            $q->answer_b,
+            $q->answer_c,
+            $q->answer_d,
+        ];
+
+        $toKey = function ($v) {
+            if (!$v) return null;
+            // Si viene URL, obtenemos el path como key; si ya es key, la normalizamos
+            if (is_string($v) && str_starts_with($v, 'http')) {
+                $parts = parse_url($v);
+                $path  = $parts['path'] ?? '';
+                $key   = ltrim($path, '/');
+            } else {
+                $key = ltrim((string)$v, '/');
+            }
+            // Solo aceptamos imágenes
+            if (!preg_match('/\.(png|jpe?g|gif|webp|svg)$/i', $key)) return null;
+            return $key;
+        };
+
+        $keys = [];
+        foreach ($candidates as $val) {
+            $k = $toKey($val);
+            if ($k) $keys[$k] = true; // set-like para evitar duplicados
+        }
+
+        return array_keys($keys);
+    }
+
+    /**
+     * Verifica si la key de S3 sigue referenciada por OTRA pregunta.
+     * Busca tanto por key directa como (por si acaso) por la URL pública.
+     */
+    private function isS3KeyInUse(string $key): bool
+    {
+        // Si guardas URL en BD, esta línea ayuda a cubrir ambos casos
+        $url = Storage::disk('s3')->url($key);
+
+        return $this->model->where(function ($q) use ($key, $url) {
+            $q->orWhere('question_image', $key)
+            ->orWhere('question_image', $url)
+            ->orWhere('feedback_image', $key)
+            ->orWhere('feedback_image', $url)
+            ->orWhere('answer_a', $key)
+            ->orWhere('answer_a', $url)
+            ->orWhere('answer_b', $key)
+            ->orWhere('answer_b', $url)
+            ->orWhere('answer_c', $key)
+            ->orWhere('answer_c', $url)
+            ->orWhere('answer_d', $key)
+            ->orWhere('answer_d', $url);
+        })->exists();
+    }
 }
