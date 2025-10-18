@@ -5,6 +5,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TestQuestionController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\StudentStatsController;
+use App\Http\Controllers\InstructionsController;
 
 Route::get('/student/profile', [StudentController::class, 'getInfoStudent'])->name('student.profile');
 Route::get('/student/subjects', [SubjectController::class, 'getSubjects'])->name('student.subject.index');
@@ -21,3 +22,12 @@ Route::get('/student/progress', [StudentStatsController::class,'index'])->name('
 
 // Test answers
 Route::post('/student/answer', [TestController::class,'saveAnswerNormal'])->name('answer.save');
+
+Route::get('/question/instructions', [InstructionsController::class, 'index'])
+    ->name('question.instructions.index'); // listar (JSON)
+
+Route::get('/question/instructions/{instruction}', [InstructionsController::class, 'show'])
+    ->name('question.instructions.show'); // ver/stream del PDF en el navegador
+
+Route::get('/question/instructions/{instruction}/download', [InstructionsController::class, 'download'])
+    ->name('question.instructions.download'); // descargar el PDF

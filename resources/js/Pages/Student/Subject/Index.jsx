@@ -6,14 +6,41 @@ import {
   Grid,
   Card,
   Button,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Tooltip
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 export default function Subjects() {
   const { props } = usePage();
   const { subjects } = props;
-  console.log(subjects);
+  
+  const [instruction, setInstruction] = useState(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
+
+  useEffect(() => {
+    // Cargar el instructivo más reciente (o primero de la lista)
+    const fetchInstruction = async () => {
+      try {
+        const { data } = await axios.get(route('question.instructions.index'));
+        // data: [{id, original_name, path, created_at}, ...]
+        if (Array.isArray(data) && data.length > 0) {
+          setInstruction(data[0]);
+        }
+      } catch (e) {
+        console.error('No se pudo cargar el instructivo:', e);
+      }
+    };
+    fetchInstruction();
+  }, []);
 
   const handleStartTest = async (subject) => {
     try {
@@ -41,6 +68,34 @@ export default function Subjects() {
           px: { xs: 2, sm: 4, md: 6 },
         }}
       >
+        {instruction && (
+          <Box
+            sx={{
+              position: 'sticky',
+              top: 12,
+              zIndex: 10,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              maxWidth: '1200px',
+              mx: 'auto',
+            }}
+          >
+            <Tooltip title={`Ver instructivo: ${instruction.original_name}`} arrow>
+              <Button
+                variant="contained"
+                startIcon={<PictureAsPdfIcon />}
+                onClick={() => setPdfOpen(true)}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '999px',
+                }}
+              >
+                Instructivo
+              </Button>
+            </Tooltip>
+          </Box>
+        )}
         <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
           <Grid container spacing={4} justifyContent="center">
             {subjects.map((subject) => (
@@ -229,6 +284,33 @@ export default function Subjects() {
             ))}
           </Grid>
         </Box>
+        <Dialog
+          open={pdfOpen}
+          onClose={() => setPdfOpen(false)}
+          fullWidth
+          maxWidth="md"
+          PaperProps={{ sx: { height: { xs: '85vh', md: '90vh' } } }}
+        >
+          <DialogTitle sx={{ pr: 6 }}>
+            {instruction?.original_name || 'Instructivo'}
+            <IconButton
+              aria-label="cerrar"
+              onClick={() => setPdfOpen(false)}
+              sx={{ position: 'absolute', right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ p: 0 }}>
+            {instruction && (
+              <iframe
+                title="Instructivo PDF"
+                src={route('question.instructions.show', instruction.id)}
+                style={{ border: 'none', width: '100%', height: '100%' }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </Box>
     </StudentLayout>
   );

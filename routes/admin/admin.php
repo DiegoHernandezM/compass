@@ -8,6 +8,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\QuestionTypeController;
 use App\Http\Controllers\PersonalReportController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\InstructionsController;
 
 // Dashboard Routes for Admin
 Route::get('/dashboard', function() {
@@ -58,12 +59,14 @@ Route::put('/admin/question-multitask/update/{id}', [QuestionController::class, 
 Route::post('/admin/question/savetest', [QuestionController::class,'generateTest'])->name('question.test');
 Route::get('/admin/question/check-existence/{subjectId}/{levelId}/{typeId}', [QuestionController::class, 'checkIfTestExists']);
 
-
-
 Route::get('/admin/personal-reports', [PersonalReportController::class, 'index'])
         ->name('personal-reports.index');
 Route::post('/admin/personal-reports/import', [PersonalReportController::class, 'store'])
     ->name('personal-reports.import');
 Route::get('/personal-reports/export-dashboard', PersonalReportController::class)
     ->name('personal-reports.export-dashboard');
+
+Route::post('/question/instructions', [InstructionsController::class, 'store'])
+    ->name('question.instructions'); // <- para tu Inertia.post(route('question.instructions'), ...)
+
 

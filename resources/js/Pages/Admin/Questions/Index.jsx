@@ -21,6 +21,7 @@ import SuccessAlert from '@/Components/SuccessAlert';
 import ValidationErrorAlert from '@/Components/ValidationErrorAlert';
 import QuestionsDialog from '@/Components/Dialog/QuestionsDialog';
 import TypeForm from '@/Components/Forms/TypeForm';
+import ImportPdfDialog from '@/Components/Dialog/ImportPdfDialog';
 
 export default function Questions() {
   const { errors, flash } = usePage().props;
@@ -40,6 +41,7 @@ export default function Questions() {
   const [openEditTypeDialog, setOpenEditTypeDialog] = useState(false);
   const [typeForm, setTypeForm] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
 
   useEffect(() => {
     if (successMessage) {
@@ -90,6 +92,10 @@ export default function Questions() {
   const handleOpenImport = () => {
     setImportOpen(true);
   };
+
+  const handleOpenInstructions = () => {
+    setInstructionsOpen(true);
+  }
 
   const handleExport = (typeId, levelId) => {
     setLoading(true);
@@ -216,6 +222,14 @@ export default function Questions() {
           >
             Importar Cuestionario
           </Button>
+          <Button
+            sx={{ marginLeft: "10px" }}
+            variant="contained"
+            color="primary"
+            onClick={handleOpenInstructions}
+          >
+            Importar instrucciones
+          </Button>
         </Box>
 
         <Box sx={{ height: 500, width: '100%' }}>
@@ -275,6 +289,22 @@ export default function Questions() {
         }}
         handleExport={handleExport}
       />
+
+      <ImportPdfDialog
+        open={instructionsOpen}
+        onClose={() => setInstructionsOpen(false)}
+        loading={loading}
+        onImport={(formData) => {
+          setLoading(true);
+          Inertia.post(route('question.instructions'), formData, {
+            forceFormData: true,
+            onFinish: () => {
+              setLoading(false);
+            },
+          });
+        }}
+      />
+
       <TypeForm open={openEditTypeDialog} onClose={() => setOpenEditTypeDialog(false)} type={selectedType} onSubmit={handleUpdateType} />
     </AuthenticatedLayout>
   );
