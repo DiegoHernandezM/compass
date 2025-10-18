@@ -1,17 +1,35 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Inertia } from '@inertiajs/inertia';
 
-import { Box, CssBaseline, BottomNavigation, BottomNavigationAction,Menu, MenuItem,  Paper, AppBar, Toolbar, Typography, IconButton } from '@mui/material';
+import {
+  Box,
+  CssBaseline,
+  BottomNavigation,
+  BottomNavigationAction,
+  Menu,
+  MenuItem,
+  Paper,
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Tooltip,
+} from '@mui/material';
+
 import HomeIcon from '@mui/icons-material/Home';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SettingsIcon from '@mui/icons-material/Settings';
 import InsightsIcon from '@mui/icons-material/Insights';
 import LogoutIcon from '@mui/icons-material/Logout';
-import PersonIcon from '@mui/icons-material/Person';
+import BarcodeReaderIcon from '@mui/icons-material/BarcodeReader';
+import CloseIcon from '@mui/icons-material/Close';
 
+import axios from 'axios';
 import ErrorAlert from '@/Components/ErrorAlert';
-
 
 export default function StudentLayout({ children }) {
   const drawerWidth = 0;
@@ -26,8 +44,11 @@ export default function StudentLayout({ children }) {
   const errorMessage = usePage().props?.flash?.error ?? null;
   const [openError, setOpenError] = useState(!!errorMessage);
 
+  // Estado para instructivo
+  const [instruction, setInstruction] = useState(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
-  // Aqui van las url para el AppBar
+  // Títulos del AppBar
   const pageTitles = {
     '/student-dashboard': 'DASHBOARD',
     '/student/subjects': 'MATERIAS',
@@ -41,6 +62,7 @@ export default function StudentLayout({ children }) {
     }
   };
   const handleClose = () => setAnchorEl(null);
+
   const navActionStyle = (disabled) => ({
     color: disabled ? '#b0b0b0' : 'white',
     pointerEvents: disabled ? 'none' : 'auto',
@@ -55,6 +77,31 @@ export default function StudentLayout({ children }) {
     opacity: disabled ? 0.5 : 1,
     transition: 'none',
   });
+
+  // Cargar instructivo solo cuando estamos en /student/subjects
+  useEffect(() => {
+    let cancel = false;
+
+    const fetchInstruction = async () => {
+      if (url !== '/student/subjects') {
+        setInstruction(null);
+        return;
+      }
+      try {
+        const { data } = await axios.get(route('question.instructions.index'));
+        if (!cancel && Array.isArray(data) && data.length > 0) {
+          setInstruction(data[0]); // el más reciente
+        }
+      } catch (e) {
+        console.error('No se pudo cargar el instructivo:', e);
+      }
+    };
+
+    fetchInstruction();
+    return () => {
+      cancel = true;
+    };
+  }, [url]);
 
   return (
     <Box sx={{ pb: 7 }}>
@@ -82,25 +129,47 @@ export default function StudentLayout({ children }) {
         >
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="h6" noWrap color='white'>
+              <Typography variant="h6" noWrap color="white">
                 {pageTitles[url] || 'ATP COMPASS'}
               </Typography>
             </Box>
-            <div>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {/* Ícono visible solo en /student/subjects y si hay archivo */}
+              {url === '/student/subjects' && instruction && (
+                <Tooltip title={`Ver instructivo: ${instruction.original_name}`} arrow>
+                  <IconButton
+                    onClick={() => setPdfOpen(true)}
+                    sx={{
+                      color: 'white',
+                      bgcolor: '#e53935',
+                      '&:hover': { bgcolor: '#c62828' },
+                      borderRadius: '10px',
+                      p: 1,
+                    }}
+                  >
+                    <BarcodeReaderIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+
               <IconButton onClick={handleMenu} color="inherit" style={{ color: 'white' }}>
                 <SettingsIcon />
               </IconButton>
               <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
                 <MenuItem disabled>{user?.name}</MenuItem>
-                <MenuItem component={Link} href={route('student.profile')}>Perfil</MenuItem>
+                <MenuItem component={Link} href={route('student.profile')}>
+                  Perfil
+                </MenuItem>
                 <Link href={route('logout')} method="post" as="button">
                   <MenuItem>Salir</MenuItem>
                 </Link>
               </Menu>
-            </div>
+            </Box>
           </Toolbar>
         </AppBar>
       )}
+
       <CssBaseline />
       <Box
         component="main"
@@ -112,6 +181,7 @@ export default function StudentLayout({ children }) {
       >
         {children}
       </Box>
+
       <Paper
         sx={{
           position: 'fixed',
@@ -119,11 +189,11 @@ export default function StudentLayout({ children }) {
           left: 0,
           right: 0,
           borderTop: '2px solid #e0e0e0',
-          zIndex: (theme) => theme.zIndex.drawer + 1000 
+          zIndex: (theme) => theme.zIndex.drawer + 1000,
         }}
         elevation={3}
       >
-        <Box sx={{ overflowX: 'auto'}}>
+        <Box sx={{ overflowX: 'auto' }}>
           <BottomNavigation
             disabled={subscriptionExpired}
             showLabels
@@ -157,17 +227,6 @@ export default function StudentLayout({ children }) {
               href="/student/subjects"
               sx={navActionStyle(subscriptionExpired)}
             />
-            {/* 
-            <BottomNavigationAction
-              disabled={subscriptionExpired}
-              label="Simulacro"
-              value="/student/mock-test"
-              icon={<QuizIcon />}
-              component={Link}
-              href="/student/mock-test"
-              sx={navActionStyle(subscriptionExpired)}
-            />
-            */}
             <BottomNavigationAction
               disabled={subscriptionExpired}
               label="Resultados"
@@ -177,17 +236,6 @@ export default function StudentLayout({ children }) {
               href="/student/progress"
               sx={navActionStyle(subscriptionExpired)}
             />
-            {/*
-            <BottomNavigationAction
-              disabled={subscriptionExpired}
-              label="Perfil"
-              value="/profile"
-              icon={<PersonIcon />}
-              component={Link}
-              href="/student/profile"
-              sx={navActionStyle(subscriptionExpired)}
-            />
-            */}
             <BottomNavigationAction
               label="Salir"
               value="logout"
@@ -203,6 +251,35 @@ export default function StudentLayout({ children }) {
           </BottomNavigation>
         </Box>
       </Paper>
+
+      {/* Diálogo para visualizar el PDF */}
+      <Dialog
+        open={pdfOpen}
+        onClose={() => setPdfOpen(false)}
+        fullWidth
+        maxWidth="md"
+        PaperProps={{ sx: { height: { xs: '85vh', md: '90vh' } } }}
+      >
+        <DialogTitle sx={{ pr: 6 }}>
+          {instruction?.original_name || 'Instructivo'}
+          <IconButton
+            aria-label="cerrar"
+            onClick={() => setPdfOpen(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 0 }}>
+          {instruction && (
+            <iframe
+              title="Instructivo PDF"
+              src={route('question.instructions.show', instruction.id)}
+              style={{ border: 'none', width: '100%', height: '100%' }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

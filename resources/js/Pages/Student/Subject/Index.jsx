@@ -67,35 +67,7 @@ export default function Subjects() {
           py: 4,
           px: { xs: 2, sm: 4, md: 6 },
         }}
-      >
-        {instruction && (
-          <Box
-            sx={{
-              position: 'sticky',
-              top: 12,
-              zIndex: 10,
-              display: 'flex',
-              justifyContent: 'flex-end',
-              maxWidth: '1200px',
-              mx: 'auto',
-            }}
-          >
-            <Tooltip title={`Ver instructivo: ${instruction.original_name}`} arrow>
-              <Button
-                variant="contained"
-                startIcon={<PictureAsPdfIcon />}
-                onClick={() => setPdfOpen(true)}
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  borderRadius: '999px',
-                }}
-              >
-                Instructivo
-              </Button>
-            </Tooltip>
-          </Box>
-        )}
+      >       
         <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
           <Grid container spacing={4} justifyContent="center">
             {subjects.map((subject) => (
