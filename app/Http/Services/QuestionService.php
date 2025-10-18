@@ -23,6 +23,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 
 class QuestionService
 {
@@ -52,6 +53,18 @@ class QuestionService
         return $this->model->get();
     }
 
+    public function getAllPaginated(int $perPage = 25)
+    {
+        return $this->model
+            ->with([
+                'subjects:id,name',
+                'type:id,name',
+                'level:id,name'
+            ])
+            ->latest('id')
+            ->paginate($perPage);
+    }
+
     public function getTypes()
     {
         return $this->mTypes->with([
@@ -70,6 +83,50 @@ class QuestionService
                 });
             }
             return $type;
+        });
+    }
+
+    public function getTypesLight()
+    {
+        return Cache::remember('types-with-counts-v2', 300, function () {
+            return $this->mTypes
+                ->select(['id','name','description'])
+                ->with([
+                    'levels' => function ($q) {
+                        $q->select(['id','name','description','question_type_id']) // <- si NO la usas en el front, puedes omitirla
+                        ->withCount(['questions','multitaskQuestions']);
+                    }
+                ])
+                ->withCount(['questions','multitaskQuestions'])
+                ->orderBy('name')
+                ->get()
+                ->map(function ($type) {
+                    // Ajuste especial para MULTITASKING
+                    if ($type->name === 'MULTITASKING') {
+                        $type->questions_count = intdiv(($type->multitask_questions_count ?? 0), 2);
+                        $type->levels->each(function ($level) {
+                            $level->questions_count = intdiv(($level->multitask_questions_count ?? 0), 2);
+                        });
+                    }
+
+                    // Recorta el payload (opcional)
+                    $levels = $type->levels->map(function ($l) {
+                        return [
+                            'id' => $l->id,
+                            'name' => $l->name,
+                            'type_id' => $l->question_type_id, // solo si lo necesitas en el front
+                            'questions_count' => (int) ($l->questions_count ?? 0),
+                        ];
+                    });
+
+                    return [
+                        'id' => $type->id,
+                        'name' => $type->name,
+                        'description' => $type->description,
+                        'questions_count' => (int) ($type->questions_count ?? 0),
+                        'levels' => $levels,
+                    ];
+                });
         });
     }
 

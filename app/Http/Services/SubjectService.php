@@ -21,6 +21,11 @@ class SubjectService
     {
         return $this->model->withCount('questions')->get();
     }
+    
+    public function getAllLight()
+    {
+        return $this->model->select(['id','name'])->withCount('questions')->orderBy('name')->get();
+    }
 
     public function createSubject($data)
     {
