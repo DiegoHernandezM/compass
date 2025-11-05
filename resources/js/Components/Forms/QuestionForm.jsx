@@ -120,6 +120,7 @@ export default function QuestionForm({ open, onClose, question = null }) {
         },
         onFinish: () => {},                  // no cerramos aquí para no cerrar en error
       }
+        
     );
   };
 

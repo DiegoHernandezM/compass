@@ -7,6 +7,7 @@ use App\Http\Services\QuestionService;
 use App\Http\Services\SubjectService;
 use App\Http\Requests\QuestionRequest;
 use App\Http\Requests\MultitaskQuestionRequest;
+use App\Http\Requests\UpdateQuestionRequest;
 use Inertia\Inertia;
 use App\Exports\QuestionsExport;
 use App\Imports\QuestionsImport;
@@ -28,9 +29,10 @@ class QuestionController extends Controller
     public function index()
     {
         try {
-            $questions = $this->service->getAll();
+            //$questions = $this->service->getAll();
             $subjects = $this->subjectService->getAll();
             $types = $this->service->getTypes();
+            $questions = [];
             return Inertia::render('Admin/Questions/Index', [
                 'questions' => $questions,
                 'subjects' => $subjects,
@@ -63,7 +65,7 @@ class QuestionController extends Controller
 
     }
 
-    public function update(QuestionRequest $request, $id)
+    public function update(UpdateQuestionRequest $request, $id)
     {
         try {
             $this->service->update($id, $request->validated());

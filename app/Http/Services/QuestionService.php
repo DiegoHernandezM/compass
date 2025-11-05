@@ -167,12 +167,12 @@ class QuestionService
             }
 
             $basePath = Str::finish(trim($this->getTypePath($type->name, true)), '/');
-            if($basePath != null){
+            if ($basePath !== null) {
                 // Carpetas base (como en tu importador)
                 $basePath = Str::finish(trim($this->getTypePath($type->name, true)), '/');
-                $qFolder  = $basePath . 'questions'; 
-                $aFolder  = $basePath . 'questions'; 
-                $fbFolder = $basePath . 'feedback'; 
+                $qFolder  = $basePath . 'questions';
+                $aFolder  = $basePath . 'questions';
+                $fbFolder = $basePath . 'feedback';
 
                 // === Helpers ===
                 $hashText = function (?string $txt): ?string {
@@ -185,7 +185,6 @@ class QuestionService
                     $ext  = strtolower($file->getClientOriginalExtension() ?: 'bin');
                     $hash = hash_file('sha256', $file->getRealPath());
                     $name = "{$hash}.{$ext}";
-                    // Guardamos por key (consistente con importador); si prefieres URL, cambia el retorno abajo.
                     $key  = Storage::disk('s3')->putFileAs($folder, $file, $name);
                     if (!$key) { // fallback raro
                         $key = ($folder ? "{$folder}/" : '').$name;
@@ -201,7 +200,6 @@ class QuestionService
 
                 $s3KeyFromUrl = function (?string $url): ?string {
                     if (!$url || !str_starts_with($url, 'http')) return $url; // ya es key
-                    // intenta extraer lo que sigue al dominio/bucket
                     $parts = parse_url($url);
                     return $parts['path'] ?? null ? ltrim($parts['path'], '/') : null;
                 };
@@ -209,36 +207,32 @@ class QuestionService
                 // Track si cambió algo que afecte firma/hashes
                 $changedAnswer = ['a' => false, 'b' => false, 'c' => false, 'd' => false];
                 $fbHash = ''; // para la firma (igual que importador)
-
             }
 
-            
             // === PREGUNTA texto/imagen ===
             if (!empty($data['question_image']) && $data['question_image'] instanceof \Illuminate\Http\UploadedFile) {
                 // Subieron una nueva imagen de pregunta
                 $stored = $storeFileHashed($data['question_image'], $qFolder);
 
-                // Si antes había imagen y guardas key/URL, decide si la borras (opcional):
+                // Si antes había imagen, bórrala (opcional)
                 if ($question->question_image) {
-                     $oldKey = $s3KeyFromUrl($question->question_image);
-                     if ($oldKey) Storage::disk('s3')->delete($oldKey);
+                    $oldKey = $s3KeyFromUrl($question->question_image);
+                    if ($oldKey) Storage::disk('s3')->delete($oldKey);
                 }
 
-                $question->question_image = $stored['key'];   // o $stored['url'] si guardas URL
+                $question->question_image = $stored['key'];   // o $stored['url']
                 $question->question       = null;
                 $question->q_hash         = $stored['hash'];  // IMAGEN => hash binario
-            } elseif (array_key_exists('question', $data)) {
-                // Enviaron texto (aunque sea para limpiar). Si hay texto no vacío => modo texto
-                $text = (string)$data['question'];
 
+            } elseif (array_key_exists('question', $data)) {
+                // Solo cambia a TEXTO si llega texto REAL; si llega null/'' NO borres lo existente
+                $text = (string)($data['question'] ?? '');
                 if (trim($text) !== '') {
                     $question->question       = $text;
                     $question->question_image = null;
-                    $question->q_hash         = null;         // TEXTO => sin q_hash (indicador de no-imagen)
-                } else {
-                    $question->question_image = null;
-                    $question->q_hash         = null;
+                    $question->q_hash         = null; // TEXTO => sin q_hash
                 }
+                // Si viene vacío, no tocar question_image ni q_hash (conserva lo anterior)
             }
 
             // === RESPUESTAS A–D (texto o archivo) ===
@@ -250,7 +244,7 @@ class QuestionService
                 // 1) Si llega archivo => subir, setear URL/key y hash de archivo
                 if (!empty($data[$fileKey]) && $data[$fileKey] instanceof UploadedFile) {
                     $stored = $storeFileHashed($data[$fileKey], $aFolder);
-                    $question->{$textKey} = $stored['key']; // o $stored['url'] si almacenas URL
+                    $question->{$textKey}   = $stored['key']; // o $stored['url']
                     $question->{$L.'_hash'} = $stored['hash'];
                     $changedAnswer[$L] = true;
                     continue;
@@ -258,9 +252,8 @@ class QuestionService
 
                 // 2) Si llega texto explícito => setear texto y hash de texto
                 if (array_key_exists($textKey, $data)) {
-                    $question->{$textKey} = $data[$textKey]; // "1","2","Texto", o incluso una URL si así lo decides
-                    // Si decides que *_hash indique contenido (no solo imagen), calcula hash del texto:
-                    $question->{$L.'_hash'} = $this->looksLikeUrl($data[$textKey] ?? '') 
+                    $question->{$textKey} = $data[$textKey]; // "1","2","Texto", etc.
+                    $question->{$L.'_hash'} = $this->looksLikeUrl($data[$textKey] ?? '')
                         ? ($question->{$L.'_hash'} ?? null) // si es URL y no cambiaste archivo, conserva hash previo
                         : $hashText($data[$textKey]);
                     $changedAnswer[$L] = true;
@@ -269,15 +262,12 @@ class QuestionService
 
             // === FEEDBACK IMAGE (opcional) ===
             if (!empty($data['feedback_image']) && $data['feedback_image'] instanceof UploadedFile) {
-                // Borra anterior (ojo si guardaste URL)
                 if ($question->feedback_image) {
                     $oldKey = $s3KeyFromUrl($question->feedback_image);
-                    if ($oldKey) {
-                        Storage::disk('s3')->delete($oldKey);
-                    }
+                    if ($oldKey) Storage::disk('s3')->delete($oldKey);
                 }
                 $stored = $storeFileHashed($data['feedback_image'], $fbFolder);
-                $question->feedback_image = $stored['key']; // o URL si así lo usas
+                $question->feedback_image = $stored['key']; // o URL
                 $fbHash = $stored['hash']; // para la firma
             }
 
@@ -293,16 +283,12 @@ class QuestionService
             }
 
             // === FIRMAS (igual idea que importador) ===
-            // baseSig = sha256(q_hash | typeId | levelId)
             $baseSig = hash('sha256', implode('|', [
                 (string)($question->q_hash ?? ''),
                 (string)$question->question_type_id,
                 (string)$question->question_level_id,
             ]));
 
-            // Si no cambió feedback_image en esta actualización y quieres considerar la anterior,
-            // puedes dejar $fbHash='' como en el importador (que no la persistía), o calcularla
-            // leyendo el binario (costoso). Mantengo '' por simplicidad.
             $signature = hash('sha256', implode('|', [
                 $baseSig,
                 (string)$question->answer_a,
@@ -325,23 +311,31 @@ class QuestionService
                     'c' => $question->answer_c,
                     'd' => $question->answer_d,
                 ];
-                $testQuestion->question_text   = $question->question ?: $question->question_image;
+
+                // Fuente para question_text: preferir texto, luego imagen
+                $newQuestionText = $question->question ?: $question->question_image;
+
+                // Si por cualquier motivo ambas están vacías, conserva lo que ya tenía (NOT NULL)
+                if ($newQuestionText === null) {
+                    $newQuestionText = $testQuestion->question_text;
+                }
+
+                $testQuestion->question_text   = $newQuestionText;
                 $testQuestion->options         = json_encode($options);
                 $testQuestion->correct_answer  = $question->correct_answer;
                 $testQuestion->feedback_text   = $question->feedback_text;
                 $testQuestion->feedback_image  = $question->feedback_image;
+
                 if (!empty($data['time'])) {
                     $testQuestion->limit_time = $data['time'];
                 }
+
                 $testQuestion->save();
             }
 
             return $question;
         });
     }
-
-
-
 
     public function updateMultitiaskQuestion($id, $request)
     {
