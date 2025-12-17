@@ -33,7 +33,41 @@ export default function PersonalReportsIndex() {
   const [uploading, setUploading] = useState(false);
   const [textFilter, setTextFilter] = useState('');
   const [ageFilter, setAgeFilter] = useState('all'); // '1w' | '2w' | '3w' | '1m' | 'gt1m' | 'all'
-  const parseDate = (v) => (v ? new Date(v) : null);
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const parseDate = (v) => {
+    if (!v) return null;
+
+    // Si ya es Date
+    if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+
+    // Si viene como string
+    if (typeof v === 'string') {
+      const s = v.trim();
+
+      // 1) ISO / YYYY-MM-DD (con o sin hora)
+      // Ej: 2025-12-08 o 2025-12-08 14:30:00
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        const isoLike = s.includes('T') ? s : s.replace(' ', 'T');
+        const d = new Date(isoLike);
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      // 2) DD-MM-YYYY (tu caso típico "08-12-2025")
+      if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+        const [dd, mm, yyyy] = s.split('-');
+        const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd)); // local, sin ambigüedad
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      // 3) fallback (por si llega otro formato)
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Números (timestamp)
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  };
 
   const [openDescDialog, setOpenDescDialog] = useState(false);
   const [dialogTitle, setDialogTitle] = useState('Detalle');
@@ -84,19 +118,20 @@ export default function PersonalReportsIndex() {
   };
 
   const isInAgeRange = (openedAt, key) => {
-    console.log('entrox');
     if (key === 'all') return true;
     if (!openedAt) return false;
 
-    const now = new Date();
+    const now = startOfDay(new Date());
+    const opened = startOfDay(openedAt);
+
     const msInDay = 24 * 60 * 60 * 1000;
-    const diffDays = Math.floor((now - openedAt) / msInDay);
+    const diffDays = Math.floor((now - opened) / msInDay);
 
     switch (key) {
-      case '1w':   return diffDays <= 7;
-      case '2w':   return diffDays > 7  && diffDays <= 14;
-      case '3w':   return diffDays > 14 && diffDays <= 21;
-      case '1m':   return diffDays > 21 && diffDays <= 31;
+      case '1w':   return diffDays >= 0  && diffDays <= 7;
+      case '2w':   return diffDays > 7   && diffDays <= 14;
+      case '3w':   return diffDays > 14  && diffDays <= 21;
+      case '1m':   return diffDays > 21  && diffDays <= 31;
       case 'gt1m': return diffDays > 31;
       default:     return true;
     }
