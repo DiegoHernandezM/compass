@@ -22,7 +22,7 @@ import axios from 'axios';
 export default function Subjects() {
   const { props } = usePage();
   const { subjects } = props;
-  
+
   const [instruction, setInstruction] = useState(null);
   const [pdfOpen, setPdfOpen] = useState(false);
 
@@ -67,7 +67,7 @@ export default function Subjects() {
           py: 4,
           px: { xs: 2, sm: 4, md: 6 },
         }}
-      >       
+      >
         <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
           <Grid container spacing={4} justifyContent="center">
             {subjects.map((subject) => (
@@ -120,24 +120,24 @@ export default function Subjects() {
                       }}
                     />
                     <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          left: 8,
-                          backgroundColor: 'rgba(0,0,0,0.5)',
-                          boxShadow: 3,
-                          color: '#fff',
-                          px: 1.2,
-                          py: 0.5,
-                          fontSize: 11,
-                          fontWeight: 'bold',
-                          borderRadius: 1,
-                          zIndex: 3,
-                        }}
-                      >
-                        {subject?.level_name}
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 8,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        boxShadow: 3,
+                        color: '#fff',
+                        px: 1.2,
+                        py: 0.5,
+                        fontSize: 11,
+                        fontWeight: 'bold',
+                        borderRadius: 1,
+                        zIndex: 3,
+                      }}
+                    >
+                      {subject?.level_name}
                     </Box>
-                    <Box 
+                    <Box
                       sx={{
                         position: 'absolute',
                         top: '50%',
@@ -261,28 +261,43 @@ export default function Subjects() {
           onClose={() => setPdfOpen(false)}
           fullWidth
           maxWidth="md"
-          PaperProps={{ sx: { height: { xs: '85vh', md: '90vh' } } }}
+          PaperProps={{
+            sx: {
+              height: { xs: "85vh", md: "90vh" },
+              display: "flex",
+              flexDirection: "column",
+            },
+          }}
         >
-          <DialogTitle sx={{ pr: 6 }}>
-            {instruction?.original_name || 'Instructivo'}
+          <DialogTitle sx={{ pr: 6, flex: "0 0 auto" }}>
+            {instruction?.original_name || "Instructivo"}
             <IconButton
               aria-label="cerrar"
               onClick={() => setPdfOpen(false)}
-              sx={{ position: 'absolute', right: 8, top: 8 }}
+              sx={{ position: "absolute", right: 8, top: 8 }}
             >
               <CloseIcon />
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers sx={{ p: 0 }}>
+
+          <DialogContent
+            dividers
+            sx={{
+              p: 0,
+              flex: "1 1 auto",
+              overflow: "hidden", // importante: el scroll lo hace el viewer del PDF
+            }}
+          >
             {instruction && (
               <iframe
                 title="Instructivo PDF"
-                src={route('question.instructions.show', instruction.id)}
-                style={{ border: 'none', width: '100%', height: '100%' }}
+                src={route("question.instructions.show", instruction.id)}
+                style={{ border: "none", width: "100%", height: "100%" }}
               />
             )}
           </DialogContent>
         </Dialog>
+
       </Box>
     </StudentLayout>
   );
