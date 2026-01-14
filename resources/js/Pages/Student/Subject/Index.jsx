@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import PdfViewer from '@/Components/PdfViewer';
 import { router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -289,13 +290,7 @@ export default function Subjects() {
             }}
           >
             {instruction && (
-              <object
-                data={route("question.instructions.show", instruction.id)}
-                type="application/pdf"
-                style={{ width: "100%", height: "100%" }}
-              >
-                <p>No se pudo mostrar el PDF. <a href={route("question.instructions.show", instruction.id)} target="_blank" rel="noreferrer">Abrir</a></p>
-              </object>
+              <PdfViewer url={route("question.instructions.show", instruction.id)} />
             )}
           </DialogContent>
         </Dialog>
