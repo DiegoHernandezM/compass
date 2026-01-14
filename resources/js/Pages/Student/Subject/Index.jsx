@@ -289,11 +289,13 @@ export default function Subjects() {
             }}
           >
             {instruction && (
-              <iframe
-                title="Instructivo PDF"
-                src={route("question.instructions.show", instruction.id)}
-                style={{ border: "none", width: "100%", height: "100%" }}
-              />
+              <object
+                data={route("question.instructions.show", instruction.id)}
+                type="application/pdf"
+                style={{ width: "100%", height: "100%" }}
+              >
+                <p>No se pudo mostrar el PDF. <a href={route("question.instructions.show", instruction.id)} target="_blank" rel="noreferrer">Abrir</a></p>
+              </object>
             )}
           </DialogContent>
         </Dialog>
