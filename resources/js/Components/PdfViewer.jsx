@@ -17,7 +17,7 @@ export default function PdfViewer({ url }) {
         <span>{page} / {numPages ?? "-"}</span>
         <button onClick={() => setPage(p => Math.min(numPages ?? p, p + 1))}>Siguiente</button>
       </div>
-
+      <h3>PDF VIEWER NUEVO ✅</h3>
       <Document file={url} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
         <Page pageNumber={page} />
       </Document>
