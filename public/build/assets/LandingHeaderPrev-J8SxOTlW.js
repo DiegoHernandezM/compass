@@ -1,0 +1,1 @@
+import{j as e}from"./app-D3ZOoaSP.js";const a=n=>e.jsxs("header",{className:"landing-header",children:[e.jsx("h1",{children:n.content.main_title}),e.jsx("a",{href:"#",className:"login-link",children:n.content.login_button})]});export{a as default};

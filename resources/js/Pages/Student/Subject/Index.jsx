@@ -286,7 +286,7 @@ export default function Subjects() {
             sx={{
               p: 0,
               flex: "1 1 auto",
-              overflow: "hidden", // importante: el scroll lo hace el viewer del PDF
+              overflow: "hidden",
             }}
           >
             {instruction && (
