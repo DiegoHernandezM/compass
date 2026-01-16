@@ -1,1 +1,0 @@
-import{ac as a,R as m}from"./Modal-CmdoprVN.js";import{g as p}from"./getThemeProps-B4OaKWPX.js";const f=a();function i({props:t,name:r,defaultTheme:o,themeId:s}){let e=m(o);return s&&(e=e[s]||e),p({theme:e,name:r,props:t})}export{f as s,i as u};
