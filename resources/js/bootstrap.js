@@ -8,11 +8,8 @@ axios.interceptors.response.use(
     const status = error?.response?.status;
 
     // 401: no auth, 419: csrf/session expired, 403: forbidden (roles)
-    if ([401, 419, 403].includes(status)) {
+    if ([403].includes(status)) {
       // Evita loops si ya estás en login
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
-      }
     }
 
     return Promise.reject(error);

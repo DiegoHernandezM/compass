@@ -15,14 +15,15 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import PdfViewer from '@/Components/PdfViewer';
 import { router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import BarcodeReaderIcon from '@mui/icons-material/BarcodeReader';
 
 export default function Subjects() {
   const { props } = usePage();
   const { subjects } = props;
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const [instruction, setInstruction] = useState(null);
   const [pdfOpen, setPdfOpen] = useState(false);
@@ -42,6 +43,28 @@ export default function Subjects() {
     };
     fetchInstruction();
   }, []);
+
+  useEffect(() => {
+    if (!instruction) return;
+
+    const key = "compass_seen_instructions_prompt_v1";
+    const alreadySeen = localStorage.getItem(key);
+
+    if (!alreadySeen) {
+      setGuideOpen(true);
+    }
+  }, [instruction]);
+
+  const handleCloseGuide = () => {
+    localStorage.setItem("compass_seen_instructions_prompt_v1", "1");
+    setGuideOpen(false);
+  };
+
+  const handleOpenPdfFromGuide = () => {
+    // marca como visto para que no salga cada vez
+    localStorage.setItem("compass_seen_instructions_prompt_v1", "1");
+    setGuideOpen(false);
+  };
 
   const handleStartTest = async (subject) => {
     try {
@@ -257,46 +280,68 @@ export default function Subjects() {
             ))}
           </Grid>
         </Box>
-        <Dialog
-          open={pdfOpen}
-          onClose={() => setPdfOpen(false)}
-          fullWidth
-          maxWidth="md"
-          PaperProps={{
-            sx: {
-              height: { xs: "85vh", md: "90vh" },
-              display: "flex",
-              flexDirection: "column",
-            },
-          }}
-        >
-          <DialogTitle sx={{ pr: 6, flex: "0 0 auto" }}>
-            {instruction?.original_name || "Instructivo"}
-            <IconButton
-              aria-label="cerrar"
-              onClick={() => setPdfOpen(false)}
-              sx={{ position: "absolute", right: 8, top: 8 }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-
-          <DialogContent
-            dividers
-            sx={{
-              p: 0,
-              flex: "1 1 auto",
-              overflow: "hidden",
-            }}
-          >
-            fsdfdsfdsfsd
-            {instruction && (
-              <PdfViewer url={route("question.instructions.show", instruction.id)} />
-            )}
-          </DialogContent>
-        </Dialog>
-
       </Box>
+
+      {/* Dialog UX: aviso instructivo */}
+      <Dialog
+        open={guideOpen}
+        onClose={handleCloseGuide}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle sx={{ pr: 6 }}>
+          Antes de empezar 🙌
+          <IconButton
+            aria-label="cerrar"
+            onClick={handleCloseGuide}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers>
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2,
+                bgcolor: "rgba(25, 118, 210, 0.10)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <BarcodeReaderIcon color="warning" />
+            </Box>
+
+            <Box>
+              <Typography sx={{ fontWeight: 700, mb: 0.5 }}>
+                Revisa el instructivo
+              </Typography>
+
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                Te tomará menos de 1 minuto y te evita errores comunes. Puedes abrirlo
+                tocando el ícono de ALERTA (<BarcodeReaderIcon color="warning" sx={{ fontSize: 18, verticalAlign: "text-bottom" }} />)
+                en la parte superior.
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleCloseGuide}
+            >
+              Entendido
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </StudentLayout>
   );
 }

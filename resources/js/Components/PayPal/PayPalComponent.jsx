@@ -1,12 +1,21 @@
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { Alert, CircularProgress } from "@mui/material";
-import { useState } from 'react';
 
 export default function PayPalComponent({ user, clientId, password = "", isRenovation }) {
   const [successMessage, setSuccessMessage] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [content, setContent] = useState(null);
   const style = { "layout": "vertical" };
-  let price = "1";
+  let price = content?.subscription_price ?? 500;
+
+  useEffect(() => {
+      axios.get('/landing-content')
+        .then(response => setContent(response.data))
+        .catch(error => console.error('Error al obtener contenido:', error));
+  }, []);
+
 
   const ButtonWrapper = ({ showSpinner }) => {
     const [{ isPending }] = usePayPalScriptReducer();

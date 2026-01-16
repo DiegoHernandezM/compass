@@ -33,6 +33,7 @@ export default function Edit({ landingContent }) {
     subscribe_button: landingContent.subscribe_button || '',
     login_button: landingContent.login_button || '',
     whatsapp_number: landingContent.whatsapp_number || '',
+    subscription_price: landingContent.subscription_price || '',
     video: null,
   });
 
@@ -113,6 +114,8 @@ export default function Edit({ landingContent }) {
             <TextField fullWidth label="Texto del botón suscribir" name="subscribe_button" value={form.subscribe_button} onChange={handleChange} margin="normal" />
             <TextField fullWidth label="Texto del botón login" name="login_button" value={form.login_button} onChange={handleChange} margin="normal" />
             <TextField fullWidth label="Número de WhatsApp" name="whatsapp_number" value={form.whatsapp_number} onChange={handleChange} margin="normal" />
+
+            <TextField fullWidth label="Costo de suscripción ($)" name="subscription_price" value={form.subscription_price} onChange={handleChange} margin="normal" />
 
             <Box mt={2}>
               <label>Subir video:</label>

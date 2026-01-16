@@ -34,6 +34,7 @@ class LandingContentRequest extends FormRequest
             'subscribe_button' => 'nullable|string',
             'login_button' => 'nullable|string',
             'whatsapp_number' => 'nullable|string',
+            'subscription_price' => 'nullable|numeric|min:0',
             'video' => 'nullable|file|mimes:mp4,webm,ogg',
         ];
     }

@@ -20,5 +20,6 @@ class LandingContent extends Model
         'subscribe_button',
         'login_button',
         'whatsapp_number',
+        'subscription_price',
     ];
 }

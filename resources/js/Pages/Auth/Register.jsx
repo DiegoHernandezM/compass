@@ -83,7 +83,6 @@ export default function Register() {
         setIsRegistered(true);
         setOpenDialog(true);
         setUser(data.user);
-        window.location.href = '/login';
       } else {
         console.log('Guardando usuario')
       }
