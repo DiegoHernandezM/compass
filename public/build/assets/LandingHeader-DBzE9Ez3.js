@@ -1,0 +1,1 @@
+import{j as n}from"./app-CtHqmT_Z.js";const a=e=>n.jsxs("header",{className:"landing-header",children:[n.jsx("h1",{children:e.content.main_title}),n.jsx("a",{href:"/login",className:"login-link",children:e.content.login_button})]});export{a as default};
