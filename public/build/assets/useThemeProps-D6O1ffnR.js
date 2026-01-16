@@ -1,0 +1,1 @@
+import{af as a,V as m}from"./Modal-Bq9O1I9g.js";import{g as f}from"./getThemeProps-r1EC3PnQ.js";const i=a();function n({props:t,name:r,defaultTheme:o,themeId:s}){let e=m(o);return s&&(e=e[s]||e),f({theme:e,name:r,props:t})}export{i as s,n as u};

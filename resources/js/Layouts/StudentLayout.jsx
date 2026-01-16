@@ -30,6 +30,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import axios from 'axios';
 import ErrorAlert from '@/Components/ErrorAlert';
+import PdfViewer from '@/Components/PdfViewer';
 
 export default function StudentLayout({ children }) {
   const drawerWidth = 0;
@@ -254,32 +255,42 @@ export default function StudentLayout({ children }) {
 
       {/* Diálogo para visualizar el PDF */}
       <Dialog
-        open={pdfOpen}
-        onClose={() => setPdfOpen(false)}
-        fullWidth
-        maxWidth="md"
-        PaperProps={{ sx: { height: { xs: '85vh', md: '90vh' } } }}
-      >
-        <DialogTitle sx={{ pr: 6 }}>
-          {instruction?.original_name || 'Instructivo'}
-          <IconButton
-            aria-label="cerrar"
-            onClick={() => setPdfOpen(false)}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
+          open={pdfOpen}
+          onClose={() => setPdfOpen(false)}
+          fullWidth
+          maxWidth="md"
+          PaperProps={{
+            sx: {
+              height: { xs: "85vh", md: "90vh" },
+              display: "flex",
+              flexDirection: "column",
+            },
+          }}
+        >
+          <DialogTitle sx={{ pr: 6, flex: "0 0 auto" }}>
+            {instruction?.original_name || "Instructivo"}
+            <IconButton
+              aria-label="cerrar"
+              onClick={() => setPdfOpen(false)}
+              sx={{ position: "absolute", right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+
+          <DialogContent
+            dividers
+            sx={{
+              p: 0,
+              flex: "1 1 auto",
+              overflow: "hidden",
+            }}
           >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers sx={{ p: 0 }}>
-          {instruction && (
-            <iframe
-              title="Instructivo PDF"
-              src={route('question.instructions.show', instruction.id)}
-              style={{ border: 'none', width: '100%', height: '100%' }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+            {instruction && (
+              <PdfViewer url={route("question.instructions.show", instruction.id)} />
+            )}
+          </DialogContent>
+        </Dialog>
     </Box>
   );
 }
