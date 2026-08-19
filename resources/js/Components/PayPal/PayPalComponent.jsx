@@ -16,6 +16,14 @@ export default function PayPalComponent({ user, clientId, password = "", isRenov
         .catch(error => console.error('Error al obtener contenido:', error));
   }, []);
 
+  if (!clientId) {
+    return (
+      <Alert severity="warning" sx={{ mt: 2 }}>
+        PayPal no está disponible temporalmente.
+      </Alert>
+    );
+  }
+
 
   const ButtonWrapper = ({ showSpinner }) => {
     const [{ isPending }] = usePayPalScriptReducer();

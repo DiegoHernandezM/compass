@@ -2,33 +2,33 @@
 
 namespace App\Http\Services;
 
-use App\Mail\WelcomeStudentMail;
+use App\Mail\StudentWelcomeMail;
 use App\Models\PayPalUser;
 use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
-use App\Mail\StudentWelcomeMail;
 use Illuminate\Support\Facades\Mail;
 
 class PayPalService
 {
     protected $mUser;
+
     protected $mPayPal;
+
     protected $mStudent;
 
     public function __construct()
     {
-        $this->mUser = new User();
-        $this->mPayPal = new PayPalUser();
-        $this->mStudent = new Student();
+        $this->mUser = new User;
+        $this->mPayPal = new PayPalUser;
+        $this->mStudent = new Student;
     }
-
 
     public function create($request)
     {
         $password = $request->password ?? 'password';
-        $user = $this->mUser->find((int)$request->order['reference_id']);
+        $user = $this->mUser->find((int) $request->order['reference_id']);
         $user->assignRole('student');
         if ($user->stand_by === 1) {
             $user->password = Hash::make($password);
@@ -40,13 +40,13 @@ class PayPalService
         $expiresAt = Carbon::parse($createTime)->addYear()->format('Y-m-d H:i:s');
 
         $savedPayPalInfo = $this->mPayPal->create([
-            'user_id' => (int)$request->order['reference_id'],
+            'user_id' => (int) $request->order['reference_id'],
             'address' => json_encode($request->order['shipping']['address']),
             'amount' => $request->order['amount']['value'],
             'payment_id' => $request->order['payments']['captures'][0]['id'],
             'status' => $request->order['payments']['captures'][0]['status'],
             'create_time' => $createTime,
-            'expires_at' => $expiresAt
+            'expires_at' => $expiresAt,
         ]);
 
         if ($savedPayPalInfo) {
@@ -71,7 +71,8 @@ class PayPalService
                 }
             }
         }
-        return "Estudiante registrado";
+
+        return 'Estudiante registrado';
     }
 
     public function paymentRenovation($request)
@@ -81,17 +82,26 @@ class PayPalService
 
         if ($referenceId && $createTime) {
             $carbonDate = Carbon::parse($createTime);
+            $currentExpiration = $this->mPayPal
+                ->where('user_id', (int) $referenceId)
+                ->whereNotNull('expires_at')
+                ->max('expires_at');
+            $renewalStartsAt = $currentExpiration && Carbon::parse($currentExpiration)->isFuture()
+                ? Carbon::parse($currentExpiration)
+                : $carbonDate->copy();
             $this->mPayPal->create([
-                'user_id' => (int)$request->order['reference_id'],
+                'user_id' => (int) $request->order['reference_id'],
                 'address' => json_encode($request->order['shipping']['address']),
                 'amount' => $request->order['amount']['value'],
                 'payment_id' => $request->order['payments']['captures'][0]['id'],
                 'status' => $request->order['payments']['captures'][0]['status'],
                 'create_time' => $carbonDate->format('Y-m-d H:i:s'),
-                'expires_at' => $carbonDate->addYear()->format('Y-m-d H:i:s')
+                'expires_at' => $renewalStartsAt->addYear()->format('Y-m-d H:i:s'),
             ]);
+
             return true;
         }
+
         return false;
     }
 }

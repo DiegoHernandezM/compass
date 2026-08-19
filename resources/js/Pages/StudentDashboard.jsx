@@ -7,12 +7,12 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip
 } from 'recharts';
 import StudentLayout from '@/Layouts/StudentLayout';
-import PayPalComponent from "@/Components/PayPal/PayPalComponent.jsx";
+import SubscriptionRenewalNotice from '@/Components/PayPal/SubscriptionRenewalNotice';
 
 
 
 export default function StudentDashboard() {
-  const { kpis, sparkline, quick, subjectsTop, user, clientId, subscriptionExpired} = usePage().props;
+  const { kpis, sparkline, quick, subjectsTop, user, clientId, subscriptionExpired, subscription } = usePage().props;
   const fmtPct = (n) => `${n ?? 0}%`;
   const cards = [
     { label: 'Promedio', value: fmtPct(kpis?.avgPercent) },
@@ -60,12 +60,13 @@ export default function StudentDashboard() {
               Por favor renueva tu suscripción para continuar utilizando la plataforma.
             </Typography>
 
-            <Box sx={{ maxWidth: 500, width: '100%' }}>
-              <PayPalComponent user={user} clientId={clientId} isRenovation={subscriptionExpired} />
+            <Box sx={{ maxWidth: 700, width: '100%' }}>
+              <SubscriptionRenewalNotice subscription={subscription} user={user} clientId={clientId} />
             </Box>
           </Box>
         ) : (
             <Box sx={{ p: { xs: 2, md: 3 } }}>
+              <SubscriptionRenewalNotice subscription={subscription} user={user} clientId={clientId} />
               {/* Mensaje motivacional */}
               <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
                 ¡Hola! {user?.name} 👋

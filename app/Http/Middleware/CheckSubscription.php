@@ -4,9 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class CheckSubscription
 {
@@ -20,10 +18,16 @@ class CheckSubscription
         $user = Auth::user();
 
         if ($user && $user->hasRole('student')) {
-            $paypal = $user->paypal_user()->latest()->first();
+            $paypal = $user->paypal_user;
+            $expired = ! $paypal || ! $paypal->expires_at || $paypal->expires_at->isPast();
 
-            if (!$paypal || ($paypal->expires_at && Carbon::parse($paypal->expires_at)->isPast())) {
+            if ($expired) {
                 session()->put('subscription_expired', true);
+
+                if (! $request->routeIs('student.dashboard')) {
+                    return redirect()->route('student.dashboard')
+                        ->with('error', 'Tu suscripción ha expirado. Renuévala para continuar.');
+                }
             } else {
                 session()->forget('subscription_expired');
             }
