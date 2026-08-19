@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Illuminate\Support\Facades\Auth;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -34,10 +33,32 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-           'flash' => [
+            'subscription' => function () use ($request) {
+                $user = $request->user();
+
+                if (! $user || ! $user->hasRole('student')) {
+                    return null;
+                }
+
+                $subscription = $user->paypal_user;
+                $expiresAt = $subscription?->expires_at;
+                $expired = ! $expiresAt || $expiresAt->isPast();
+                $daysRemaining = $expiresAt && ! $expired
+                    ? max(1, (int) now()->startOfDay()->diffInDays($expiresAt->copy()->startOfDay()))
+                    : 0;
+
+                return [
+                    'expired' => $expired,
+                    'expiresAt' => $expiresAt?->toIso8601String(),
+                    'daysRemaining' => $daysRemaining,
+                    'expiringSoon' => ! $expired && $daysRemaining <= 15,
+                ];
+            },
+            'paypalClientId' => fn () => config('services.paypal.client_id'),
+            'flash' => [
                 'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error')
-            ]
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ]);
     }
 }

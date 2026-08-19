@@ -1,15 +1,14 @@
 <?php
 
-use App\Http\Middleware\CheckSubscription;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LandingContentController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentHomeController;
 use App\Http\Controllers\ZipLookupController;
+use App\Http\Middleware\CheckSubscription;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
-
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -20,11 +19,11 @@ Route::get('/', function () {
     ]);
 });
 
-
-Route::middleware(['auth', 'role:student', CheckSubscription::class,])->group(function () {
+Route::middleware(['auth', 'role:student', CheckSubscription::class])->group(function () {
     Route::get('/student-dashboard', function () {
-        $controller = new StudentHomeController();
+        $controller = new StudentHomeController;
         $data = $controller->index();
+
         return Inertia::render('StudentDashboard', [
             'subscriptionExpired' => session('subscription_expired', false),
             'user' => Auth::user(),
@@ -43,23 +42,22 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-//Public Routes
+// Public Routes
 Route::get('/landing-content', [LandingContentController::class, 'getContent'])->name('landing.content');
 
-//Admin Routes
+// Admin Routes
 Route::middleware(['web', 'auth', 'role:admin'])->group(function () {
     require base_path('routes/admin/admin.php');
 });
-//Student Routes
-Route::middleware(['auth', 'role:student'])->group(function () {
+// Student Routes
+Route::middleware(['auth', 'role:student', CheckSubscription::class])->group(function () {
     require base_path('routes/student/student.php');
 });
 
-//End Student Routes
+// End Student Routes
 
 Route::get('/zip-lookup', [ZipLookupController::class, 'lookup'])->name('zip.lookup');
 
-
 require base_path('routes/paypal/paypal.php');
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

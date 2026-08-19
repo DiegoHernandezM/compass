@@ -18,8 +18,16 @@ class PayPalUser extends Model
         'payment_id',
         'status',
         'create_time',
-        'expires_at'
+        'expires_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'create_time' => 'datetime',
+            'expires_at' => 'datetime',
+        ];
+    }
 
     public function user()
     {
