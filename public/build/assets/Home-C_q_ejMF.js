@@ -1,0 +1,1 @@
+import{j as e}from"./app-BAtSUQXS.js";function a(){return e.jsxs("div",{className:"p-10 text-center",children:[e.jsx("h1",{className:"text-3xl font-bold text-blue-700",children:"¡Hola desde Inertia + React!"}),e.jsx("p",{className:"mt-4",children:"Tu configuración ya está funcionando correctamente 🎉"})]})}export{a as default};
