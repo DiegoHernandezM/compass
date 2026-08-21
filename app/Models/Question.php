@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,7 +27,7 @@ class Question extends Model
         'a_hash',
         'b_hash',
         'c_hash',
-        'd_hash'
+        'd_hash',
     ];
 
     public function getQuestionImageAttribute($value)
@@ -36,6 +35,16 @@ class Question extends Model
         if ($value && Storage::disk('s3')->exists($value)) {
             return Storage::disk('s3')->url($value);
         }
+
+        return null;
+    }
+
+    public function getFeedbackImageAttribute($value)
+    {
+        if ($value && Storage::disk('s3')->exists($value)) {
+            return Storage::disk('s3')->url($value);
+        }
+
         return null;
     }
 
@@ -62,14 +71,14 @@ class Question extends Model
     private function shouldReturnS3Url($value)
     {
         return is_null($this->question) &&
-            !is_null($this->question_image) &&
+            ! is_null($this->question_image) &&
             $value &&
             Storage::disk('s3')->exists($value);
     }
 
     public function subjects()
     {
-    return $this->belongsToMany(Subject::class, 'question_subject');
+        return $this->belongsToMany(Subject::class, 'question_subject');
     }
 
     public function type()

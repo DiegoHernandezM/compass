@@ -26,7 +26,7 @@ export default function ImportQuestionsDialog({ open, onClose, types, onImport, 
   };
 
   const handleSubmit = () => {
-    if (file && typeId) {
+    if (file && typeId && levelId) {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type_id', typeId);
@@ -36,8 +36,8 @@ export default function ImportQuestionsDialog({ open, onClose, types, onImport, 
 
       // Limpiar y cerrar
       setFile(null);
-      setTypetId('');
-      setLeveltId('');
+      setTypeId('');
+      setLevelId('');
       onClose();
     }
   };
@@ -119,7 +119,7 @@ export default function ImportQuestionsDialog({ open, onClose, types, onImport, 
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!file || !typeId}
+          disabled={!file || !typeId || !levelId}
         >
           Importar
         </Button>
