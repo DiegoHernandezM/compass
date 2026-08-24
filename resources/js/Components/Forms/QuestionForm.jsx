@@ -81,7 +81,7 @@ export default function QuestionForm({ open, onClose, question = null }) {
       answer_b: bIsImage ? question?.answer_b || null : null,
       answer_c: cIsImage ? question?.answer_c || null : null,
       answer_d: dIsImage ? question?.answer_d || null : null,
-      feedback_image: null,
+      feedback_image: question?.feedback_image || null,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question]);

@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -86,18 +87,28 @@ class QuestionsExport implements FromCollection, WithHeadings, WithMapping, With
 
     protected function hasImage(Question $q, string $attr): bool
     {
-        $key = $q->getRawOriginal($attr);
-        return $key && Storage::disk('s3')->exists($key);
+        $key = $this->imageKey($q, $attr);
+
+        return $key !== null && $this->imageExists($key);
     }
 
     protected function maybeAddImage(Question $q, string $attr, string $columnLetter): void
     {
-        $s3Key = $q->getRawOriginal($attr);
-        if (!$s3Key || !Storage::disk('s3')->exists($s3Key)) {
+        $s3Key = $this->imageKey($q, $attr);
+        if ($s3Key === null || ! $this->imageExists($s3Key)) {
             return;
         }
 
-        $localPath = $this->downloadToTmp($s3Key);
+        try {
+            $localPath = $this->downloadToTmp($s3Key);
+        } catch (\Throwable $exception) {
+            Log::warning('No se pudo descargar una imagen al exportar preguntas.', [
+                'key' => $s3Key,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return;
+        }
 
         $drawing = new Drawing();
         $drawing->setName(ucfirst(str_replace('_', ' ', $attr)));
@@ -107,6 +118,35 @@ class QuestionsExport implements FromCollection, WithHeadings, WithMapping, With
         $drawing->setCoordinates($columnLetter . $this->rowIndex);
 
         $this->drawings[] = $drawing;
+    }
+
+    protected function imageKey(Question $question, string $attribute): ?string
+    {
+        $value = trim((string) $question->getRawOriginal($attribute));
+        if ($value === '') {
+            return null;
+        }
+
+        $path = parse_url($value, PHP_URL_PATH) ?: $value;
+        if (! preg_match('/\.(png|jpe?g|gif|webp|svg)$/i', $path)) {
+            return null;
+        }
+
+        return ltrim($path, '/');
+    }
+
+    protected function imageExists(string $key): bool
+    {
+        try {
+            return Storage::disk('s3')->exists($key);
+        } catch (\Throwable $exception) {
+            Log::warning('No se pudo comprobar una imagen al exportar preguntas.', [
+                'key' => $key,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     protected function downloadToTmp(string $s3Key): string

@@ -2,50 +2,58 @@
 
 namespace App\Http\Services;
 
-use App\Models\Question;
-use App\Models\QuestionType;
-use App\Models\Subject;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\DB;
+use App\Imports\LogicalReasoningImport;
+use App\Imports\MathQuestionsWorkbookImport;
 use App\Imports\QuestionsImport;
 use App\Imports\SpatialQuestionsImport;
-use App\Imports\LogicalReasoningImport;
-use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use App\Models\MultitaskQuestion;
-use App\Models\QuestionLevel;
-use App\Models\MemoryTest;
 use App\Models\MemoryIcon;
+use App\Models\MemoryTest;
+use App\Models\MultitaskQuestion;
+use App\Models\Question;
+use App\Models\QuestionLevel;
 use App\Models\QuestionSubject;
+use App\Models\QuestionType;
+use App\Models\Subject;
 use App\Models\TestQuestion;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing as FileDrawing;
-use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing as FileDrawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
 
 class QuestionService
 {
     protected $model;
+
     protected $mTypes;
+
     protected $mLevels;
+
     protected $mMultitaskQuestions;
+
     protected $mSubject;
+
     protected $mMemoryTest;
+
     protected $mQuestionSubject;
+
     protected $mTestQuestion;
 
     public function __construct()
     {
-        $this->model = new Question();
-        $this->mTypes = new QuestionType();
-        $this->mMultitaskQuestions = new MultitaskQuestion();
-        $this->mSubject = new Subject();
-        $this->mLevels = new QuestionLevel();
-        $this->mMemoryTest = new MemoryTest();
-        $this->mQuestionSubject = new QuestionSubject();
-        $this->mTestQuestion = new TestQuestion();
+        $this->model = new Question;
+        $this->mTypes = new QuestionType;
+        $this->mMultitaskQuestions = new MultitaskQuestion;
+        $this->mSubject = new Subject;
+        $this->mLevels = new QuestionLevel;
+        $this->mMemoryTest = new MemoryTest;
+        $this->mQuestionSubject = new QuestionSubject;
+        $this->mTestQuestion = new TestQuestion;
     }
 
     public function getAll()
@@ -59,7 +67,7 @@ class QuestionService
             ->with([
                 'subjects:id,name',
                 'type:id,name',
-                'level:id,name'
+                'level:id,name',
             ])
             ->latest('id')
             ->paginate($perPage);
@@ -71,33 +79,34 @@ class QuestionService
             'levels' => function ($query) {
                 $query->withCount('questions')
                     ->withCount('multitaskQuestions');
-            }
+            },
         ])
-        ->withCount('questions', 'multitaskQuestions')
-        ->get()
-        ->map(function ($type) {
-            if ($type->name === 'MULTITASKING') {
-                $type->questions_count = intval(($type->multitask_questions_count ?? 0) / 2);
-                $type->levels->each(function ($level) {
-                    $level->questions_count = intval(($level->multitask_questions_count ?? 0) / 2);
-                });
-            }
-            return $type;
-        });
+            ->withCount('questions', 'multitaskQuestions')
+            ->get()
+            ->map(function ($type) {
+                if ($type->name === 'MULTITASKING') {
+                    $type->questions_count = intval(($type->multitask_questions_count ?? 0) / 2);
+                    $type->levels->each(function ($level) {
+                        $level->questions_count = intval(($level->multitask_questions_count ?? 0) / 2);
+                    });
+                }
+
+                return $type;
+            });
     }
 
     public function getTypesLight()
     {
         return Cache::remember('types-with-counts-v2', 300, function () {
             return $this->mTypes
-                ->select(['id','name','description'])
+                ->select(['id', 'name', 'description'])
                 ->with([
                     'levels' => function ($q) {
-                        $q->select(['id','name','description','question_type_id']) // <- si NO la usas en el front, puedes omitirla
-                        ->withCount(['questions','multitaskQuestions']);
-                    }
+                        $q->select(['id', 'name', 'description', 'question_type_id']) // <- si NO la usas en el front, puedes omitirla
+                            ->withCount(['questions', 'multitaskQuestions']);
+                    },
                 ])
-                ->withCount(['questions','multitaskQuestions'])
+                ->withCount(['questions', 'multitaskQuestions'])
                 ->orderBy('name')
                 ->get()
                 ->map(function ($type) {
@@ -159,7 +168,7 @@ class QuestionService
     {
         return DB::transaction(function () use ($id, $data) {
             $question = $this->find($id);
-            $type  = $this->mTypes->where('id', $question->question_type_id)->first();
+            $type = $this->mTypes->where('id', $question->question_type_id)->first();
             $haveQuestionId = $this->getTypePath($type->name, false);
             $testQuestion = null;
             if ($haveQuestionId) {
@@ -170,37 +179,42 @@ class QuestionService
             if ($basePath !== null) {
                 // Carpetas base (como en tu importador)
                 $basePath = Str::finish(trim($this->getTypePath($type->name, true)), '/');
-                $qFolder  = $basePath . 'questions';
-                $aFolder  = $basePath . 'questions';
-                $fbFolder = $basePath . 'feedback';
+                $qFolder = $basePath.'questions';
+                $aFolder = $basePath.'questions';
+                $fbFolder = $basePath.'feedback';
 
                 // === Helpers ===
                 $hashText = function (?string $txt): ?string {
-                    $t = trim((string)($txt ?? ''));
+                    $t = trim((string) ($txt ?? ''));
+
                     return $t === '' ? null : hash('sha256', mb_strtoupper($t, 'UTF-8'));
                 };
 
                 $storeFileHashed = function (UploadedFile $file, string $folder) {
                     $folder = trim($folder, '/');
-                    $ext  = strtolower($file->getClientOriginalExtension() ?: 'bin');
+                    $ext = strtolower($file->getClientOriginalExtension() ?: 'bin');
                     $hash = hash_file('sha256', $file->getRealPath());
                     $name = "{$hash}.{$ext}";
-                    $key  = Storage::disk('s3')->putFileAs($folder, $file, $name);
-                    if (!$key) { // fallback raro
+                    $key = Storage::disk('s3')->putFileAs($folder, $file, $name);
+                    if (! $key) { // fallback raro
                         $key = ($folder ? "{$folder}/" : '').$name;
                         Storage::disk('s3')->put($key, fopen($file->getRealPath(), 'r'));
                     }
+
                     return [
-                        'key'  => $key,
-                        'url'  => Storage::disk('s3')->url($key),
+                        'key' => $key,
+                        'url' => Storage::disk('s3')->url($key),
                         'hash' => $hash,
                         'name' => $name,
                     ];
                 };
 
                 $s3KeyFromUrl = function (?string $url): ?string {
-                    if (!$url || !str_starts_with($url, 'http')) return $url; // ya es key
+                    if (! $url || ! str_starts_with($url, 'http')) {
+                        return $url;
+                    } // ya es key
                     $parts = parse_url($url);
+
                     return $parts['path'] ?? null ? ltrim($parts['path'], '/') : null;
                 };
 
@@ -210,43 +224,46 @@ class QuestionService
             }
 
             // === PREGUNTA texto/imagen ===
-            if (!empty($data['question_image']) && $data['question_image'] instanceof \Illuminate\Http\UploadedFile) {
+            if (! empty($data['question_image']) && $data['question_image'] instanceof \Illuminate\Http\UploadedFile) {
                 // Subieron una nueva imagen de pregunta
                 $stored = $storeFileHashed($data['question_image'], $qFolder);
 
                 // Si antes había imagen, bórrala (opcional)
                 if ($question->question_image) {
                     $oldKey = $s3KeyFromUrl($question->question_image);
-                    if ($oldKey) Storage::disk('s3')->delete($oldKey);
+                    if ($oldKey) {
+                        Storage::disk('s3')->delete($oldKey);
+                    }
                 }
 
                 $question->question_image = $stored['key'];   // o $stored['url']
-                $question->question       = null;
-                $question->q_hash         = $stored['hash'];  // IMAGEN => hash binario
+                $question->question = null;
+                $question->q_hash = $stored['hash'];  // IMAGEN => hash binario
 
             } elseif (array_key_exists('question', $data)) {
                 // Solo cambia a TEXTO si llega texto REAL; si llega null/'' NO borres lo existente
-                $text = (string)($data['question'] ?? '');
+                $text = (string) ($data['question'] ?? '');
                 if (trim($text) !== '') {
-                    $question->question       = $text;
+                    $question->question = $text;
                     $question->question_image = null;
-                    $question->q_hash         = null; // TEXTO => sin q_hash
+                    $question->q_hash = null; // TEXTO => sin q_hash
                 }
                 // Si viene vacío, no tocar question_image ni q_hash (conserva lo anterior)
             }
 
             // === RESPUESTAS A–D (texto o archivo) ===
-            $letters = ['a','b','c','d'];
+            $letters = ['a', 'b', 'c', 'd'];
             foreach ($letters as $L) {
                 $textKey = "answer_{$L}";
                 $fileKey = "answer_{$L}_file";
 
                 // 1) Si llega archivo => subir, setear URL/key y hash de archivo
-                if (!empty($data[$fileKey]) && $data[$fileKey] instanceof UploadedFile) {
+                if (! empty($data[$fileKey]) && $data[$fileKey] instanceof UploadedFile) {
                     $stored = $storeFileHashed($data[$fileKey], $aFolder);
-                    $question->{$textKey}   = $stored['key']; // o $stored['url']
+                    $question->{$textKey} = $stored['key']; // o $stored['url']
                     $question->{$L.'_hash'} = $stored['hash'];
                     $changedAnswer[$L] = true;
+
                     continue;
                 }
 
@@ -261,10 +278,12 @@ class QuestionService
             }
 
             // === FEEDBACK IMAGE (opcional) ===
-            if (!empty($data['feedback_image']) && $data['feedback_image'] instanceof UploadedFile) {
+            if (! empty($data['feedback_image']) && $data['feedback_image'] instanceof UploadedFile) {
                 if ($question->feedback_image) {
                     $oldKey = $s3KeyFromUrl($question->feedback_image);
-                    if ($oldKey) Storage::disk('s3')->delete($oldKey);
+                    if ($oldKey) {
+                        Storage::disk('s3')->delete($oldKey);
+                    }
                 }
                 $stored = $storeFileHashed($data['feedback_image'], $fbFolder);
                 $question->feedback_image = $stored['key']; // o URL
@@ -273,31 +292,31 @@ class QuestionService
 
             // === Otros campos directos ===
             if (array_key_exists('feedback_text', $data)) {
-                $question->feedback_text = trim((string)$data['feedback_text']) ?: null;
+                $question->feedback_text = trim((string) $data['feedback_text']) ?: null;
             }
             if (array_key_exists('correct_answer', $data)) {
                 $question->correct_answer = $data['correct_answer'];
             }
             if (array_key_exists('has_dynamic', $data)) {
-                $question->has_dynamic = (bool)$data['has_dynamic'];
+                $question->has_dynamic = (bool) $data['has_dynamic'];
             }
 
             // === FIRMAS (igual idea que importador) ===
             $baseSig = hash('sha256', implode('|', [
-                (string)($question->q_hash ?? ''),
-                (string)$question->question_type_id,
-                (string)$question->question_level_id,
+                (string) ($question->q_hash ?? ''),
+                (string) $question->question_type_id,
+                (string) $question->question_level_id,
             ]));
 
             $signature = hash('sha256', implode('|', [
                 $baseSig,
-                (string)$question->answer_a,
-                (string)$question->answer_b,
-                (string)$question->answer_c,
-                (string)$question->answer_d,
-                (string)$question->correct_answer,
-                (string)$question->feedback_text,
-                (string)$fbHash,
+                (string) $question->answer_a,
+                (string) $question->answer_b,
+                (string) $question->answer_c,
+                (string) $question->answer_d,
+                (string) $question->correct_answer,
+                (string) $question->feedback_text,
+                (string) $fbHash,
             ]));
             $question->signature = $signature;
 
@@ -320,13 +339,13 @@ class QuestionService
                     $newQuestionText = $testQuestion->question_text;
                 }
 
-                $testQuestion->question_text   = $newQuestionText;
-                $testQuestion->options         = json_encode($options);
-                $testQuestion->correct_answer  = $question->correct_answer;
-                $testQuestion->feedback_text   = $question->feedback_text;
-                $testQuestion->feedback_image  = $question->feedback_image;
+                $testQuestion->question_text = $newQuestionText;
+                $testQuestion->options = json_encode($options);
+                $testQuestion->correct_answer = $question->correct_answer;
+                $testQuestion->feedback_text = $question->feedback_text;
+                $testQuestion->feedback_image = $question->feedback_image;
 
-                if (!empty($data['time'])) {
+                if (! empty($data['time'])) {
                     $testQuestion->limit_time = $data['time'];
                 }
 
@@ -346,6 +365,7 @@ class QuestionService
         $question->option_c = $request['option_c'];
         $question->answer = $request['answer'];
         $question->save();
+
         return $question;
     }
 
@@ -368,7 +388,7 @@ class QuestionService
         // 3) Tras el commit, borramos en S3 únicamente si ya no hay referencias
         DB::afterCommit(function () use ($keys) {
             foreach ($keys as $key) {
-                if (!$this->isS3KeyInUse($key)) {
+                if (! $this->isS3KeyInUse($key)) {
                     try {
                         Storage::disk('s3')->delete($key);
                     } catch (\Throwable $e) {
@@ -390,13 +410,13 @@ class QuestionService
             'has_time_limit',
             'time_limit',
             'game',
-            'reset'
+            'reset',
         ]);
 
         $shouldReset = filter_var($data['reset'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $type = $this->mTypes->find($data['question_type_id']);
 
-        if($shouldReset || $type->name === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
+        if ($shouldReset || $type->name === 'MEMORIA A CORTO PLAZO - MEMORAMA') {
             $this->mQuestionSubject
                 ->where('question_type_id', $data['question_type_id'])
                 ->where('question_level_id', $data['question_level_id'])
@@ -408,7 +428,7 @@ class QuestionService
         $subject->save();
         if ($type->name === 'MULTITASKING') {
             $total = (int) $data['question_count'] * 2;
-            $half = (int) ceil($total / 2); 
+            $half = (int) ceil($total / 2);
             $mathQuestions = $this->mMultitaskQuestions
                 ->where('question_type_id', $data['question_type_id'])
                 ->where('question_level_id', $data['question_level_id'])
@@ -440,15 +460,15 @@ class QuestionService
                 $iconString = implode(',', $iconsToRemember);
 
                 $this->model->create([
-                        'question' => $iconString,
-                        'answer_a' => $iconString,
-                        'answer_b' => $iconString,
-                        'answer_c' => $iconString,
-                        'correct_answer' => 'A',
-                        'feedback_text'   => null,
-                        'feedback_image'  => null,
-                        'question_type_id' => $memory->question_type_id,
-                        'question_level_id' => $memory->question_level_id,
+                    'question' => $iconString,
+                    'answer_a' => $iconString,
+                    'answer_b' => $iconString,
+                    'answer_c' => $iconString,
+                    'correct_answer' => 'A',
+                    'feedback_text' => null,
+                    'feedback_image' => null,
+                    'question_type_id' => $memory->question_type_id,
+                    'question_level_id' => $memory->question_level_id,
                 ]);
             }
             $questions = $this->model->where('question_type_id', $data['question_type_id'])
@@ -463,9 +483,9 @@ class QuestionService
                 ->limit($data['question_count'])
                 ->get();
         }
-        
+
         if ($questions->count() < $data['question_count']) {
-            return "No hay suficientes preguntas disponibles para este tipo y nivel.";
+            return 'No hay suficientes preguntas disponibles para este tipo y nivel.';
         }
 
         // Guarda en la tabla pivote question_subject
@@ -480,33 +500,46 @@ class QuestionService
                 'updated_at' => now(),
             ]);
         }
+
         return $questions;
     }
 
     public function importTypeQuestions($typeId, $levelId, $file)
     {
-        $type = $this->mTypes->find($typeId);
+        $type = $this->mTypes->findOrFail($typeId);
         $level = $levelId ? $this->mLevels->find($levelId) : null;
+
+        if ($level && (int) $level->question_type_id !== (int) $type->id) {
+            throw new \InvalidArgumentException('El nivel seleccionado no pertenece al tipo de cuestionario.');
+        }
+
         $name = $type->name;
 
         $importMap = [
             'ORIENTACION ESPACIAL' => 'importSpatial',
             'RAZONAMIENTO LOGICO' => 'importLogical',
             'MEMORIA A CORTO PLAZO - PARAMETROS' => 'importParameters',
+            'MATEMATICAS' => 'importMath',
             'ATPL' => 'importAtpl',
         ];
 
-        if (!isset($importMap[$name])) {
+        if (! isset($importMap[$name])) {
             throw new \Exception("Importación no soportada para el tipo: {$name}");
         }
 
         return $this->{$importMap[$name]}($type, $file, $level);
     }
 
-    private function extractImagesByRow($file, $folder)
+    private function extractImagesByRow($file, $folder, ?string $sheetName = null)
     {
         $spreadsheet = IOFactory::load($file);
-        $sheet = $spreadsheet->getActiveSheet();
+        $sheet = $sheetName
+            ? $spreadsheet->getSheetByName($sheetName)
+            : $spreadsheet->getActiveSheet();
+
+        if (! $sheet) {
+            throw new \InvalidArgumentException("No se encontró la hoja {$sheetName} en el archivo.");
+        }
         $drawings = $sheet->getDrawingCollection();
 
         $imagesByRow = [];
@@ -566,8 +599,8 @@ class QuestionService
     private function extractImagesLogical($file)
     {
         $spreadsheet = IOFactory::load($file);
-        $sheet       = $spreadsheet->getActiveSheet();
-        $drawings    = $sheet->getDrawingCollection();
+        $sheet = $spreadsheet->getActiveSheet();
+        $drawings = $sheet->getDrawingCollection();
 
         $imagesByRow = [];
 
@@ -583,16 +616,16 @@ class QuestionService
 
             // --- Obtener bytes y extensión
             $bytes = null;
-            $ext   = 'png';
+            $ext = 'png';
 
             if ($drawing instanceof FileDrawing) {
                 // getPath() puede venir como zip://... → igual sirve
-                $path  = $drawing->getPath();
+                $path = $drawing->getPath();
                 $bytes = @file_get_contents($path);
-                $ext   = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? $path, PATHINFO_EXTENSION)) ?: 'png';
+                $ext = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? $path, PATHINFO_EXTENSION)) ?: 'png';
             } elseif ($drawing instanceof MemoryDrawing) {
                 ob_start();
-                $res  = $drawing->getImageResource();
+                $res = $drawing->getImageResource();
                 $mime = $drawing->getMimeType(); // image/png|image/jpeg
                 if (str_contains($mime, 'jpeg')) {
                     imagejpeg($res);
@@ -604,14 +637,14 @@ class QuestionService
                 $bytes = ob_get_clean();
             }
 
-            if (!$bytes) {
+            if (! $bytes) {
                 continue; // no hay imagen real
             }
 
             // --- (Opcional) Normalización previa a hash (resize/compresión) aquí
 
             $hash = hash('sha256', $bytes);
-            $tmp  = $this->makeTmpFromBytes($bytes, $ext); // ruta temporal real
+            $tmp = $this->makeTmpFromBytes($bytes, $ext); // ruta temporal real
 
             // --- Mapear columna a key
             $key = match ($col) {
@@ -622,17 +655,18 @@ class QuestionService
                 'E' => "d_{$row}",
                 default => null,
             };
-            if (!$key) {
+            if (! $key) {
                 continue;
             }
 
             $imagesByKey[$key] = [
-                'ext'      => $ext,
-                'hash'     => $hash,
+                'ext' => $ext,
+                'hash' => $hash,
                 'tmp_path' => $tmp,
                 // 'bytes'  => $bytes, // si lo quieres para otra cosa
             ];
         }
+
         return $imagesByKey;
     }
 
@@ -646,8 +680,12 @@ class QuestionService
         $highestCol = $sheet->getHighestColumn();
         for ($col = 'A'; ; $col = ++$col) {
             $val = (string) $sheet->getCell($col.$headerRow)->getValue();
-            if ($val !== '') $colHeader[$col] = strtolower(trim($val));
-            if ($col === $highestCol) break;
+            if ($val !== '') {
+                $colHeader[$col] = strtolower(trim($val));
+            }
+            if ($col === $highestCol) {
+                break;
+            }
         }
 
         $imagesByKey = [];
@@ -659,28 +697,40 @@ class QuestionService
             }
             [$col, $row] = Coordinate::coordinateFromString($coord);
             $col = strtoupper(trim($col));
-            $row = (int)$row;
+            $row = (int) $row;
 
-            if ($row <= $headerRow) continue; // solo filas de datos
+            if ($row <= $headerRow) {
+                continue;
+            } // solo filas de datos
 
             $header = $colHeader[$col] ?? null;
-            if (!in_array($header, ['question_image','feedback_image'], true)) continue;
+            if (! in_array($header, ['question_image', 'feedback_image'], true)) {
+                continue;
+            }
 
             // bytes + ext
-            $bytes = null; $ext = 'png';
+            $bytes = null;
+            $ext = 'png';
             if ($drawing instanceof FileDrawing) {
-                $path  = $drawing->getPath(); // puede ser zip://...
+                $path = $drawing->getPath(); // puede ser zip://...
                 $bytes = @file_get_contents($path);
-                $ext   = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? $path, PATHINFO_EXTENSION)) ?: 'png';
+                $ext = strtolower(pathinfo(parse_url($path, PHP_URL_PATH) ?? $path, PATHINFO_EXTENSION)) ?: 'png';
             } elseif ($drawing instanceof MemoryDrawing) {
                 ob_start();
-                $res  = $drawing->getImageResource();
+                $res = $drawing->getImageResource();
                 $mime = $drawing->getMimeType();
-                if (str_contains($mime, 'jpeg')) { imagejpeg($res); $ext = 'jpg'; }
-                else { imagepng($res); $ext = 'png'; }
+                if (str_contains($mime, 'jpeg')) {
+                    imagejpeg($res);
+                    $ext = 'jpg';
+                } else {
+                    imagepng($res);
+                    $ext = 'png';
+                }
                 $bytes = ob_get_clean();
             }
-            if (!$bytes) continue;
+            if (! $bytes) {
+                continue;
+            }
 
             // (Si normalizas imágenes, hazlo aquí y luego hashea)
             $hash = hash('sha256', $bytes);
@@ -693,15 +743,14 @@ class QuestionService
 
             $key = "{$header}_{$row}"; // "question_image_2" o "feedback_image_2"
             $imagesByKey[$key] = [
-                'ext'      => $ext,
-                'hash'     => $hash,
+                'ext' => $ext,
+                'hash' => $hash,
                 'tmp_path' => $tmpWithExt,
             ];
         }
 
         return $imagesByKey;
     }
-
 
     public function getByTypeSubject($typeId, $levelId)
     {
@@ -739,21 +788,42 @@ class QuestionService
                 })
                 ->get();
         }
-            return $this->mQuestionSubject->where('subject_id', $subject)
-                ->whereHas('question', function ($query) use ($type, $level) {
-                    $query->where('question_type_id', $type)
-                        ->where('question_level_id', $level);
-                })
-                ->get();
-    }
 
+        return $this->mQuestionSubject->where('subject_id', $subject)
+            ->whereHas('question', function ($query) use ($type, $level) {
+                $query->where('question_type_id', $type)
+                    ->where('question_level_id', $level);
+            })
+            ->get();
+    }
 
     private function importAtpl($type, $file, $level)
     {
         $imagesByRow = $this->extractImagesByRow($file, 'atpl/feedback');
         $importer = new QuestionsImport($type->id, $level->id, $imagesByRow);
         Excel::import($importer, $file);
+
         return true;
+    }
+
+    private function importMath($type, $file, $level)
+    {
+        if (! $level) {
+            throw new \InvalidArgumentException('Selecciona un nivel de complejidad para importar Matemáticas.');
+        }
+
+        $spreadsheet = IOFactory::load($file);
+        $sheetNames = $spreadsheet->getSheetNames();
+        $sheetName = in_array('Completa', $sheetNames, true)
+            ? 'Completa'
+            : $spreadsheet->getActiveSheet()->getTitle();
+        $spreadsheet->disconnectWorksheets();
+
+        $imagesByRow = $this->extractImagesByRow($file, 'math/feedback', $sheetName);
+        $importer = new MathQuestionsWorkbookImport($sheetName, $type->id, $level->id, $imagesByRow);
+        Excel::import($importer, $file);
+
+        return $importer->questionsImport->importedCount;
     }
 
     private function importSpatial($type, $file, $level)
@@ -772,12 +842,11 @@ class QuestionService
         return true;
     }
 
-
     private function importLogical($type, $file, $level)
     {
-        
+
         $imagesByRow = $this->extractImagesLogical($file); // << ya NO sube a S3 aquí
-        $importer    = new LogicalReasoningImport(
+        $importer = new LogicalReasoningImport(
             $type->id,
             $level->id,
             $imagesByRow,
@@ -792,7 +861,7 @@ class QuestionService
 
     private function getIconsCountByLevel($levelId)
     {
-        return match($levelId) {
+        return match ($levelId) {
             11 => 3,
             12 => 4,
             13 => 5,
@@ -814,13 +883,15 @@ class QuestionService
 
     private function getTypePath($name, $s3)
     {
-        if($s3) {
+        if ($s3) {
             $arr = [
                 'ORIENTACION ESPACIAL' => 'spatial/',
                 'RAZONAMIENTO LOGICO' => 'logical/',
-                'ATPL' => 'atpl/'
+                'MATEMATICAS' => 'math/',
+                'ATPL' => 'atpl/',
             ];
-            return $arr[$name] ?? null;;
+
+            return $arr[$name] ?? null;
         } else {
             $arr = [
                 'MEMORIA A CORTO PLAZO - MEMORAMA' => false,
@@ -829,19 +900,25 @@ class QuestionService
                 'MATEMATICAS' => true,
                 'RAZONAMIENTO LOGICO' => true,
                 'MEMORIA A CORTO PLAZO - PARAMETROS' => true,
-                'ATPL' => true
+                'ATPL' => true,
             ];
-            return $arr[$name] ?? null;;
+
+            return $arr[$name] ?? null;
         }
-        
+
     }
 
     private function looksLikeUrl(?string $v): bool
     {
-        if (!is_string($v)) return false;
+        if (! is_string($v)) {
+            return false;
+        }
         $s = trim($v);
-        if ($s === '') return false;
-        return (bool)preg_match('#^https?://#i', $s);
+        if ($s === '') {
+            return false;
+        }
+
+        return (bool) preg_match('#^https?://#i', $s);
     }
 
     /**
@@ -860,24 +937,31 @@ class QuestionService
         ];
 
         $toKey = function ($v) {
-            if (!$v) return null;
+            if (! $v) {
+                return null;
+            }
             // Si viene URL, obtenemos el path como key; si ya es key, la normalizamos
             if (is_string($v) && str_starts_with($v, 'http')) {
                 $parts = parse_url($v);
-                $path  = $parts['path'] ?? '';
-                $key   = ltrim($path, '/');
+                $path = $parts['path'] ?? '';
+                $key = ltrim($path, '/');
             } else {
-                $key = ltrim((string)$v, '/');
+                $key = ltrim((string) $v, '/');
             }
             // Solo aceptamos imágenes
-            if (!preg_match('/\.(png|jpe?g|gif|webp|svg)$/i', $key)) return null;
+            if (! preg_match('/\.(png|jpe?g|gif|webp|svg)$/i', $key)) {
+                return null;
+            }
+
             return $key;
         };
 
         $keys = [];
         foreach ($candidates as $val) {
             $k = $toKey($val);
-            if ($k) $keys[$k] = true; // set-like para evitar duplicados
+            if ($k) {
+                $keys[$k] = true;
+            } // set-like para evitar duplicados
         }
 
         return array_keys($keys);
@@ -894,17 +978,17 @@ class QuestionService
 
         return $this->model->where(function ($q) use ($key, $url) {
             $q->orWhere('question_image', $key)
-            ->orWhere('question_image', $url)
-            ->orWhere('feedback_image', $key)
-            ->orWhere('feedback_image', $url)
-            ->orWhere('answer_a', $key)
-            ->orWhere('answer_a', $url)
-            ->orWhere('answer_b', $key)
-            ->orWhere('answer_b', $url)
-            ->orWhere('answer_c', $key)
-            ->orWhere('answer_c', $url)
-            ->orWhere('answer_d', $key)
-            ->orWhere('answer_d', $url);
+                ->orWhere('question_image', $url)
+                ->orWhere('feedback_image', $key)
+                ->orWhere('feedback_image', $url)
+                ->orWhere('answer_a', $key)
+                ->orWhere('answer_a', $url)
+                ->orWhere('answer_b', $key)
+                ->orWhere('answer_b', $url)
+                ->orWhere('answer_c', $key)
+                ->orWhere('answer_c', $url)
+                ->orWhere('answer_d', $key)
+                ->orWhere('answer_d', $url);
         })->exists();
     }
 }
